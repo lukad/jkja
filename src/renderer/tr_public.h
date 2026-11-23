@@ -102,9 +102,9 @@ typedef struct {
 	void	(*WorldEffectCommand)(const char *command);
 
 	int		(*RegisterFont)(const char *name);
-	int		(*Font_HeightPixels)(const int index, const float scale = 1.0f);
-	int		(*Font_StrLenPixels)(const char *s, const int index, const float scale = 1.0f);
-	void	(*Font_DrawString)(int x, int y, const char *s, const float *rgba, const int iFontHandle, int iMaxPixelWidth, const float scale = 1.0f);
+	int		(*Font_HeightPixels)(const int index, const float scale);
+	int		(*Font_StrLenPixels)(const char *s, const int index, const float scale);
+	void	(*Font_DrawString)(int x, int y, const char *s, const float *rgba, const int iFontHandle, int iMaxPixelWidth, const float scale);
 	int		(*Font_StrLenChars) (const char *s);
 	qboolean (*Language_IsAsian) (void);
 	qboolean (*Language_UsesSpaces) (void);
