@@ -310,7 +310,16 @@ void	FS_CreatePath (char *OSPath) {
 		return;
 	}
 
-	Q_strlwr(OSPath);
+	// Files the engine creates get lower-case names. That goes for the part of the path
+	// the engine made up, not for the directory it was told to write to: where file names
+	// are case sensitive, that would be a different directory.
+	ofs = OSPath;
+	if ( fs_homepath && !strncmp( OSPath, fs_homepath->string, strlen( fs_homepath->string ) ) ) {
+		ofs = OSPath + strlen( fs_homepath->string );
+	} else if ( fs_basepath && !strncmp( OSPath, fs_basepath->string, strlen( fs_basepath->string ) ) ) {
+		ofs = OSPath + strlen( fs_basepath->string );
+	}
+	Q_strlwr(ofs);
 
 	for (ofs = OSPath+1 ; *ofs ; ofs++) {
 		if (*ofs == PATH_SEP) {	
