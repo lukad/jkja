@@ -410,7 +410,7 @@ Each milestone ends when its exit criteria hold. Boxes are ticked as work lands.
 ### M0. Foundation
 
 - [x] Tag the import commit `raven-2013`
-- [ ] Add licence text and third-party notices ([section 11](#11-legal))
+- [x] Add licence text and third-party notices ([section 11](#11-legal))
 - [ ] Remove out-of-scope trees: `codemp/`, `tools/`, `bin/`, `base/`, top-level `ui/`
 - [ ] Remove binary blobs, CVS and SourceSafe metadata, project files, duplicate project copies
 - [ ] Remove console-only files and strip `_XBOX`, `_GAMECUBE`, `_IMMERSION`, `_FF` blocks mechanically
@@ -542,14 +542,15 @@ Still to be made, each before the milestone that needs it:
 | Ghoul2 separation is harder than estimated | M4 slips | It is isolated in its own milestone; the legacy renderer keeps working throughout |
 | Hidden 64-bit defects in game logic | Crashes far into the campaign | Sanitizer builds as the default for play testing |
 | macOS and Windows cannot be run on the development machine | Defects found late | CI builds from M3; run-time checks on real machines are an explicit exit criterion |
-| The licence status of the release is misremembered | Cannot publish | Verify against the original release before the repository is made public |
+| The licence statement was taken from mirrors of the release, not from the original SourceForge page | Cannot publish if the mirrors are wrong | Check the original release page before the repository is made public |
 | Scope | The project never reaches the renderer | Multiplayer and tools are out; each milestone is playable or testable on its own |
 
 ## 11. Legal
 
-- Raven's release is understood to be under the GNU General Public License, version 2.
-  The tree as imported contains no licence file. The licence text of the original
-  release must be confirmed and added in M0, before anything is published.
+- Raven's release is under the GNU General Public License, version 2. The tree as
+  imported contains no licence file; the readme of the release, as preserved by mirrors,
+  states "GNU GPLv2" without "or later" wording. The licence text is in `LICENSE`, and
+  the provenance and third-party notices are in `NOTICE.md`.
 - The Xing MP3 decoder in `mp3code/` carries a GPL notice in its headers. jpeg-6, zlib
   and libpng carry their own permissive notices and are being replaced.
 - Proprietary binaries and headers (SmartHeap, Immersion, EAX, Bink, the OpenAL
