@@ -204,13 +204,19 @@ main
 ==================
 */
 int main(int argc, char **argv) {
-	// The engine takes its command line as one string.
+	// The engine takes its command line as one string and splits it at spaces again, so
+	// an argument that contains one is quoted.
 	std::string commandLine;
 	for (int i = 1; i < argc; i++) {
+		const std::string argument = argv[i];
 		if (i > 1) {
 			commandLine += ' ';
 		}
-		commandLine += argv[i];
+		if (argument.empty() || argument.find(' ') != std::string::npos) {
+			commandLine += '"' + argument + '"';
+		} else {
+			commandLine += argument;
+		}
 	}
 
 	// get the initial time base

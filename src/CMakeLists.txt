@@ -354,3 +354,20 @@ set_source_files_properties(
   game/g_vehicles.c
   PROPERTIES LANGUAGE CXX
 )
+
+if(BUILD_TESTING)
+  # Needs the retail game data; skipped without it (docs/design.md, section 7).
+  add_test(
+    NAME smoke-load-map
+    COMMAND "${CMAKE_COMMAND}"
+      "-DJASP=$<TARGET_FILE:jasp>"
+      "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/smoke"
+      -DMAP=yavin1b
+      -DFRAMES=120
+      -P "${PROJECT_SOURCE_DIR}/cmake/SmokeTest.cmake"
+  )
+  set_tests_properties(smoke-load-map PROPERTIES
+    SKIP_REGULAR_EXPRESSION "^SKIPPED"
+    TIMEOUT 900
+  )
+endif()

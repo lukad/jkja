@@ -73,6 +73,8 @@ TEST_CASE("the zip reader inflates deflated entries and copies stored ones") {
 
 	unzFile archive = unzOpen(path.c_str());
 	REQUIRE(archive != NULL);
+	// as the engine does after opening an archive; nothing else selects an entry
+	REQUIRE(unzGoToFirstFile(archive) == UNZ_OK);
 
 	unz_global_info info;
 	REQUIRE(unzGetGlobalInfo(archive, &info) == UNZ_OK);
