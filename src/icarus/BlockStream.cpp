@@ -98,7 +98,7 @@ ReadMember
 int CBlockMember::ReadMember( char **stream, int *streamPos, CIcarus* icarus )
 {
 	IGameInterface* game = icarus->GetGame();
-	m_id = *(int *) (*stream + *streamPos);
+	memcpy( &m_id, *stream + *streamPos, sizeof( m_id ) );	// the values of a script are not aligned
 	*streamPos += sizeof( int );
 
 	if ( m_id == CIcarus::ID_RANDOM )
@@ -111,7 +111,7 @@ int CBlockMember::ReadMember( char **stream, int *streamPos, CIcarus* icarus )
 	}
 	else
 	{
-		m_size = *(int *) (*stream + *streamPos);
+		memcpy( &m_size, *stream + *streamPos, sizeof( m_size ) );
 		*streamPos += sizeof( int );
 		m_data = game->Malloc( m_size );
 		memcpy( m_data, (*stream + *streamPos), m_size );
@@ -507,10 +507,10 @@ int CBlockStream::ReadBlock( CBlock *get, CIcarus* icarus )
 	if (!BlockAvailable())
 		return false;
 
-	b_id		= *(int *) (m_stream + m_streamPos);
+	memcpy( &b_id, m_stream + m_streamPos, sizeof( b_id ) );	// the values of a script are not aligned
 	m_streamPos += sizeof( b_id );
 
-	numMembers	= *(int *) (m_stream + m_streamPos);
+	memcpy( &numMembers, m_stream + m_streamPos, sizeof( numMembers ) );
 	m_streamPos += sizeof( numMembers );
 
 	flags		= *(unsigned char*) (m_stream + m_streamPos);
@@ -558,7 +558,7 @@ int CBlockStream::Open( char *buffer, int size )
 		id_header[i] = *(m_stream + m_streamPos++);
 	}
 
-	version = *(float *) (m_stream + m_streamPos);
+	memcpy( &version, m_stream + m_streamPos, sizeof( version ) );
 	m_streamPos += sizeof( version );
 
 	//Check for valid header
