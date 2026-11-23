@@ -16,6 +16,7 @@ Architectural decisions for this project, recorded as
 | [0007](0007-game-data-location.md) | Game data location is run-time configuration | accepted |
 | [0008](0008-renderer-feature-scope.md) | Renderer scope: rasterised HDR, shadows, PBR; no ray tracing | accepted |
 | [0009](0009-graphics-api.md) | Graphics API: SDL3 GPU | accepted |
+| [0010](0010-project-and-binary-names.md) | Project name `jasp`; binaries keep their original names | accepted |
 
 ## How to add a decision
 

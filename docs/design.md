@@ -134,9 +134,10 @@ Two binaries, as shipped:
   ICARUS.
 
 They stay separate because both compile the shared `q_shared`/`q_math` sources with
-different settings and define functions of the same name. The module name is no longer
-hardcoded to `jagamex86.dll`; it is derived per platform. Final binary names depend on
-the project name, which is open (see [section 9](#9-decisions)).
+different settings and define functions of the same name. The engine is `jasp`; the module
+is `jagame` plus the architecture (`jagamex86_64`, `jagamearm64`), derived at build time
+instead of being hardcoded to `jagamex86.dll`
+([ADR-0010](decisions/0010-project-and-binary-names.md)).
 
 ### 4.3 Build
 
@@ -525,7 +526,6 @@ Still to be made, each before the milestone that needs it:
 
 | Decision | Needed by |
 |---|---|
-| Project name and binary names | M0 |
 | Dependency policy and replacements for bundled libraries | M1 |
 | Game module interface (shape of the typed cgame interface) | M1 |
 | Audio backend | M2 |
