@@ -116,7 +116,10 @@ void MSG_WriteBits( msg_t *msg, int value, int bits ) {
 		} else {
 			int	r;
 
-			r = 1 << (-bits-1);
+			// The count is negative here. The x86 processors the game was written on take
+			// a shift count modulo 32, which is what the mask does; the check that follows
+			// has therefore never fired for the field widths in use.
+			r = 1 << ((bits-1) & 31);
 
 			if ( value >  r - 1 || value < -r ) {
 				overflows++;
