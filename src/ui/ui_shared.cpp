@@ -9219,12 +9219,128 @@ void Item_SetMouseOver(itemDef_t *item, qboolean focus)
 
 /*
 =================
+Item_CorrectedTextRect
+=================
+*/
+static rectDef_t *Item_CorrectedTextRect(itemDef_t *item) 
+{
+	static rectDef_t rect;
+
+	if (item) 
+	{
+		if (item->type==ITEM_TYPE_BUTTON)
+		{
+			return &item->window.rect;
+		}
+		
+		memset(&rect, 0, sizeof(rectDef_t));
+		rect = item->textRect;
+		if (rect.w) 
+		{
+			rect.y -= rect.h;
+		}
+	}
+
+	return &rect;
+}
+
+/*
+=================
 Menu_HandleMouseMove
 =================
 */
 void Menu_HandleMouseMove(menuDef_t *menu, float x, float y) 
 {
-	return ;
+	int i, pass;
+	qboolean focusSet = qfalse;
+
+	itemDef_t *overItem;
+	if (menu == NULL) 
+	{
+		return;
+	}
+
+	if (!(menu->window.flags & (WINDOW_VISIBLE | WINDOW_FORCED))) 
+	{
+		return;
+	}
+
+	if (itemCapture) 
+	{
+		//Item_MouseMove(itemCapture, x, y);
+		return;
+	}
+
+	if (g_waitingForKey || g_editingField) 
+	{
+		return;
+	}
+
+	// FIXME: this is the whole issue of focus vs. mouse over.. 
+	// need a better overall solution as i don't like going through everything twice
+	for (pass = 0; pass < 2; pass++) 
+	{
+		for (i = 0; i < menu->itemCount; i++) 
+		{
+			// turn off focus each item
+			// menu->items[i].window.flags &= ~WINDOW_HASFOCUS;
+
+			if (!(menu->items[i]->window.flags & (WINDOW_VISIBLE | WINDOW_FORCED))) 
+			{
+				continue;
+			}
+
+			if (menu->items[i]->window.flags & WINDOW_INACTIVE) 
+			{
+				continue;
+			}
+
+			// items can be enabled and disabled based on cvars
+			if (menu->items[i]->cvarFlags & (CVAR_ENABLE | CVAR_DISABLE) && !Item_EnableShowViaCvar(menu->items[i], CVAR_ENABLE)) 
+			{
+				continue;
+			}
+
+			if (menu->items[i]->cvarFlags & (CVAR_SHOW | CVAR_HIDE) && !Item_EnableShowViaCvar(menu->items[i], CVAR_SHOW)) 
+			{
+				continue;
+			}
+
+			if (Rect_ContainsPoint(&menu->items[i]->window.rect, x, y)) 
+			{
+				if (pass == 1) 
+				{
+					overItem = menu->items[i];
+					if (overItem->type == ITEM_TYPE_TEXT && overItem->text) 
+					{
+						if (!Rect_ContainsPoint(Item_CorrectedTextRect(overItem), x, y)) 
+						{
+							continue;
+						}
+					}
+
+					// if we are over an item
+					if (IsVisible(overItem->window.flags)) 
+					{
+						// different one
+						Item_MouseEnter(overItem, x, y);
+						// Item_SetMouseOver(overItem, qtrue);
+
+						// if item is not a decoration see if it can take focus
+						if (!focusSet) 
+						{
+							focusSet = Item_SetFocus(overItem, x, y);
+						}
+					}
+				}
+
+			} else if (menu->items[i]->window.flags & WINDOW_MOUSEOVER) 
+			{
+				Item_MouseLeave(menu->items[i]);
+				Item_SetMouseOver(menu->items[i], qfalse);
+			}
+		}
+	}
 }
 
 /*
@@ -9966,6 +10082,48 @@ static void Display_CloseCinematics()
 	for (i = 0; i < menuCount; i++) 
 	{
 		Menu_CloseCinematics(&Menus[i]);
+	}
+}
+
+/*
+=================
+Menus_HandleOOBClick
+=================
+*/
+void Menus_HandleOOBClick(menuDef_t *menu, int key, qboolean down) 
+{
+	if (menu) 
+	{
+		int i;
+		// basically the behaviour we are looking for is if there are windows in the stack.. see if 
+		// the cursor is within any of them.. if not close them otherwise activate them and pass the 
+		// key on.. force a mouse move to activate focus and script stuff 
+		if (down && menu->window.flags & WINDOW_OOB_CLICK) 
+		{
+			Menu_RunCloseScript(menu);
+			menu->window.flags &= ~(WINDOW_HASFOCUS | WINDOW_VISIBLE);
+		}
+
+		for (i = 0; i < menuCount; i++) 
+		{
+			if (Menu_OverActiveItem(&Menus[i], DC->cursorx, DC->cursory)) 
+			{
+				Menu_RunCloseScript(menu);
+				menu->window.flags &= ~(WINDOW_HASFOCUS | WINDOW_VISIBLE);
+				Menus_Activate(&Menus[i]);
+				Menu_HandleMouseMove(&Menus[i], DC->cursorx, DC->cursory);
+				Menu_HandleKey(&Menus[i], key, down);
+			}
+		}
+
+		if (Display_VisibleMenuCount() == 0) 
+		{
+			if (DC->Pause) 
+			{
+				DC->Pause(qfalse);
+			}
+		}
+		Display_CloseCinematics();
 	}
 }
 
@@ -10790,6 +10948,49 @@ Item_Slider_HandleKey
 */
 qboolean Item_Slider_HandleKey(itemDef_t *item, int key, qboolean down) 
 {
+	float x, value, width, work;
+
+	//DC->Print("slider handle key\n");
+	if (item->window.flags & WINDOW_HASFOCUS && item->cvar && Rect_ContainsPoint(&item->window.rect, DC->cursorx, DC->cursory)) 
+	{
+		if (key == K_MOUSE1 || key == K_ENTER || key == K_MOUSE2 || key == K_MOUSE3) 
+		{
+			editFieldDef_t *editDef = (editFieldDef_s *) item->typeData;
+			if (editDef) 
+			{
+				rectDef_t testRect;
+				width = SLIDER_WIDTH;
+				if (item->text) 
+				{
+					x = item->textRect.x + item->textRect.w + 8;
+				} 
+				else 
+				{
+					x = item->window.rect.x;
+				}
+
+				testRect = item->window.rect;
+				testRect.x = x;
+				value = (float)SLIDER_THUMB_WIDTH / 2;
+				testRect.x -= value;
+				//DC->Print("slider x: %f\n", testRect.x);
+				testRect.w = (SLIDER_WIDTH + (float)SLIDER_THUMB_WIDTH / 2);
+				//DC->Print("slider w: %f\n", testRect.w);
+				if (Rect_ContainsPoint(&testRect, DC->cursorx, DC->cursory)) 
+				{
+					work = DC->cursorx - x;
+					value = work / width;
+					value *= (editDef->maxVal - editDef->minVal);
+					// vm fuckage
+					// value = (((float)(DC->cursorx - x)/ SLIDER_WIDTH) * (editDef->maxVal - editDef->minVal));
+					value += editDef->minVal;
+					DC->setCVar(item->cvar, va("%f", value));
+					return qtrue;
+				}
+			}
+		}
+	}
+	//DC->Print("slider handle key exit\n");
 	return qfalse;
 }
 
@@ -10934,6 +11135,19 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down)
 		return;
 	}
 
+		// see if the mouse is within the window bounds and if so is this a mouse click
+	if (down && !(menu->window.flags & WINDOW_POPUP) && !Rect_ContainsPoint(&menu->window.rect, DC->cursorx, DC->cursory)) 
+	{
+		static qboolean inHandleKey = qfalse;
+		if (!inHandleKey && key == K_MOUSE1 || key == K_MOUSE2 || key == K_MOUSE3) 
+		{
+			inHandleKey = qtrue;
+			Menus_HandleOOBClick(menu, key, down);
+			inHandleKey = qfalse;
+			inHandler = qfalse;
+			return;
+		}
+	}
 
 	// get the item with focus
 	for (i = 0; i < menu->itemCount; i++) 
@@ -10998,11 +11212,52 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down)
 		case A_CURSOR_DOWN:
 			Menu_SetNextCursorItem(menu);
 			break;
+		case K_MOUSE1:
+		case K_MOUSE2:
+			if (item) 
+			{
+				if (item->type == ITEM_TYPE_TEXT) 
+				{
+					if (Rect_ContainsPoint(Item_CorrectedTextRect(item), DC->cursorx, DC->cursory)) 
+					{
+						Item_Action(item);
+					}
+				} 
+				else if (item->type == ITEM_TYPE_EDITFIELD || item->type == ITEM_TYPE_NUMERICFIELD) 
+				{
+					if (Rect_ContainsPoint(&item->window.rect, DC->cursorx, DC->cursory)) 
+					{
+						item->cursorPos = 0;
+						g_editingField = qtrue;
+						g_editItem = item;
+						DC->setOverstrikeMode(qtrue);
+					}
+				} 
+				else 
+				{
+					if (Rect_ContainsPoint(&item->window.rect, DC->cursorx, DC->cursory)) 
+					{
+						Item_Action(item);
+					}
+				}
+			}
+			break;
+
 		case A_KP_ENTER:
 		case A_ENTER:
 			if (item) 
 			{
-				Item_Action(item);
+				if (item->type == ITEM_TYPE_EDITFIELD || item->type == ITEM_TYPE_NUMERICFIELD) 
+				{
+					item->cursorPos = 0;
+					g_editingField = qtrue;
+					g_editItem = item;
+					DC->setOverstrikeMode(qtrue);
+				} 
+				else 
+				{
+						Item_Action(item);
+				}
 			}
 			break;
 	}
