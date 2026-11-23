@@ -41,10 +41,23 @@ set(CMAKE_C_EXTENSIONS OFF)
 # No C++ modules are used; skip the dependency scan CMake would run for them.
 set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
 
-# Nothing under src/ is built yet; the engine and game module targets arrive in M1
-# (docs/design.md, section 8).
+# The architecture as it appears in the game module's file name
+# (docs/decisions/0010-project-and-binary-names.md).
+string(TOLOWER "${CMAKE_SYSTEM_PROCESSOR}" jasp_processor)
+if(CMAKE_OSX_ARCHITECTURES)
+  string(TOLOWER "${CMAKE_OSX_ARCHITECTURES}" jasp_processor)
+endif()
+if(jasp_processor MATCHES "^(x86_64|amd64)$")
+  set(JASP_ARCHITECTURE x86_64)
+elseif(jasp_processor MATCHES "^(aarch64|arm64)$")
+  set(JASP_ARCHITECTURE arm64)
+else()
+  message(FATAL_ERROR "Unsupported processor: ${CMAKE_SYSTEM_PROCESSOR}. Supported: x86-64, arm64.")
+endif()
 
 include(CTest)
 include(cmake/StrictWarnings.cmake)
+include(cmake/LegacyTarget.cmake)
 
 add_subdirectory(tools)
+add_subdirectory(src)
