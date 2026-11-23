@@ -164,8 +164,7 @@ or configs will never get loaded from disk!
 char		fs_gamedir[MAX_OSPATH];	// this will be a single file name with no separators
 cvar_t		*fs_debug;
 cvar_t		*fs_basepath;
-cvar_t		*fs_cdpath;
-cvar_t		*fs_copyfiles;
+cvar_t		*fs_homepath;
 cvar_t		*fs_gamedirvar;
 cvar_t		*fs_restrict;
 searchpath_t	*fs_searchpaths;
@@ -393,7 +392,7 @@ fileHandle_t FS_FOpenFileAppend( const char *filename ) {
 	// don't let sound stutter
 	S_ClearSoundBuffer();
 
-	ospath = FS_BuildOSPath( fs_basepath->string, fs_gamedir, filename );
+	ospath = FS_BuildOSPath( fs_homepath->string, fs_gamedir, filename );
 
 	if ( fs_debug->integer ) {
 		Com_Printf( "FS_FOpenFileAppend: %s\n", ospath );
@@ -559,10 +558,9 @@ void FS_InitFilesystem( void ) {
 	// we have to specially handle this, because normal command
 	// line variable sets don't happen until after the filesystem
 	// has already been initialized
-	Com_StartupVariable( "fs_cdpath" );
 	Com_StartupVariable( "fs_basepath" );
+	Com_StartupVariable( "fs_homepath" );
 	Com_StartupVariable( "fs_game" );
-	Com_StartupVariable( "fs_copyfiles" );
 	Com_StartupVariable( "fs_restrict" );
 
 	// try to start up normally

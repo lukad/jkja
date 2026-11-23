@@ -769,8 +769,8 @@ qboolean	Sys_CheckCD( void );
 
 void	Sys_Mkdir( const char *path );
 char	*Sys_Cwd( void );
-char	*Sys_DefaultCDPath(void);
 char	*Sys_DefaultBasePath(void);
+char	*Sys_DefaultHomePath(void);	// where configuration, saves and screenshots are written
 
 char **Sys_ListFiles( const char *directory, const char *extension, int *numfiles, qboolean wantsubs );
 void	Sys_FreeFileList( char **filelist );
