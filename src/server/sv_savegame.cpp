@@ -1348,14 +1348,16 @@ qboolean SG_Append(unsigned int chid, const void *pvData, int iLength)
 	
 #ifdef _DEBUG
 	int				i;
-	unsigned int	*pTest;
+	const byte		*pTest;
 
-	pTest = (unsigned int *) pvData;
-	for (i=0; i<iLength/4; i++, pTest++)
+	pTest = (const byte *) pvData;
+	for (i=0; i<iLength/4; i++, pTest+=4)
 	{
-		assert(*pTest != 0xfeeefeee);
-		assert(*pTest != 0xcdcdcdcd);
-		assert(*pTest != 0xdddddddd);
+		unsigned int test;
+		memcpy(&test, pTest, sizeof(test));	// the data is not always aligned
+		assert(test != 0xfeeefeee);
+		assert(test != 0xcdcdcdcd);
+		assert(test != 0xdddddddd);
 	}
 #endif
 

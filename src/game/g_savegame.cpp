@@ -465,9 +465,9 @@ static void EnumerateField(const save_field_t *pField, const byte *pbBase)
 		*(qboolean *)pv = !!(*(int *)pv);
 		break;
 
-	// These are pointers that are always recreated
+	// These are always recreated. The one field of this type, m_iIcarusID, is an int.
 	case F_NULL:
-		*(void **)pv = NULL;
+		*(int *)pv = 0;
 		break;
 
 	case F_IGNORE:
