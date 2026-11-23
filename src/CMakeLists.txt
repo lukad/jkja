@@ -126,6 +126,7 @@ add_executable(jasp
   server/sv_savegame.cpp
   server/sv_snapshot.cpp
   server/sv_world.cpp
+  sys/sys_console.cpp
   sys/sys_files.cpp
   sys/sys_input.cpp
   sys/sys_main.cpp
@@ -154,6 +155,7 @@ jasp_legacy_target(jasp)
 # The platform layer is new code and is held to the warnings of new code. They are not
 # errors here, because its files include headers of the legacy code.
 set(jasp_sys_sources
+  sys/sys_console.cpp
   sys/sys_files.cpp
   sys/sys_input.cpp
   sys/sys_main.cpp

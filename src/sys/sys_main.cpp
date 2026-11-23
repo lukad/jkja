@@ -24,6 +24,15 @@ int eventTail = 0;
 // in megabytes.
 constexpr int kLowMemoryThreshold = 128;
 
+// Ends the process without running exit handlers. The thread that reads standard input
+// (sys_console.cpp) is usually blocked in a read and holds the lock of the stream while
+// it is; exit() would wait for that lock, that is, for the next line to be typed.
+[[noreturn]] void EndProcess(int status) {
+	std::fflush(stdout);
+	std::fflush(stderr);
+	std::_Exit(status);
+}
+
 } // namespace
 
 /*
@@ -75,7 +84,7 @@ void QDECL Sys_Error(const char *error, ...) {
 
 	Sys_UnloadGame();
 	SDL_Quit();
-	std::exit(1);
+	EndProcess(1);
 }
 
 /*
@@ -87,8 +96,7 @@ void Sys_Quit(void) {
 	IN_Shutdown();
 	Sys_UnloadGame();
 	SDL_Quit();
-	std::fflush(stdout);
-	std::exit(0);
+	EndProcess(0);
 }
 
 /*
@@ -106,11 +114,38 @@ bool Sys_Headless(void) {
 ================
 Sys_GetClipboardData
 
+Returns the first line of the text on the clipboard, in memory the caller frees, or NULL.
 The clipboard belongs to the window system; without a window there is none.
 ================
 */
 char *Sys_GetClipboardData(void) {
-	return NULL;
+	if (!Sys_Window() || !SDL_HasClipboardText()) {
+		return NULL;
+	}
+
+	char *text = SDL_GetClipboardText();
+	if (!text) {
+		return NULL;
+	}
+
+	// The clipboard holds UTF-8 and the engine's characters are single bytes: what does
+	// not fit is left out, so the result is never longer than the original.
+	char *data = static_cast<char *>(Z_Malloc(static_cast<int>(std::strlen(text)) + 1,
+	                                          TAG_CLIPBOARD, qfalse));
+	char *out = data;
+	const char *cursor = text;
+	while (Uint32 codepoint = SDL_StepUTF8(&cursor, NULL)) {
+		if (codepoint == '\n' || codepoint == '\r' || codepoint == '\b') {
+			break;
+		}
+		if (codepoint < 0x100) {
+			*out++ = static_cast<char>(codepoint);
+		}
+	}
+	*out = 0;
+
+	SDL_free(text);
+	return data;
 }
 
 /*
@@ -163,8 +198,9 @@ Sys_GetEvent
 ================
 */
 sysEvent_t Sys_GetEvent(void) {
-	// see what the window system has for the queue
+	// see what the window system and standard input have for the queue
 	Sys_PumpEvents();
+	Sys_QueueConsoleInput();
 
 	if (eventHead > eventTail) {
 		eventTail++;
@@ -240,6 +276,8 @@ int main(int argc, char **argv) {
 	Sys_Milliseconds();
 
 	Com_Init(commandLine.data());
+
+	Sys_StartConsoleInput();
 
 	// main game loop
 	while (true) {
