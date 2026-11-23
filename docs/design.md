@@ -229,8 +229,8 @@ code of the release:
   settings that table is the identity and overbright bits are off, so the picture is
   the release's. The menu's brightness slider, which changes `r_gamma`, is what suffers:
   it has no visible effect until the renderer restarts, and then only on textures.
-  What is done about it is the subject of
-  [ADR-0018](decisions/0018-brightness-without-a-gamma-ramp.md), which is proposed.
+  The table is therefore to be applied to the finished frame by a pass in the
+  renderer's back end ([ADR-0018](decisions/0018-brightness-without-a-gamma-ramp.md)).
 - The console reads lines from standard input on a thread of its own.
 - The game module is unloaded at the top of the main loop, not at the moment the engine
   lets go of it, because an error can be on its way up a stack that has functions of
@@ -564,8 +564,9 @@ one map, `yavin1b`, for 120 frames.
       the code that stores one is commented out in the release, the retail executable
       has no code that reads one, and the menus show the picture of the level instead
 - [ ] Gamepads
-- [ ] Decide and record: brightness without a gamma ramp (section 4.5);
-      [ADR-0018](decisions/0018-brightness-without-a-gamma-ramp.md) is proposed
+- [x] Decide and record: brightness without a gamma ramp (section 4.5)
+- [ ] Brightness by a pass over the finished frame
+      ([ADR-0018](decisions/0018-brightness-without-a-gamma-ramp.md))
 - [ ] Remove `src/win32` once nothing more has to be restored from it
 - [ ] Fix run-time 64-bit defects found by play testing
 
@@ -695,7 +696,6 @@ Still to be made, each before the milestone that needs it:
 
 | Decision | Needed by |
 |---|---|
-| Brightness without a gamma ramp ([ADR-0018](decisions/0018-brightness-without-a-gamma-ramp.md), proposed) | M2 |
 | Continuous integration provider | M3 |
 | Shader language and toolchain | M5 |
 | Removal of the legacy renderer | end of M5 |
