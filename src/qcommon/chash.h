@@ -17,7 +17,7 @@ private:
 	T		*mNext;
 	int		mCount;
 	T		*mPrevious;					// Internal work variable
-	long	mHash;						// Internal work variable
+	int	mHash;						// Internal work variable
 
 	// Creates the hash value and sets the mHash member
 	void CreateHash(const char *key)
@@ -29,7 +29,7 @@ private:
 		letter = *key++;
 		while (letter)
 		{
-			mHash += (long)(letter) * (i + 119);
+			mHash += (int)(letter) * (i + 119);
 
 			i++;
 			letter = *key++;

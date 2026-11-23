@@ -521,7 +521,7 @@ enum
 typedef struct pscript_s
 {
 	char	*buffer;
-	long	length;
+	int	length;
 } pscript_t;
 
 // STL map type definitions for the Entity List and Script Buffer List.
@@ -673,8 +673,8 @@ public:
 	void	FreeVariable( const char *name );
 
 	//Save / Load functions
-	int		WriteSaveData( unsigned long chid, void *data, int length );
-	int		ReadSaveData( unsigned long chid, void *address, int length, void **addressptr = NULL );
+	int		WriteSaveData( unsigned int chid, void *data, int length );
+	int		ReadSaveData( unsigned int chid, void *address, int length, void **addressptr = NULL );
 	int		LinkGame( int entID, int icarusID );
 	
 	// Access functions

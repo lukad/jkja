@@ -463,9 +463,9 @@ Ghoul2 Insert Start
 return a hash value for the filename
 ================
 */
-static long generateHashValue( const char *fname, const int size ) {
+static int generateHashValue( const char *fname, const int size ) {
 	int		i;
-	long	hash;
+	int	hash;
 	char	letter;
 
 	hash = 0;
@@ -474,7 +474,7 @@ static long generateHashValue( const char *fname, const int size ) {
 		letter = tolower(fname[i]);
 		if (letter =='.') break;				// don't include extension
 		if (letter =='\\') letter = '/';		// damn path names
-		hash+=(long)(letter)*(i+119);
+		hash+=(int)(letter)*(i+119);
 		i++;
 	}
 	hash &= (size-1);

@@ -85,14 +85,14 @@ public:
 
 	int Save();
 	int Load();
-	int Run(int icarusID, char* buffer, long length);
+	int Run(int icarusID, char* buffer, int length);
 	void DeleteIcarusID(int& icarusID);
 	int GetIcarusID(int ownerID);
 	int Update(int icarusID);
 
 	int IsRunning(int icarusID);
 	void Completed( int icarusID, int taskID );
-	void Precache(char* buffer, long length);
+	void Precache(char* buffer, int length);
 
 protected:
 	void Delete();
@@ -240,8 +240,8 @@ public:
 
 	// Used by the new Icarus Save code.
 	enum { MAX_BUFFER_SIZE = 100000 };
-	unsigned long m_ulBufferCurPos;
-	unsigned long m_ulBytesRead;
+	unsigned int m_ulBufferCurPos;
+	unsigned int m_ulBytesRead;
 	unsigned char *m_byBuffer;
 	// Destroy the File Buffer.
 	void DestroyBuffer();
@@ -250,9 +250,9 @@ public:
 	// Reset the buffer completely.
 	void ResetBuffer();
 	// Write to a buffer.
-	void BufferWrite( void *pSrcData, unsigned long ulNumBytesToWrite );
+	void BufferWrite( void *pSrcData, unsigned int ulNumBytesToWrite );
 	// Read from a buffer.
-	void BufferRead( void *pDstBuff, unsigned long ulNumBytesToRead );
+	void BufferRead( void *pDstBuff, unsigned int ulNumBytesToRead );
 };
 
 #endif

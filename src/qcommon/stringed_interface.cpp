@@ -54,7 +54,7 @@ unsigned char *SE_LoadFileData( const char *psFileName, int *piLoadedLength /* =
 		FILE *fh = fopen( psFileName, "rb" );
 		if (fh)
 		{
-			long lLength = filesize(fh);
+			int lLength = filesize(fh);
 
 			if (lLength > 0)
 			{

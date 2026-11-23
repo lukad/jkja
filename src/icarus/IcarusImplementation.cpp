@@ -292,7 +292,7 @@ int CIcarus::AllocateSequences( int numSequences, int *idTable )
 	return true;
 }
 
-void CIcarus::Precache(char* buffer, long length)
+void CIcarus::Precache(char* buffer, int length)
 {
 	IGameInterface* game = IGameInterface::GetGame(m_flavor);
 	CBlockStream	stream;
@@ -387,7 +387,7 @@ CSequencer* CIcarus::FindSequencer(int sequencerID)
 	return (*mi).second;
 }
 
-int CIcarus::Run(int icarusID, char* buffer, long length)
+int CIcarus::Run(int icarusID, char* buffer, int length)
 {
 	CSequencer* sequencer = FindSequencer(icarusID);
 	if(sequencer)
@@ -735,7 +735,7 @@ void CIcarus::CreateBuffer()
 }
 
 // Write to a buffer.
-void CIcarus::BufferWrite( void *pSrcData, unsigned long ulNumBytesToWrite )
+void CIcarus::BufferWrite( void *pSrcData, unsigned int ulNumBytesToWrite )
 {
 	if ( !pSrcData )
 		return;
@@ -756,7 +756,7 @@ void CIcarus::BufferWrite( void *pSrcData, unsigned long ulNumBytesToWrite )
 }
 
 // Read from a buffer.
-void CIcarus::BufferRead( void *pDstBuff, unsigned long ulNumBytesToRead )
+void CIcarus::BufferRead( void *pDstBuff, unsigned int ulNumBytesToRead )
 {
 	if ( !pDstBuff )
 		return;

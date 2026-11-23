@@ -157,7 +157,7 @@ private:
 	int						mWaterContents;								// Contents of the water shader
 	int						mWaterSurfaceFlags;							// Surface flags of the water shader
 
-	unsigned long			holdrand;
+	unsigned int			holdrand;
 	
 	list<CArea *>			mAreas;										// List of flattened areas on this landscape
 	list<CArea *>::iterator	mAreasIt;
@@ -236,7 +236,7 @@ public:
 	CRandomTerrain			*GetRandomTerrain(void) { return mRandomTerrain; }
 
 	void			rand_seed(int seed);
-	unsigned long	get_rand_seed(void) { return holdrand; }
+	unsigned int	get_rand_seed(void) { return holdrand; }
 
 	float			flrand(float min, float max);
 	int				irand(int min, int max);

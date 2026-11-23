@@ -12,14 +12,14 @@
 ///////////// statics for CDraw32 //////////////////////////////////
 // Used by all drawing routines as the "current" drawing context
 CPixel32* CDraw32::buffer = NULL; 	// pointer to 32-bit deep pixel buffer
-long	CDraw32::buf_width=0;		// width of buffer in pixels
-long	CDraw32::buf_height=0;		// height of buffer in pixels
-long	CDraw32::stride = 0;		// stride in pixels
-long	CDraw32::clip_min_x=0;		// clip bounds
-long	CDraw32::clip_min_y=0;		// clip bounds
-long	CDraw32::clip_max_x=0;		// clip bounds
-long	CDraw32::clip_max_y=0;		// clip bounds
-long*	CDraw32::row_off = NULL;	// Table for quick Y calculations
+int	CDraw32::buf_width=0;		// width of buffer in pixels
+int	CDraw32::buf_height=0;		// height of buffer in pixels
+int	CDraw32::stride = 0;		// stride in pixels
+int	CDraw32::clip_min_x=0;		// clip bounds
+int	CDraw32::clip_min_y=0;		// clip bounds
+int	CDraw32::clip_max_x=0;		// clip bounds
+int	CDraw32::clip_max_y=0;		// clip bounds
+int*	CDraw32::row_off = NULL;	// Table for quick Y calculations
 
 CDraw32::CDraw32() 
 //USE:	constructor
@@ -42,8 +42,8 @@ int	imgKernel[5][5] =
 
 const int KWIDTH = 2;
 
-void CDraw32::Emboss(long dstX, long dstY, long width, long height, 
-					 CPixel32* clrImage, long clrX, long clrY, long clrStride)
+void CDraw32::Emboss(int dstX, int dstY, int width, int height, 
+					 CPixel32* clrImage, int clrX, int clrY, int clrStride)
 {
 	CPixel32 	*dst;
 	CPixel32 	*clr;
@@ -88,14 +88,14 @@ void CDraw32::Emboss(long dstX, long dstY, long width, long height,
 
 }
 
-bool CDraw32::SetBufferSize(long width,long height,long stride_len)
+bool CDraw32::SetBufferSize(int width,int height,int stride_len)
 //USE:	setup for a particular size drawing buffer
 //			(do not re-setup if buffer size has not changed)
 //IN:		width,height	- size of buffer
 //			stride_len		- distance to next line
 //OUT:	true if everything goes OK, otherwise false
 {
-	long		i;
+	int		i;
 
 	assert(width!=0);
 	assert(height!=0);
@@ -112,7 +112,7 @@ bool CDraw32::SetBufferSize(long width,long height,long stride_len)
   			delete [] row_off;
 
 		// row offsets used for quick pixel address calcs
-		row_off = new long[height];
+		row_off = new int[height];
 
 		assert(row_off != NULL);
 		if (row_off == NULL)
@@ -128,7 +128,7 @@ bool CDraw32::SetBufferSize(long width,long height,long stride_len)
 	return true;
 }
 
-void CDraw32::ClearLines(CPixel32 color,long start,long end)
+void CDraw32::ClearLines(CPixel32 color,int start,int end)
 //USE:	clear screen buffer to color provided for lines
 //IN:		color	 				- 32-bit color value
 //			start through end		- line numbers
@@ -155,7 +155,7 @@ void CDraw32::ClearLines(CPixel32 color,long start,long end)
 	}
 }
 
-void CDraw32::SetAlphaLines(byte alpha,long start,long end)
+void CDraw32::SetAlphaLines(byte alpha,int start,int end)
 //USE:	set the alpha value only
 //IN:		alpha	 				- 8-bit alpha value
 //			start through end		- line numbers
@@ -190,12 +190,12 @@ void CDraw32::SetAlphaLines(byte alpha,long start,long end)
 #define TOP    4
 #define BOTTOM 8
 
-static long code(long x,long y)
+static int code(int x,int y)
 //USE:	determines where a point is in relation to a bounding box
 //IN:		x,y		- coordinate pair
 //OUT:	clipping code compaired to global clip context
 {
-	long c;
+	int c;
 
 	c = 0;
 	if (x < CDraw32::clip_min_x) c |= LEFT;
@@ -206,12 +206,12 @@ static long code(long x,long y)
 	return c;
 }
 
-bool CDraw32::ClipLine(long& x1, long& y1, long& x2, long& y2)
+bool CDraw32::ClipLine(int& x1, int& y1, int& x2, int& y2)
 //USE:	clip a line from (x1,y1) to (x2,y2) to clip bounds
 //IN:		(x1,y1)-(x2,y2) line
 //OUT:	return true if something left to draw, otherwise false
 {
-	long c1,c2,c,x,y,f;
+	int c1,c2,c,x,y,f;
 	x = x1;
 	y = y1;
 
@@ -274,14 +274,14 @@ bool CDraw32::ClipLine(long& x1, long& y1, long& x2, long& y2)
 	return true;
 }
 
-void CDraw32::DrawLineNC(long x1, long y1, long x2, long y2, CPixel32 color)
+void CDraw32::DrawLineNC(int x1, int y1, int x2, int y2, CPixel32 color)
 //USE:	draw a line from (x1,y1) to (x2,y2) in color (no clip)
 //IN:		(x1,y1)			- starting coordinate
 //			(x2,y2)			- ending coordinate
 //			color			- 32-bit color value
 //OUT:	none
 {
-	long		d, ax, ay, sx, sy, dx, dy;
+	int		d, ax, ay, sx, sy, dx, dy;
 	CPixel32*	dest;
 
 	assert(buffer != NULL);
@@ -371,14 +371,14 @@ void CDraw32::DrawLineNC(long x1, long y1, long x2, long y2, CPixel32 color)
 	PutPixAlphaNC(x1,y1,color);
 }
 
-void CDraw32::DrawLineAveNC(long x1, long y1, long x2, long y2, CPixel32 color)
+void CDraw32::DrawLineAveNC(int x1, int y1, int x2, int y2, CPixel32 color)
 //USE:	draw a translucent line from (x1,y1) to (x2,y2) in color (no clip)
 //IN:		(x1,y1)			- starting coordinate
 //			(x2,y2)			- ending coordinate
 //			color 			- 32-bit color value
 //OUT:	none
 {
-	long		d, ax, ay, sx, sy, dx, dy;
+	int		d, ax, ay, sx, sy, dx, dy;
 	CPixel32*	dest;
 
 	assert(buffer != NULL);
@@ -465,7 +465,7 @@ void CDraw32::DrawLineAveNC(long x1, long y1, long x2, long y2, CPixel32 color)
 	PutPixAveNC(x1,y1,color);
 }
 
-void CDraw32::DrawLineAANC(long x0, long y0, long x1, long y1, CPixel32 color)
+void CDraw32::DrawLineAANC(int x0, int y0, int x1, int y1, CPixel32 color)
 // Wu antialiased line drawer.
 //USE:	Function to draw an antialiased line from (x0,y0) to (x1,y1), using an
 //			antialiasing approach published by Xiaolin Wu in the July 1991 issue of
@@ -484,9 +484,9 @@ void CDraw32::DrawLineAANC(long x0, long y0, long x1, long y1, CPixel32 color)
 		SWAP(x0,x1);
 	}
 
-	long	DeltaX = x1 - x0;
-	long	DeltaY = y1 - y0;
-	long	XDir;
+	int	DeltaX = x1 - x0;
+	int	DeltaY = y1 - y0;
+	int	XDir;
 
 	// Draw the initial pixel, which is always exactly intersected by
  	// the line and so needs no Alpha 
@@ -540,7 +540,7 @@ void CDraw32::DrawLineAANC(long x0, long y0, long x1, long y1, CPixel32 color)
 	unsigned short ErrorAcc = 0;  // initialize the line error accumulator to 0 
 
 	// # of bits by which to shift ErrorAcc to get intensity level 
-	const unsigned long	IntensityShift = 16 - 8;
+	const unsigned int	IntensityShift = 16 - 8;
 	
 	// Is this an X-major or Y-major line? 
 	if (DeltaY > DeltaX) 
@@ -549,7 +549,7 @@ void CDraw32::DrawLineAANC(long x0, long y0, long x1, long y1, CPixel32 color)
  		// pixel that X advances each time Y advances 1 pixel, truncating the
  		// result so that we won't overrun the endpoint along the X axis 
  		unsigned short	ErrorAdj = (unsigned short)
-				(((unsigned long) DeltaX << 16) / (unsigned long) DeltaY);
+				(((unsigned int) DeltaX << 16) / (unsigned int) DeltaY);
 
  		// Draw all pixels other than the first and last 
  		while (--DeltaY) 
@@ -564,8 +564,8 @@ void CDraw32::DrawLineAANC(long x0, long y0, long x1, long y1, CPixel32 color)
  			// The IntensityBits most significant bits of ErrorAcc give us the
  			// intensity Alpha for this pixel, and the complement of the
  			// Alpha for the paired pixel 
- 			unsigned long	Alpha = ErrorAcc >> IntensityShift;
-			unsigned long	InvAlpha = 256-Alpha;
+ 			unsigned int	Alpha = ErrorAcc >> IntensityShift;
+			unsigned int	InvAlpha = 256-Alpha;
 
 			PutPixAlphaNC(x0, y0, 
 				ALPHA_PIX(GetPix(x0, y0), color, Alpha, InvAlpha));
@@ -581,7 +581,7 @@ void CDraw32::DrawLineAANC(long x0, long y0, long x1, long y1, CPixel32 color)
  	// pixel that Y advances each time X advances 1 pixel, truncating the
  	// result to avoid overrunning the endpoint along the X axis 
 	unsigned short	ErrorAdj = (unsigned short)
-		(((unsigned long) DeltaY << 16) / (unsigned long) DeltaX);
+		(((unsigned int) DeltaY << 16) / (unsigned int) DeltaX);
 	// Draw all pixels other than the first and last 
 	while (--DeltaX) 
 	{
@@ -595,8 +595,8 @@ void CDraw32::DrawLineAANC(long x0, long y0, long x1, long y1, CPixel32 color)
  		// The IntensityBits most significant bits of ErrorAcc give us the
  		// intensity Alpha for this pixel, and the complement of the
  		// Alpha for the paired pixel 
- 		unsigned long	Alpha = ErrorAcc >> IntensityShift;
-		unsigned long	InvAlpha = 256-Alpha;
+ 		unsigned int	Alpha = ErrorAcc >> IntensityShift;
+		unsigned int	InvAlpha = 256-Alpha;
 		PutPixAlphaNC(x0, y0, 
 			ALPHA_PIX(GetPix(x0, y0), color, Alpha, InvAlpha));
 		PutPixAlphaNC(x0, y0+1, 
@@ -607,7 +607,7 @@ void CDraw32::DrawLineAANC(long x0, long y0, long x1, long y1, CPixel32 color)
 	PutPixAlphaNC(x1, y1, color);
 }
 
-void CDraw32::DrawRectNC(long ulx, long uly, long width, long height, CPixel32 color)
+void CDraw32::DrawRectNC(int ulx, int uly, int width, int height, CPixel32 color)
 //USE:	draw rectangle in solid color, no clipping
 //IN:		(ulx,uly)			- coordinates of upper-left corner of rect
 //			width, height		- dimensions of rectangle
@@ -631,7 +631,7 @@ void CDraw32::DrawRectNC(long ulx, long uly, long width, long height, CPixel32 c
 	}
 }
 
-void CDraw32::DrawRect(long ulx, long uly, long width, long height, CPixel32 color)
+void CDraw32::DrawRect(int ulx, int uly, int width, int height, CPixel32 color)
 //USE:	draw rectangle in solid color
 //IN:		(ulx,uly)			- coordinates of upper-left corner of rect
 //			width, height		- dimensions of rectangle
@@ -650,7 +650,7 @@ void CDraw32::DrawRect(long ulx, long uly, long width, long height, CPixel32 col
 	}
 }
 
-void CDraw32::DrawRectAve(long ulx, long uly, long width, long height, CPixel32 color)
+void CDraw32::DrawRectAve(int ulx, int uly, int width, int height, CPixel32 color)
 //USE:	draw rectangle in solid color, translucent
 //IN:		(ulx,uly)			- coordinates of upper-left corner of rect
 //			width, height		- dimensions of rectangle
@@ -669,7 +669,7 @@ void CDraw32::DrawRectAve(long ulx, long uly, long width, long height, CPixel32 
 	}
 }
 
-void CDraw32::DrawBoxNC(long ulx, long uly, long width, long height, CPixel32 color)
+void CDraw32::DrawBoxNC(int ulx, int uly, int width, int height, CPixel32 color)
 //USE:	Draw an empty box, no clipping
 //IN:		(ulx,uly)		- coordinates of upper-left corner of box
 //			width, height	- dimensions of box
@@ -687,7 +687,7 @@ void CDraw32::DrawBoxNC(long ulx, long uly, long width, long height, CPixel32 co
 	DrawLineNC(ulx+width-1, uly, ulx+width-1, uly+height-1, color);
 }
 
-void CDraw32::DrawBox(long ulx, long uly, long width, long height, CPixel32 color)
+void CDraw32::DrawBox(int ulx, int uly, int width, int height, CPixel32 color)
 //USE:	Draw an empty box
 //IN:		(ulx,uly)		- coordinates of upper-left corner of rect
 //			width, height	- dimensions of rectangle
@@ -705,7 +705,7 @@ void CDraw32::DrawBox(long ulx, long uly, long width, long height, CPixel32 colo
 	DrawLine(ulx+width-1, uly, ulx+width-1, uly+height-1, color);
 }
 
-void CDraw32::DrawBoxAve(long ulx, long uly, long width, long height, CPixel32 color)
+void CDraw32::DrawBoxAve(int ulx, int uly, int width, int height, CPixel32 color)
 //USE: Draw an empty box, translucent
 //IN:		(ulx,uly)		- coordinates of upper-left corner of rect
 //			width, height	- dimensions of rectangle
@@ -723,7 +723,7 @@ void CDraw32::DrawBoxAve(long ulx, long uly, long width, long height, CPixel32 c
 	DrawLineAve(ulx+width-1, uly, ulx+width-1, uly+height-1, color);
 }
 
-void CDraw32::DrawCircle(long xc, long yc, long r, CPixel32 edge, CPixel32 fill)
+void CDraw32::DrawCircle(int xc, int yc, int r, CPixel32 edge, CPixel32 fill)
 //USE:	Draw a simple circle in current color with Bresenham's
 //		circle algorithm.
 // See PROCEDURAL ELEMENTS FOR COMPUTER GRAPHICS
@@ -736,9 +736,9 @@ void CDraw32::DrawCircle(long xc, long yc, long r, CPixel32 edge, CPixel32 fill)
 //
 //OUT: NONE (a circle drawn in the off-screen buffer)
 {
-	long		x,y;
-	long		limit,di,delta;
-	long		last_x,last_y;
+	int		x,y;
+	int		limit,di,delta;
+	int		last_x,last_y;
 
 	assert(buffer != NULL);
 
@@ -879,7 +879,7 @@ void CDraw32::DrawCircle(long xc, long yc, long r, CPixel32 edge, CPixel32 fill)
 	}
 } // DrawCircle
 
-void CDraw32::DrawCircleAve(long xc, long yc, long r, CPixel32 edge, CPixel32 fill)
+void CDraw32::DrawCircleAve(int xc, int yc, int r, CPixel32 edge, CPixel32 fill)
 //USE:	Draw a simple circle in current color with Bresenham's
 //			circle algorithm.
 //			a circle with fill and edge colors averaged with dest (-1 = no color)
@@ -893,10 +893,10 @@ void CDraw32::DrawCircleAve(long xc, long yc, long r, CPixel32 edge, CPixel32 fi
 //
 //OUT:	none (a circle on in the off-screen buffer)
 {
-	long		x,y;
-	long		limit,di,delta;
-	long		last_x,last_y;
-	long		f;
+	int		x,y;
+	int		limit,di,delta;
+	int		last_x,last_y;
+	int		f;
 
 	assert(buffer != NULL);
 
@@ -1067,24 +1067,24 @@ void CDraw32::DrawCircleAve(long xc, long yc, long r, CPixel32 edge, CPixel32 fi
 typedef struct
 {	   	        // a polygon edge
              	// these are fixed point long ints for some accuracy & speed
-	long   x;		// x coordinate of edge's intersection with current scanline
-	long   dx;	// change in x with respect to y
-	long   i;		// edge number: edge i goes from pt[i] to
+	int   x;		// x coordinate of edge's intersection with current scanline
+	int   dx;	// change in x with respect to y
+	int   i;		// edge number: edge i goes from pt[i] to
        				// pt[i+1]
 } POLYEDGE;
 
 #define INT_SHIFT 13
 
 // global for speed
-static long   	 n;				// number of vertices
+static int   	 n;				// number of vertices
 static drawPoint_t	*pt;		  	// vertices
 
-static long	    nact;	  		// number of active edges
+static int	    nact;	  		// number of active edges
 static POLYEDGE active[256];	// active edge list:edges crossing scanline y
-static long     ind[256];		// list of vertex indices, sorted by
+static int     ind[256];		// list of vertex indices, sorted by
 	    		                // pt[ind[j]].y
 
-static void del_edge(long i)
+static void del_edge(int i)
 // remove edge i from active list
 {
 	int  j;
@@ -1102,11 +1102,11 @@ static void del_edge(long i)
 	memcpy(&active[j], &active[j + 1], (nact - j) * sizeof(active[0]));
 }
 
-static void ins_edge(long i, long y)
+static void ins_edge(int i, int y)
 // append edge i to end of active list
 {
 	int 		j;
-	long    dx;
+	int    dx;
 	drawPoint_t   *p;
 	drawPoint_t   *q;
 
@@ -1125,8 +1125,8 @@ static void ins_edge(long i, long y)
 	// initialize x position at intersection of edge with scanline y
 	if ((q->y - p->y) != 0)
 	{
-		dx =  (((long)q->x - (long)p->x) * (long)(1<<INT_SHIFT));
-		dx /= (((long)q->y - (long)p->y));
+		dx =  (((int)q->x - (int)p->x) * (int)(1<<INT_SHIFT));
+		dx /= (((int)q->y - (int)p->y));
 	}
 	else
 	{
@@ -1135,13 +1135,13 @@ static void ins_edge(long i, long y)
 	}
 
 	active[nact].dx = dx;
-	active[nact].x = (dx * (long)(y - p->y)) + ((long)p->x << INT_SHIFT);
+	active[nact].x = (dx * (int)(y - p->y)) + ((int)p->x << INT_SHIFT);
 	active[nact].i = i;
 	nact++;
 }
 
 // comparison routines for shellsort
-int compare_ind(long *u, long *v)
+int compare_ind(int *u, int *v)
 {
 	return (pt[*u].y <= pt[*v].y ? -1 : 1);
 }
@@ -1151,13 +1151,13 @@ int compare_active(POLYEDGE *u, POLYEDGE *v)
 	return (u->x <= v->x ? -1 : 1);
 }
 
-void shell_sort(void *vec, long n, long siz,
+void shell_sort(void *vec, int n, int siz,
                 int (*compare)(void*,void*))
 // USE:  shell sort aka heap sort. Best sort algorithm for almost sorted list.
 {
 	byte *a;
 	byte v[128]; // temp object
-	long 		i,j,h;
+	int 		i,j,h;
 
 	a = (byte *)vec;
 
@@ -1186,7 +1186,7 @@ void shell_sort(void *vec, long n, long siz,
 	}
 }
 
-void CDraw32::DrawPolygon(long nvert, drawPoint_t *point, CPixel32 edge, CPixel32 fill)
+void CDraw32::DrawPolygon(int nvert, drawPoint_t *point, CPixel32 edge, CPixel32 fill)
 //USE:    Scan convert a polygon
 //IN:     nvert:        Number of vertices
 //        point:        Vertices of polygon
@@ -1194,7 +1194,7 @@ void CDraw32::DrawPolygon(long nvert, drawPoint_t *point, CPixel32 edge, CPixel3
 //        fill:         fill color
 //OUT:		none
 {
-	long	k,
+	int	k,
 	        y0,
 	        y1,
 	        y,
@@ -1224,7 +1224,7 @@ void CDraw32::DrawPolygon(long nvert, drawPoint_t *point, CPixel32 edge, CPixel3
 		}
 
 		// sort ind by pt[ind[k]].y
-		shell_sort(ind, n, sizeof(long), (int (*)(void*,void*)) compare_ind);
+		shell_sort(ind, n, sizeof(int), (int (*)(void*,void*)) compare_ind);
 
 		nact = 0;					   // start with empty active list
 		k = 0;						   // ind[k] is next vertex to process
@@ -1287,7 +1287,7 @@ void CDraw32::DrawPolygon(long nvert, drawPoint_t *point, CPixel32 edge, CPixel3
 
 				// left end of span
 	    		// convert back from fixed point - round down
-				xl = (long) (active[j].x >> INT_SHIFT);
+				xl = (int) (active[j].x >> INT_SHIFT);
   				if (xl < clip_min_x-1)
 				{
   					xl = clip_min_x-1;
@@ -1295,7 +1295,7 @@ void CDraw32::DrawPolygon(long nvert, drawPoint_t *point, CPixel32 edge, CPixel3
 
 	    		// right end of span
 				// convert back from fixed point - round down
-				xr = (long) (active[j + 1].x >> INT_SHIFT);
+				xr = (int) (active[j + 1].x >> INT_SHIFT);
   				if (xr > clip_max_x)
 				{
   					xr = clip_max_x;
@@ -1324,7 +1324,7 @@ void CDraw32::DrawPolygon(long nvert, drawPoint_t *point, CPixel32 edge, CPixel3
 
 				// left end of span
     			// convert back from fixed point - round down
-		    	xl = (long) (active[j].x >> INT_SHIFT);
+		    	xl = (int) (active[j].x >> INT_SHIFT);
 		  		if (xl < clip_min_x-1)
 				{
   					xl = clip_min_x-1;
@@ -1332,7 +1332,7 @@ void CDraw32::DrawPolygon(long nvert, drawPoint_t *point, CPixel32 edge, CPixel3
 
 		    	// right end of span
 		    	// convert back from fixed point - round up
-				xr = (long) (active[j + 1].x >> INT_SHIFT);
+				xr = (int) (active[j + 1].x >> INT_SHIFT);
 		  		if (xr > clip_max_x)
 				{
   					xr = clip_max_x;
@@ -1363,8 +1363,8 @@ void CDraw32::DrawPolygon(long nvert, drawPoint_t *point, CPixel32 edge, CPixel3
 	return;
 }
 
-void CDraw32::Blit(long dstX, long dstY, long width, long height, 
-				   CPixel32* srcImage, long srcX, long srcY, long srcStride)
+void CDraw32::Blit(int dstX, int dstY, int width, int height, 
+				   CPixel32* srcImage, int srcX, int srcY, int srcStride)
 //USE:	simple blit
 //IN:	dstX, dstY				- upper left corner of where image will land in buffer
 //		width, height			- width and height of image
@@ -1404,9 +1404,9 @@ void CDraw32::Blit(long dstX, long dstY, long width, long height,
 	}
 }
 
-void CDraw32::BlitClip(long& dstX, long& dstY, 
-					   long& width, long& height, 
-					   long& srcX, long& srcY)
+void CDraw32::BlitClip(int& dstX, int& dstY, 
+					   int& width, int& height, 
+					   int& srcX, int& srcY)
 //USE:	simple blit clip
 //IN:	dstX, dstY				- upper left corner of where image will land in buffer
 //		width, height			- width and height of image
@@ -1442,8 +1442,8 @@ void CDraw32::BlitClip(long& dstX, long& dstY,
 	}
 }
 
-void CDraw32::BlitColor(long dstX, long dstY, long width, long height, 
-					    CPixel32* srcImage, long srcX, long srcY, long srcStride, CPixel32 color)
+void CDraw32::BlitColor(int dstX, int dstY, int width, int height, 
+					    CPixel32* srcImage, int srcX, int srcY, int srcStride, CPixel32 color)
 //USE:	blit using image alpha as mask
 //IN:	dstX, dstY				- upper left corner of where image will land in buffer
 //		width, height			- width and height of image

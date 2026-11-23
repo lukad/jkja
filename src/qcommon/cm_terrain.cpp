@@ -1669,7 +1669,7 @@ CRandomTerrain *CreateRandomTerrain(const char *config, CCMLandScape *landscape,
 
 #ifndef PRE_RELEASE_DEMO
 	char			*ptr;
-	unsigned long	seed;
+	unsigned int	seed;
 
 	seed = strtoul(Info_ValueForKey(config, "seed"), &ptr, 10);
 

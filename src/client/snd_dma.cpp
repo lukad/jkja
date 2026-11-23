@@ -402,9 +402,9 @@ void S_Shutdown( void )
 return a hash value for the sfx name
 ================
 */
-static long S_HashSFXName(const char *name) {
+static int S_HashSFXName(const char *name) {
 	int		i;
-	long	hash;
+	int	hash;
 	char	letter;
 
 	hash = 0;
@@ -413,7 +413,7 @@ static long S_HashSFXName(const char *name) {
 		letter = tolower(name[i]);
 		if (letter =='.') break;				// don't include extension
 		if (letter =='\\') letter = '/';		// damn path names
-		hash+=(long)(letter)*(i+119);
+		hash+=(int)(letter)*(i+119);
 		i++;
 	}
 	hash &= (LOOP_HASH-1);

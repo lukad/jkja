@@ -35,9 +35,9 @@ static const byte fs_scrambledProductId[] = {
 return a hash value for the filename
 ================
 */
-long FS_HashFileName( const char *fname, int hashSize ) {
+int FS_HashFileName( const char *fname, int hashSize ) {
 	int		i;
-	long	hash;
+	int	hash;
 	char	letter;
 
 	hash = 0;
@@ -47,7 +47,7 @@ long FS_HashFileName( const char *fname, int hashSize ) {
 		if (letter =='.') break;				// don't include extension
 		if (letter =='\\') letter = '/';		// damn path names
 		if (letter == PATH_SEP) letter = '/';		// damn path names	//mac and unix are different
-		hash+=(long)(letter)*(i+119);
+		hash+=(int)(letter)*(i+119);
 		i++;
 	}
 	hash = (hash ^ (hash >> 10) ^ (hash >> 20));
@@ -316,7 +316,7 @@ int FS_FOpenFileRead( const char *filename, fileHandle_t *file, qboolean uniqueF
 	pack_t			*pak;
 	fileInPack_t	*pakFile;
 	directory_t		*dir;
-	long			hash=0;
+	int			hash=0;
 	unz_s			*zfi;
 	ZIP_FILE		*temp;
 //	int				i;
@@ -567,7 +567,7 @@ FS_Seek
 
 =================
 */
-int FS_Seek( fileHandle_t f, long offset, int origin ) {
+int FS_Seek( fileHandle_t f, int offset, int origin ) {
 	int		_origin;
 
 	if ( !fs_searchpaths ) {
@@ -626,7 +626,7 @@ int	FS_FileIsInPAK(const char *filename ) {
 	searchpath_t	*search;
 	pack_t			*pak;
 	fileInPack_t	*pakFile;
-	long			hash = 0;
+	int			hash = 0;
 
 	if ( !fs_searchpaths ) {
 		Com_Error( ERR_FATAL, "Filesystem call made without initialization\n" );
@@ -788,7 +788,7 @@ static pack_t *FS_LoadZipFile( char *zipfile )
 	char			filename_inzip[MAX_ZPATH];
 	unz_file_info	file_info;
 	int				i, len;
-	long			hash;
+	int			hash;
 	int				fs_numHeaderLongs;
 	int				*fs_headerLongs;
 	char			*namePtr;

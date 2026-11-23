@@ -95,7 +95,7 @@ ReadMember
 -------------------------
 */
 
-int CBlockMember::ReadMember( char **stream, long *streamPos, CIcarus* icarus )
+int CBlockMember::ReadMember( char **stream, int *streamPos, CIcarus* icarus )
 {
 	IGameInterface* game = icarus->GetGame();
 	m_id = *(int *) (*stream + *streamPos);
@@ -104,15 +104,15 @@ int CBlockMember::ReadMember( char **stream, long *streamPos, CIcarus* icarus )
 	if ( m_id == CIcarus::ID_RANDOM )
 	{//special case, need to initialize this member's data to Q3_INFINITE so we can randomize the number only the first time random is checked when inside a wait
 		m_size = sizeof( float );
-		*streamPos += sizeof( long );
+		*streamPos += sizeof( int );
 		m_data = game->Malloc( m_size );
 		float infinite = game->MaxFloat();
 		memcpy( m_data, &infinite, m_size );
 	}
 	else
 	{
-		m_size = *(long *) (*stream + *streamPos);
-		*streamPos += sizeof( long );
+		m_size = *(int *) (*stream + *streamPos);
+		*streamPos += sizeof( int );
 		m_data = game->Malloc( m_size );
 		memcpy( m_data, (*stream + *streamPos), m_size );
 	}
@@ -542,7 +542,7 @@ Open
 -------------------------
 */
 
-int CBlockStream::Open( char *buffer, long size )
+int CBlockStream::Open( char *buffer, int size )
 {
 	char	id_header[sizeof(s_IBI_HEADER_ID)];
 	float	version;

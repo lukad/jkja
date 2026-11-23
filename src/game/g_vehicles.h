@@ -554,7 +554,7 @@ struct Vehicle_t
 	int m_EjectDir;
 
 	// Flags that describe the vehicles behavior.
-	unsigned long m_ulFlags;
+	unsigned int m_ulFlags;
 
 	// NOTE: Vehicle Type ID, Orientation, and Armor MUST be transmitted over the net.
 

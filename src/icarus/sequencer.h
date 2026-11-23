@@ -56,7 +56,7 @@ public:
 	static CSequencer *Create ( void );
 	void Free( CIcarus* icarus );
 
-	int Run( char *buffer, long size, CIcarus* icarus);
+	int Run( char *buffer, int size, CIcarus* icarus);
 	int Callback( CTaskManager *taskManager, CBlock *block, int returnCode, CIcarus* icarus );
 
 	void SetOwnerID( int owner )	{	m_ownerID = owner;}

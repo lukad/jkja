@@ -358,7 +358,7 @@ Run
 Runs a script
 ========================
 */
-int CSequencer::Run( char *buffer, long size, CIcarus* icarus )
+int CSequencer::Run( char *buffer, int size, CIcarus* icarus )
 {
 	bstream_t		*blockStream;
 

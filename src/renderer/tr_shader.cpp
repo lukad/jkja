@@ -3672,7 +3672,7 @@ static void ScanAndLoadShaderFiles( void )
 	int bufferSizes[MAX_SHADER_FILES];
 	int numShaders;
 	int i;
-	long sum = 0;
+	int sum = 0;
 
 	// scan for shader files
 	shaderFiles = FS_ListFiles( "shaders", ".shader", &numShaders );

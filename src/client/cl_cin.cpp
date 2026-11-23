@@ -65,15 +65,15 @@ typedef struct {
 	unsigned short		vq4[256*64*4];
 	unsigned short		vq8[256*256*4];
 
-	long				ROQ_YY_tab[256];
-	long				ROQ_UB_tab[256];
-	long				ROQ_UG_tab[256];
-	long				ROQ_VG_tab[256];
-	long				ROQ_VR_tab[256];
+	int				ROQ_YY_tab[256];
+	int				ROQ_UB_tab[256];
+	int				ROQ_UG_tab[256];
+	int				ROQ_VG_tab[256];
+	int				ROQ_VR_tab[256];
 
 	byte				*qStatus[2][32768];
 
-	long				oldXOff, oldYOff;
+	int				oldXOff, oldYOff;
 	unsigned int		oldysize, oldxsize;
 } cinematics_t;
 
@@ -86,15 +86,15 @@ typedef struct {
 	e_status			status;	
 	unsigned int		startTime;
 	unsigned int		lastTime;
-	long				tfps;
-	long				RoQPlayed;
-	long				ROQSize;
+	int				tfps;
+	int				RoQPlayed;
+	int				ROQSize;
 	unsigned int		RoQFrameSize;
-	long				onQuad;
-	long				numQuads;
-	long				samplesPerLine;
+	int				onQuad;
+	int				numQuads;
+	int				samplesPerLine;
 	unsigned int		roq_id;
-	long				screenDelta;
+	int				screenDelta;
 
 	void ( *VQ0)(byte *status, void *qdata );
 	void ( *VQ1)(byte *status, void *qdata );
@@ -105,15 +105,15 @@ typedef struct {
 	unsigned int		xsize, ysize, maxsize, minsize;
 
 	qboolean			inMemory;
-	long				normalBuffer0;
-	long				roq_flags;
-	long				roqF0;
-	long				roqF1;
-	long				t[2];
-	long				roqFPS;
+	int				normalBuffer0;
+	int				roq_flags;
+	int				roqF0;
+	int				roqF1;
+	int				t[2];
+	int				roqFPS;
 	int					playonwalls;
 	byte*				buf;
-	long				drawX, drawY;
+	int				drawX, drawY;
 	sfxHandle_t			hSFX;	// 0 = none
 	qhandle_t			hCRAWLTEXT;	// 0 = none
 } cin_cache;
@@ -227,7 +227,7 @@ static long RllDecodeMonoToMono(unsigned char *from,short *to,unsigned int size,
 //
 // Returns:		Number of samples placed in output buffer
 //-----------------------------------------------------------------------------
-static long RllDecodeMonoToStereo(unsigned char *from,unsigned int size,char signedOutput,unsigned short flag, qboolean bMixedWithCurrentAudio)
+static int RllDecodeMonoToStereo(unsigned char *from,unsigned int size,char signedOutput,unsigned short flag, qboolean bMixedWithCurrentAudio)
 {
 	unsigned int z;
 	int prev, dst;
@@ -269,7 +269,7 @@ static long RllDecodeMonoToStereo(unsigned char *from,unsigned int size,char sig
 //
 // Returns:		Number of samples placed in output buffer
 //-----------------------------------------------------------------------------
-static long RllDecodeStereoToStereo(unsigned char *from,unsigned int size,char signedOutput, unsigned short flag, qboolean bMixedWithCurrentAudio)
+static int RllDecodeStereoToStereo(unsigned char *from,unsigned int size,char signedOutput, unsigned short flag, qboolean bMixedWithCurrentAudio)
 {
 	unsigned int z;
 	unsigned char *zz = from;
@@ -624,7 +624,7 @@ unsigned int	index, i;
 static void ROQ_GenYUVTables( void )
 {
 	float t_ub,t_vr,t_ug,t_vg;
-	long i;
+	int i;
 
 	if (currentHandle < 0) return;
 
@@ -635,11 +635,11 @@ static void ROQ_GenYUVTables( void )
 	for(i=0;i<256;i++) {
 		float x = (float)(2 * i - 255);
 	
-		cin.ROQ_UB_tab[i] = (long)( ( t_ub * x) + (1<<5));
-		cin.ROQ_VR_tab[i] = (long)( ( t_vr * x) + (1<<5));
-		cin.ROQ_UG_tab[i] = (long)( (-t_ug * x)		 );
-		cin.ROQ_VG_tab[i] = (long)( (-t_vg * x) + (1<<5));
-		cin.ROQ_YY_tab[i] = (long)( (i << 6) | (i >> 2) );
+		cin.ROQ_UB_tab[i] = (int)( ( t_ub * x) + (1<<5));
+		cin.ROQ_VR_tab[i] = (int)( ( t_vr * x) + (1<<5));
+		cin.ROQ_UG_tab[i] = (int)( (-t_ug * x)		 );
+		cin.ROQ_VG_tab[i] = (int)( (-t_vg * x) + (1<<5));
+		cin.ROQ_YY_tab[i] = (int)( (i << 6) | (i >> 2) );
 	}
 }
 
@@ -709,9 +709,9 @@ static unsigned short yuv_to_rgb( long y, long u, long v )
 *
 ******************************************************************************/
 
-static unsigned int yuv_to_rgb24( long y, long u, long v )
+static unsigned int yuv_to_rgb24( int y, int u, int v )
 { 
-	long r,g,b,YY = (long)(cin.ROQ_YY_tab[(y)]);
+	int r,g,b,YY = (int)(cin.ROQ_YY_tab[(y)]);
 
 	r = (YY + cin.ROQ_VR_tab[v]) >> 6;
 	g = (YY + cin.ROQ_UG_tab[u] + cin.ROQ_VG_tab[v]) >> 6;
@@ -733,9 +733,9 @@ static unsigned int yuv_to_rgb24( long y, long u, long v )
 
 static void decodeCodeBook( byte *input, unsigned short roq_flags )
 {
-	long	i, j, two, four;
+	int	i, j, two, four;
 	unsigned short	*bptr;
-	long	y0,y1,y2,y3,cr,cb;
+	int	y0,y1,y2,y3,cr,cb;
 	unsigned int *iaptr, *ibptr, *icptr, *idptr;
 
 	if (currentHandle < 0) return;
@@ -757,12 +757,12 @@ static void decodeCodeBook( byte *input, unsigned short roq_flags )
 	//
 	ibptr = (unsigned int *)bptr;
 	for(i=0;i<two;i++) {
-		y0 = (long)*input++;
-		y1 = (long)*input++;
-		y2 = (long)*input++;
-		y3 = (long)*input++;
-		cr = (long)*input++;
-		cb = (long)*input++;
+		y0 = (int)*input++;
+		y1 = (int)*input++;
+		y2 = (int)*input++;
+		y3 = (int)*input++;
+		cr = (int)*input++;
+		cb = (int)*input++;
 		*ibptr++ = yuv_to_rgb24( y0, cr, cb );
 		*ibptr++ = yuv_to_rgb24( y1, cr, cb );
 		*ibptr++ = yuv_to_rgb24( y2, cr, cb );
@@ -788,11 +788,11 @@ static void decodeCodeBook( byte *input, unsigned short roq_flags )
 *
 ******************************************************************************/
 
-static void recurseQuad( long startX, long startY, long quadSize, long xOff, long yOff )
+static void recurseQuad( int startX, int startY, int quadSize, int xOff, int yOff )
 {
 	byte *scroff;
-	long bigx, bigy, lowx, lowy, useY;
-	long offset;
+	int bigx, bigy, lowx, lowy, useY;
+	int offset;
 
 	offset = cinTable[currentHandle].screenDelta;
 	
@@ -829,9 +829,9 @@ static void recurseQuad( long startX, long startY, long quadSize, long xOff, lon
 *
 ******************************************************************************/
 
-static void setupQuad( long xOff, long yOff )
+static void setupQuad( int xOff, int yOff )
 {
-	long numQuadCels, i,x,y;
+	int numQuadCels, i,x,y;
 	byte *temp;
 
 	if (currentHandle < 0) return;
@@ -855,8 +855,8 @@ static void setupQuad( long xOff, long yOff )
 
 	cinTable[currentHandle].onQuad = 0;
 
-	for(y=0;y<(long)cinTable[currentHandle].ysize;y+=16) 
-		for(x=0;x<(long)cinTable[currentHandle].xsize;x+=16) 
+	for(y=0;y<(int)cinTable[currentHandle].ysize;y+=16) 
+		for(x=0;x<(int)cinTable[currentHandle].xsize;x+=16) 
 			recurseQuad( x, y, 16, xOff, yOff );
 
 	temp = NULL;
@@ -920,9 +920,9 @@ static void readQuadInfo( byte *qData )
 *
 ******************************************************************************/
 
-static void RoQPrepMcomp( long xoff, long yoff ) 
+static void RoQPrepMcomp( int xoff, int yoff ) 
 {
-	long i, j, x, y, temp, temp2;
+	int i, j, x, y, temp, temp2;
 
 	if (currentHandle < 0) return;
 

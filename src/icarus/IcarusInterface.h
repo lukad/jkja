@@ -32,13 +32,13 @@ public:
 	virtual int Save() = 0;				// Save all Icarus states.
 	virtual int Load() = 0;				// Load all Icarus states.
 
-	virtual int Run(int icarusID, char* buffer, long length) = 0;	// Execute a script.
+	virtual int Run(int icarusID, char* buffer, int length) = 0;	// Execute a script.
 	virtual void DeleteIcarusID(int &icarusID) = 0;				// Delete an Icarus ID from the list (making the ID Invalid on the other end through reference).
 	virtual int GetIcarusID(int gameID) = 0;					// Get an Icarus ID.
 	virtual int Update( int icarusID ) = 0;						// Update all internal Icarus structures.
 	virtual int IsRunning( int icarusID ) = 0;					// Whether a Icarus is running or not.
 	virtual void Completed( int icarusID, int taskID ) = 0;		// Tells Icarus a task is completed.
-	virtual void Precache( char* buffer, long length ) = 0;		// Precache a Script in memory.
+	virtual void Precache( char* buffer, int length ) = 0;		// Precache a Script in memory.
 };
 
 // Description: The Game Interface is used by the Icarus Interface to access specific
@@ -120,8 +120,8 @@ public:
 
 	// Save / Load functions
 
-	virtual int		WriteSaveData( unsigned long chid, void *data, int length ) = 0;
-	virtual int		ReadSaveData( unsigned long chid, void *address, int length, void **addressptr = NULL )  = 0;
+	virtual int		WriteSaveData( unsigned int chid, void *data, int length ) = 0;
+	virtual int		ReadSaveData( unsigned int chid, void *address, int length, void **addressptr = NULL )  = 0;
 	virtual int		LinkGame( int gameID, int icarusID ) = 0;
 	
 	// Access functions

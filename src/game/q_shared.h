@@ -31,7 +31,7 @@
 
 //=============================================================
 
-typedef unsigned long		ulong;
+typedef unsigned int		ulong;
 typedef unsigned short		word;
 
 typedef unsigned char 		byte;

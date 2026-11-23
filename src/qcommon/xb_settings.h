@@ -19,7 +19,7 @@ enum XBStartupState
 struct XBSettings
 {
 	// Magic number/revision stamp:
-	unsigned long version;
+	unsigned int version;
 
 	// Controls, etc... One for SP/P1 in MP, other for P2 in MP:
 	bool invertAim[2];

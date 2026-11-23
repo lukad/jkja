@@ -43,7 +43,7 @@ void S_WriteLinearBlastStereo16 (void)
 }
 
 
-void S_TransferStereo16 (unsigned long *pbuf, int endtime)
+void S_TransferStereo16 (unsigned int *pbuf, int endtime)
 {
 	int		lpos;
 	int		ls_paintedtime;
@@ -86,9 +86,9 @@ void S_TransferPaintBuffer(int endtime)
 	int 	*p;
 	int 	step;
 	int		val;
-	unsigned long *pbuf;
+	unsigned int *pbuf;
 
-	pbuf = (unsigned long *)dma.buffer;
+	pbuf = (unsigned int *)dma.buffer;
 
 
 	if ( s_testsound->integer ) {

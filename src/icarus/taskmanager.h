@@ -3,7 +3,7 @@
 #ifndef __TASK_MANAGER__
 #define __TASK_MANAGER__
 
-typedef unsigned long DWORD;
+typedef unsigned int DWORD;
 
 #define MAX_TASK_NAME	64
 #define TASKFLAG_NORMAL	0x00000000

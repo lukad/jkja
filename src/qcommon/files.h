@@ -19,7 +19,7 @@
 
 typedef struct fileInPack_s {
 	char					*name;		// name of the file
-	unsigned long			pos;		// file info position in zip
+	unsigned int			pos;		// file info position in zip
 	struct	fileInPack_s*	next;		// next file in the hash
 } fileInPack_t;
 

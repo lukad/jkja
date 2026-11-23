@@ -65,7 +65,7 @@
 
 typedef unsigned char  Byte;  /* 8 bits */
 typedef unsigned int   uInt;  /* 16 bits or more */
-typedef unsigned long  uLong; /* 32 bits or more */
+typedef unsigned int  uLong; /* 32 bits or more */
 typedef Byte    *voidp;
 
 #ifndef SEEK_SET
@@ -174,8 +174,8 @@ int    gzflush OF((gzFile file, int flush));
    degrade compression.
 */
 
-long gzseek OF((gzFile file,
-				      long offset, int whence));
+int gzseek OF((gzFile file,
+				      int offset, int whence));
 /* 
       Sets the starting position for the next gzread or gzwrite on the
    given compressed file. The offset represents a number of bytes in the
@@ -199,7 +199,7 @@ int    gzrewind OF((gzFile file));
    gzrewind(file) is equivalent to (int)gzseek(file, 0L, SEEK_SET)
 */
 
-long    gztell OF((gzFile file));
+int    gztell OF((gzFile file));
 /*
      Returns the starting position for the next gzread or gzwrite on the
    given compressed file. This position represents a number of bytes in the
@@ -584,7 +584,7 @@ static int unzlocal_GetCurrentFileInfoInternal (unzFile file,
 	unz_file_info_internal file_info_internal;
 	int err=UNZ_OK;
 	uLong uMagic;
-	long lSeek=0;
+	int lSeek=0;
 
 	if (file==NULL)
 		return UNZ_PARAMERROR;
@@ -793,7 +793,7 @@ extern int unzGoToNextFile (unzFile file)
   Get the position of the info of the current file in the zip.
   return UNZ_OK if there is no problem
 */
-extern int unzGetCurrentFileInfoPosition (unzFile file, unsigned long *pos )
+extern int unzGetCurrentFileInfoPosition (unzFile file, unsigned int *pos )
 {
 	unz_s* s;	
 
@@ -809,7 +809,7 @@ extern int unzGetCurrentFileInfoPosition (unzFile file, unsigned long *pos )
   Set the position of the info of the current file in the zip.
   return UNZ_OK if there is no problem
 */
-extern int unzSetCurrentFileInfoPosition (unzFile file, unsigned long pos )
+extern int unzSetCurrentFileInfoPosition (unzFile file, unsigned int pos )
 {
 	unz_s* s;	
 	int err;
@@ -1184,7 +1184,7 @@ extern int unzReadCurrentFile  (unzFile file, void *buf, unsigned len)
 /*
   Give the current position in uncompressed data
 */
-extern long unztell (unzFile file)
+extern int unztell (unzFile file)
 {
 	unz_s* s;
 	file_in_zip_read_info_s* pfile_in_zip_read_info;
@@ -1196,7 +1196,7 @@ extern long unztell (unzFile file)
 	if (pfile_in_zip_read_info==NULL)
 		return UNZ_PARAMERROR;
 
-	return (long)pfile_in_zip_read_info->stream.total_out;
+	return (int)pfile_in_zip_read_info->stream.total_out;
 }
 
 

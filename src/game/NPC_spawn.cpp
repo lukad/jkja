@@ -2501,7 +2501,7 @@ void SP_NPC_Jedi( gentity_t *self)
 	{
 		if ( self->spawnflags & 4 )		// Random jedi student
 		{
-			static unsigned long jediSequence = 0;
+			static unsigned int jediSequence = 0;
 
 			int myIdx;
 			for (myIdx = 0; myIdx < 6; ++myIdx)

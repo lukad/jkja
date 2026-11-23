@@ -62,7 +62,7 @@ public:
 
 	CStringEdPackage()
 	{
-		m_Strings = new VVFixedMap< char *, unsigned long >( MAX_STRING_ENTRIES );
+		m_Strings = new VVFixedMap< char *, unsigned int >( MAX_STRING_ENTRIES );
 
 		Clear( SE_FALSE );
 	}
@@ -73,7 +73,7 @@ public:
 	}
 
 	// Text entries, indexed by crc32 of reference:
-	VVFixedMap< char *, unsigned long > *m_Strings;
+	VVFixedMap< char *, unsigned int > *m_Strings;
 
 //	mapStringEntries_t	m_StringEntries;	// needs to be in public space now
 
@@ -658,7 +658,7 @@ void CStringEdPackage::AddEntry( LPCSTR psLocalReference )
 void CStringEdPackage::SetString( LPCSTR psLocalReference, LPCSTR psNewString, SE_BOOL bEnglishDebug )
 {
 	const char *ref = va("%s_%s", m_strCurrentFileRef_ParseOnly.c_str(), psLocalReference);
-	unsigned long refCrc = mz_crc32( MZ_CRC32_INIT, (const unsigned char *)ref, strlen(ref) );
+	unsigned int refCrc = mz_crc32( MZ_CRC32_INIT, (const unsigned char *)ref, strlen(ref) );
 
 	if ( bEnglishDebug )
 	{	
@@ -864,7 +864,7 @@ LPCSTR SE_GetString( LPCSTR psPackageAndStringReference )
 	Q_strncpyz( sReference, psPackageAndStringReference, sizeof(sReference) );
 	Q_strupr( sReference );
 
-	unsigned long refCrc = mz_crc32( MZ_CRC32_INIT, (const unsigned char *)sReference, len );
+	unsigned int refCrc = mz_crc32( MZ_CRC32_INIT, (const unsigned char *)sReference, len );
 	char **strData = TheStringPackage.m_Strings->Find( refCrc );
 
 	if( !strData )
