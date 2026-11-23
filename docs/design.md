@@ -409,7 +409,7 @@ Each milestone ends when its exit criteria hold. Boxes are ticked as work lands.
 
 ### M0. Foundation
 
-- [ ] Tag the import commit `raven-2013`
+- [x] Tag the import commit `raven-2013`
 - [ ] Add licence text and third-party notices ([section 11](#11-legal))
 - [ ] Remove out-of-scope trees: `codemp/`, `tools/`, `bin/`, `base/`, top-level `ui/`
 - [ ] Remove binary blobs, CVS and SourceSafe metadata, project files, duplicate project copies

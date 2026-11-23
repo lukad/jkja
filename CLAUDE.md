@@ -12,9 +12,9 @@ Read these before doing anything; they outrank assumptions and prior knowledge.
 2. [docs/decisions/](docs/decisions/README.md): the decision log (MADR). An accepted
    record overrides the design document.
 
-The unmodified original is the import commit `44e8ea1` (tagged `raven-2013` once
-milestone M0 has created the tag). Use `git show 44e8ea1:<path>` to see what any file
-looked like, including trees that have since been removed.
+The unmodified original is the import commit `44e8ea1`, tagged `raven-2013`. Use
+`git show raven-2013:<path>` to see what any file looked like, including trees that
+have since been removed.
 
 ## Work loop
 
