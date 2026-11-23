@@ -1,6 +1,6 @@
 # Design
 
-Status: basis for work. Decisions 0000 to 0014 accepted on 2026-11-23.
+Status: basis for work. Decisions 0000 to 0016 accepted on 2026-11-23.
 This document is the basis for all work in this repository. It describes where the code
 starts, where it is going, and in what order. Decisions that shape it are recorded as ADRs
 in [decisions/](decisions/README.md); where this document and an accepted ADR disagree,
@@ -83,8 +83,10 @@ Things that matter for the port:
   carried the console's storage and controller dialogs. The PC projects of the release
   therefore never built as they stand. Where the PC needs the overwritten behaviour, it
   is restored from the multiplayer tree of the import commit (`codemp/`, where the two
-  variants are still separated), or from commented-out PC lines next to the console
-  code; console-only features are removed. More such places may surface when the game
+  variants are mostly still separated), or from commented-out PC lines next to the
+  console code; console-only features are removed. The menu code is the exception:
+  both trees hold the console version, and what is missing comes from Raven's Jedi
+  Outcast release ([ADR-0016](decisions/0016-menu-mouse-handling.md)). More such places may surface when the game
   first runs with a window (M2).
 
 ## 3. Principles
@@ -269,9 +271,12 @@ Targets are 64-bit only: x86-64 and arm64.
 ### 4.9 Savegames
 
 Retail compatibility is dropped ([ADR-0006](decisions/0006-drop-retail-savegame-compatibility.md)).
-The save system is made to work on 64-bit in the simplest way that is correct: explicit
-per-field serialisation driven by the existing field tables, with a new format version.
-The chunk structure and the field tables are kept, so a retail-format reader could be
+Every saved structure is written field by field from a table that names all of its
+members, in fixed-width encodings, and the tables a file was written with are stored in
+the file, so a save does not depend on the build that wrote it and survives members
+being added to or removed from a structure
+([ADR-0015](decisions/0015-savegame-format.md)). The chunk structure is kept and the
+existing pointer tables become part of the new ones, so a retail-format reader could be
 added later.
 
 ## 5. Order of work
@@ -492,19 +497,21 @@ one map, `yavin1b`, for 120 frames.
 
 ### M2. Runs on Linux
 
-- [ ] Decide and record: savegame format
-- [ ] Decide and record: where the menus' mouse handling comes from. It is missing from
+- [x] Decide and record: savegame format
+- [x] Decide and record: where the menus' mouse handling comes from. It is missing from
       both trees of the release: `Menu_HandleMouseMove` has only its console body, and
       mouse clicks on edit fields and slider bars are not handled
+- [ ] Menu mouse handling from the Jedi Outcast release
+      ([ADR-0016](decisions/0016-menu-mouse-handling.md))
 - [ ] SDL3 window, input and events
 - [ ] System console input and the clipboard
 - [ ] Legacy renderer running in an SDL3 OpenGL context
 - [ ] Sound and music
 - [ ] Cinematics
 - [ ] Per-user write directory; read-only game data
-- [ ] Savegames, new format. The writer still stores pointer fields as 4-byte indexes
-      inside 8-byte fields, and its naming of the automatic save and its commented-out
-      screenshot calls still follow the console version
+- [ ] Savegames, new format ([ADR-0015](decisions/0015-savegame-format.md)). The
+      writer's naming of the automatic save and its commented-out screenshot calls still
+      follow the console version
 - [ ] Fix run-time 64-bit defects found by play testing
 
 Exit: the opening level is playable from start to finish including cutscenes; save and
@@ -579,7 +586,6 @@ Still to be made, each before the milestone that needs it:
 
 | Decision | Needed by |
 |---|---|
-| Savegame format | M2 |
 | Continuous integration provider | M3 |
 | Shader language and toolchain | M5 |
 | Removal of the legacy renderer | end of M5 |

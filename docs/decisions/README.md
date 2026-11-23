@@ -21,6 +21,8 @@ Architectural decisions for this project, recorded as
 | [0012](0012-dependencies.md) | Dependencies are pinned and built by the project; nothing is taken from the system | accepted |
 | [0013](0013-typed-cgame-interface.md) | The cgame interface is a pair of structs of typed function pointers | accepted |
 | [0014](0014-audio-software-mixer-only.md) | Audio: the engine's software mixer only; the OpenAL and EAX path is removed | accepted |
+| [0015](0015-savegame-format.md) | Savegame format: every saved structure is written field by field, with its schema in the file | accepted |
+| [0016](0016-menu-mouse-handling.md) | The menus' missing mouse handling is taken from Raven's Jedi Outcast release | accepted |
 
 ## How to add a decision
 
