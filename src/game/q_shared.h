@@ -4,31 +4,6 @@
 // q_shared.h -- included first by ALL program modules.
 // A user mod should never modify this file
 
-#ifdef _WIN32
-
-#pragma warning(disable : 4018)     // signed/unsigned mismatch
-//#pragma warning(disable : 4032)		//formal parameter 'number' has different type when promoted
-//#pragma warning(disable : 4051)		//type conversion; possible loss of data
-//#pragma warning(disable : 4057)		// slightly different base types
-#pragma warning(disable : 4100)		// unreferenced formal parameter
-//#pragma warning(disable : 4115)		//'type' : named type definition in parentheses
-#pragma warning(disable : 4125)		// decimal digit terminates octal escape sequence
-#pragma warning(disable : 4127)		// conditional expression is constant
-//#pragma warning(disable : 4136)		//conversion between different floating-point types
-//#pragma warning(disable : 4201)		//nonstandard extension used : nameless struct/union
-//#pragma warning(disable : 4214)		//nonstandard extension used : bit field types other than int
-//#pragma warning(disable : 4220)		// varargs matches remaining parameters
-#pragma warning(disable : 4244)		//'conversion' conversion from 'type1' to 'type2', possible loss of data
-#pragma warning(disable : 4284)		// return type not UDT
-//#pragma warning(disable : 4305)		// truncation from const double to float
-#pragma warning(disable : 4310)		// cast truncates constant value
-#pragma warning(disable : 4514)		//unreferenced inline/local function has been removed
-#pragma warning(disable : 4710)		// not inlined
-#pragma warning(disable : 4711)		// selected for automatic inline expansion
-#pragma warning(disable : 4786)		// identifier was truncated
-
-#endif
-
 //rww - conveniently toggle "gore" code, for model decals and stuff.
 #define _G2_GORE
 
@@ -47,105 +22,11 @@
 
 
 
-// this is the define for determining if we have an asm version of a C function
-#if (defined _M_IX86 || defined __i386__) && !defined __sun__  && !defined __LCC__
-#define id386	1
-#else
-#define id386	0
-#endif
-
-// for windows fastcall option
-
 #define	QDECL
-
-//======================= WIN32 DEFINES =================================
-
-#ifdef WIN32
-
 #define	MAC_STATIC
 
-#undef QDECL
-#define	QDECL	__cdecl
-
-// buildstring will be incorporated into the version string
-#ifdef NDEBUG
-#ifdef _M_IX86
-#define	CPUSTRING	"win-x86"
-#elif defined _M_ALPHA
-#define	CPUSTRING	"win-AXP"
-#endif
-#else
-#ifdef _M_IX86
-#define	CPUSTRING	"win-x86-debug"
-#elif defined _M_ALPHA
-#define	CPUSTRING	"win-AXP-debug"
-#endif
-#endif
-
-
-#define	PATH_SEP '\\'
-
-#endif
-
-//======================= MAC OS X SERVER DEFINES =====================
-
-#if defined(__MACH__) && defined(__APPLE__)
-
-#define MAC_STATIC
-
-#ifdef __ppc__
-#define CPUSTRING	"MacOSXS-ppc"
-#elif defined __i386__
-#define CPUSTRING	"MacOSXS-i386"
-#else
-#define CPUSTRING	"MacOSXS-other"
-#endif
-
-#define	PATH_SEP	'/'
-
-#define	GAME_HARD_LINKED
-#define	CGAME_HARD_LINKED
-#define	UI_HARD_LINKED
-
-#endif
-
-//======================= MAC DEFINES =================================
-
-#ifdef __MACOS__
-
-#define	MAC_STATIC	static
-
-#define	CPUSTRING	"MacOS-PPC"
-
-#define	PATH_SEP ':'
-
-#define	GAME_HARD_LINKED
-#define	CGAME_HARD_LINKED
-#define	UI_HARD_LINKED
-
-void Sys_PumpEvents( void );
-
-#endif
-
-//======================= LINUX DEFINES =================================
-
-// the mac compiler can't handle >32k of locals, so we
-// just waste space and make big arrays static...
-#ifdef __linux__
-
-#define	MAC_STATIC
-
-#ifdef __i386__
-#define	CPUSTRING	"linux-i386"
-#elif defined __axp__
-#define	CPUSTRING	"linux-alpha"
-#else
-#define	CPUSTRING	"linux-other"
-#endif
-
+// The file system and the operating systems accept the forward slash everywhere.
 #define	PATH_SEP '/'
-
-#endif
 
 //=============================================================
 

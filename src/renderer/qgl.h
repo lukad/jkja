@@ -138,79 +138,6 @@ extern PFNGLGETFINALCOMBINERINPUTPARAMETERFVNV	qglGetFinalCombinerInputParameter
 extern PFNGLGETFINALCOMBINERINPUTPARAMETERIVNV	qglGetFinalCombinerInputParameterivNV;
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Pixel Format extension definitions. - AReis
-/***********************************************************************************************************/
-#define WGL_COLOR_BITS_ARB             0x2014
-#define WGL_ALPHA_BITS_ARB             0x201B
-#define WGL_DEPTH_BITS_ARB             0x2022
-#define WGL_STENCIL_BITS_ARB           0x2023
-
-typedef BOOL (WINAPI * PFNWGLGETPIXELFORMATATTRIBIVARBPROC) (HDC hdc, int iPixelFormat, int iLayerPlane, UINT nAttributes, const int *piAttributes, int *piValues);
-typedef BOOL (WINAPI * PFNWGLGETPIXELFORMATATTRIBFVARBPROC) (HDC hdc, int iPixelFormat, int iLayerPlane, UINT nAttributes, const int *piAttributes, FLOAT *pfValues);
-typedef BOOL (WINAPI * PFNWGLCHOOSEPIXELFORMATARBPROC) (HDC hdc, const int *piAttribIList, const FLOAT *pfAttribFList, UINT nMaxFormats, int *piFormats, UINT *nNumFormats);
-/***********************************************************************************************************/
-
-// Declare Pixel Format function pointers.
-extern PFNWGLGETPIXELFORMATATTRIBIVARBPROC		qwglGetPixelFormatAttribivARB;
-extern PFNWGLGETPIXELFORMATATTRIBFVARBPROC		qwglGetPixelFormatAttribfvARB;
-extern PFNWGLCHOOSEPIXELFORMATARBPROC			qwglChoosePixelFormatARB;
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Pixel Buffer extension definitions. - AReis
-/***********************************************************************************************************/
-DECLARE_HANDLE(HPBUFFERARB);
-
-#define WGL_SUPPORT_OPENGL_ARB         0x2010
-#define WGL_DOUBLE_BUFFER_ARB          0x2011
-#define WGL_DRAW_TO_PBUFFER_ARB        0x202D
-#define WGL_PBUFFER_WIDTH_ARB          0x2034
-#define WGL_PBUFFER_HEIGHT_ARB         0x2035
-#define WGL_RED_BITS_ARB               0x2015
-#define WGL_GREEN_BITS_ARB             0x2017
-#define WGL_BLUE_BITS_ARB              0x2019
-
-typedef HPBUFFERARB (WINAPI * PFNWGLCREATEPBUFFERARBPROC) (HDC hDC, int iPixelFormat, int iWidth, int iHeight, const int *piAttribList);
-typedef HDC (WINAPI * PFNWGLGETPBUFFERDCARBPROC) (HPBUFFERARB hPbuffer);
-typedef int (WINAPI * PFNWGLRELEASEPBUFFERDCARBPROC) (HPBUFFERARB hPbuffer, HDC hDC);
-typedef BOOL (WINAPI * PFNWGLDESTROYPBUFFERARBPROC) (HPBUFFERARB hPbuffer);
-typedef BOOL (WINAPI * PFNWGLQUERYPBUFFERARBPROC) (HPBUFFERARB hPbuffer, int iAttribute, int *piValue);
-/***********************************************************************************************************/
-
-// Declare Pixel Buffer function pointers.
-extern PFNWGLCREATEPBUFFERARBPROC				qwglCreatePbufferARB;
-extern PFNWGLGETPBUFFERDCARBPROC				qwglGetPbufferDCARB;
-extern PFNWGLRELEASEPBUFFERDCARBPROC			qwglReleasePbufferDCARB;
-extern PFNWGLDESTROYPBUFFERARBPROC				qwglDestroyPbufferARB;
-extern PFNWGLQUERYPBUFFERARBPROC				qwglQueryPbufferARB;
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Render-Texture extension definitions. - AReis
-/***********************************************************************************************************/
-#define WGL_BIND_TO_TEXTURE_RGBA_ARB       0x2071
-#define WGL_TEXTURE_FORMAT_ARB             0x2072
-#define WGL_TEXTURE_TARGET_ARB             0x2073
-#define WGL_TEXTURE_RGB_ARB                0x2075
-#define WGL_TEXTURE_RGBA_ARB               0x2076
-#define WGL_TEXTURE_2D_ARB                 0x207A
-#define WGL_FRONT_LEFT_ARB                 0x2083
-
-typedef BOOL (WINAPI * PFNWGLBINDTEXIMAGEARBPROC) (HPBUFFERARB hPbuffer, int iBuffer);
-typedef BOOL (WINAPI * PFNWGLRELEASETEXIMAGEARBPROC) (HPBUFFERARB hPbuffer, int iBuffer);
-typedef BOOL (WINAPI * PFNWGLSETPBUFFERATTRIBARBPROC) (HPBUFFERARB hPbuffer, const int * piAttribList);
-/***********************************************************************************************************/
-
-// Declare Render-Texture function pointers.
-extern PFNWGLBINDTEXIMAGEARBPROC			qwglBindTexImageARB;
-extern PFNWGLRELEASETEXIMAGEARBPROC			qwglReleaseTexImageARB;
-extern PFNWGLSETPBUFFERATTRIBARBPROC		qwglSetPbufferAttribARB;
-
-
-/////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// Vertex and Fragment Program extension definitions. - AReis
-/***********************************************************************************************************/
 #ifndef GL_ARB_fragment_program
 #define GL_FRAGMENT_PROGRAM_ARB           0x8804
 #define GL_PROGRAM_ALU_INSTRUCTIONS_ARB   0x8805
@@ -305,14 +232,7 @@ extern	void ( APIENTRY * qglPointParameterivNV)( GLenum, const GLint *);
 
 //===========================================================================
 
-// non-windows systems will just redefine qgl* to gl*
-#if !defined( _WIN32 ) && !defined( __linux__ )
-
-#include "qgl_linked.h"
-
-#else
-
-// windows systems use a function pointer for each call so we can load minidrivers
+// a function pointer for each call, bound by the platform layer
 
 extern  void ( APIENTRY * qglAccum )(GLenum op, GLfloat value);
 extern  void ( APIENTRY * qglAlphaFunc )(GLenum func, GLclampf ref);
@@ -651,55 +571,5 @@ extern  void ( APIENTRY * qglVertex4sv )(const GLshort *v);
 extern  void ( APIENTRY * qglVertexPointer )(GLint size, GLenum type, GLsizei stride, const GLvoid *pointer);
 extern  void ( APIENTRY * qglViewport )(GLint x, GLint y, GLsizei width, GLsizei height);
 
-#if defined( _WIN32 )
-
-extern BOOL  ( WINAPI * qwglCopyContext)(HGLRC, HGLRC, UINT);
-extern HGLRC ( WINAPI * qwglCreateContext)(HDC);
-extern HGLRC ( WINAPI * qwglCreateLayerContext)(HDC, int);
-extern BOOL  ( WINAPI * qwglDeleteContext)(HGLRC);
-extern HGLRC ( WINAPI * qwglGetCurrentContext)(VOID);
-extern HDC   ( WINAPI * qwglGetCurrentDC)(VOID);
-extern PROC  ( WINAPI * qwglGetProcAddress)(LPCSTR);
-extern BOOL  ( WINAPI * qwglMakeCurrent)(HDC, HGLRC);
-extern BOOL  ( WINAPI * qwglShareLists)(HGLRC, HGLRC);
-extern BOOL  ( WINAPI * qwglUseFontBitmaps)(HDC, DWORD, DWORD, DWORD);
-
-extern BOOL  ( WINAPI * qwglUseFontOutlines)(HDC, DWORD, DWORD, DWORD, FLOAT,
-                                           FLOAT, int, LPGLYPHMETRICSFLOAT);
-
-extern BOOL ( WINAPI * qwglDescribeLayerPlane)(HDC, int, int, UINT,
-                                            LPLAYERPLANEDESCRIPTOR);
-extern int  ( WINAPI * qwglSetLayerPaletteEntries)(HDC, int, int, int,
-                                                CONST COLORREF *);
-extern int  ( WINAPI * qwglGetLayerPaletteEntries)(HDC, int, int, int,
-                                                COLORREF *);
-extern BOOL ( WINAPI * qwglRealizeLayerPalette)(HDC, int, BOOL);
-extern BOOL ( WINAPI * qwglSwapLayerBuffers)(HDC, UINT);
-
-extern BOOL ( WINAPI * qwglSwapIntervalEXT)( int interval );
-
-#endif	// _WIN32
-
-#if defined( __linux__ )
-
-//FX Mesa Functions
-extern fxMesaContext (*qfxMesaCreateContext)(GLuint win, GrScreenResolution_t, GrScreenRefresh_t, const GLint attribList[]);
-extern fxMesaContext (*qfxMesaCreateBestContext)(GLuint win, GLint width, GLint height, const GLint attribList[]);
-extern void (*qfxMesaDestroyContext)(fxMesaContext ctx);
-extern void (*qfxMesaMakeCurrent)(fxMesaContext ctx);
-extern fxMesaContext (*qfxMesaGetCurrentContext)(void);
-extern void (*qfxMesaSwapBuffers)(void);
-
-//GLX Functions
-extern XVisualInfo * (*qglXChooseVisual)( Display *dpy, int screen, int *attribList );
-extern GLXContext (*qglXCreateContext)( Display *dpy, XVisualInfo *vis, GLXContext shareList, Bool direct );
-extern void (*qglXDestroyContext)( Display *dpy, GLXContext ctx );
-extern Bool (*qglXMakeCurrent)( Display *dpy, GLXDrawable drawable, GLXContext ctx);
-extern void (*qglXCopyContext)( Display *dpy, GLXContext src, GLXContext dst, GLuint mask );
-extern void (*qglXSwapBuffers)( Display *dpy, GLXDrawable drawable );
-
-#endif // __linux__
-
-#endif	// _WIN32 && __linux__
 
 #endif

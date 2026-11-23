@@ -4,7 +4,14 @@
 # freely accessed through pointers of another type. The dangerous classes of warnings
 # are errors; the rest is tightened over time.
 function(jasp_legacy_target target)
+  # What the version string calls the platform, as in the release: "win-x86",
+  # "win-x86-debug".
+  string(TOLOWER "${CMAKE_SYSTEM_NAME}" system)
+  if(system STREQUAL "darwin")
+    set(system macos)
+  endif()
   target_compile_definitions(${target} PRIVATE
+    "CPUSTRING=\"${system}-${JASP_ARCHITECTURE}$<$<CONFIG:Debug>:-debug>\""
     $<$<CONFIG:Debug>:_DEBUG>
     # What the release called its shipping configuration.
     $<$<NOT:$<CONFIG:Debug>>:FINAL_BUILD>
