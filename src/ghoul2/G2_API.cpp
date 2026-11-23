@@ -259,7 +259,7 @@ public:
 	}
 };
 
-#include "assert.h"
+#include <assert.h>
 ErrorReporter &G2APIError()
 {
 	static ErrorReporter singleton("G2API");

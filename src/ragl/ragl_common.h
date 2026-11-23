@@ -64,7 +64,7 @@
 #if !defined(FINAL_BUILD)
 	#if !defined(RAGL_PROFILE_INC)
 		#define  RAGL_PROFILE_INC
-		#include "Windows.h"
+		#include <windows.h>
 	#endif
 #endif
 #if !defined(RAVL_VEC_INC)

@@ -3,7 +3,7 @@
 #include "../game/q_shared.h"
 
 #include "cm_local.h"
-#include "memory.h"
+#include <memory.h>
 #include "chash.h"
 
 class CCMShaderText
