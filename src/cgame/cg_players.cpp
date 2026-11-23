@@ -7939,9 +7939,6 @@ Ghoul2 Insert End
 							else
 							{
 								cgi_S_StartSound (NULL, cent->currentState.number, CHAN_AUTO, cgs.sound_precache[cent->gent->client->ps.saber[0].soundOn] );
-#ifdef _IMMERSION
-								cgi_FF_Start( cgi_FF_Register( "fffx/weapons/saber/saberon", FF_CHANNEL_WEAPON ), cent->currentState.number );
-#endif // _IMMERSION
 							}
 						}
 						cent->gent->client->ps.saber[saberNum].length += cent->gent->client->ps.saber[saberNum].lengthMax/6 * cg.frametime/100;//= saber[saberNum].lengthMax;

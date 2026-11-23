@@ -5989,7 +5989,6 @@ static void UI_WeaponAllocBeginButton(qboolean activeFlag)
 	itemDef_t	*item;
 	item = Menu_GetMatchingItemByNumber(menu, weap, "beginmission");
 
-#ifndef _XBOX
 
 	if (item)
 	{
@@ -6004,30 +6003,6 @@ static void UI_WeaponAllocBeginButton(qboolean activeFlag)
 		}
 	}
 
-#else
-	if (item)
-	{
-		// Make it active
-		if (activeFlag)
-		{
-			item->window.flags |= WINDOW_VISIBLE;
-			Item_SetFocus(item, 0, 0);
-		}
-		else
-		{
-			item->window.flags &= ~WINDOW_VISIBLE;
-		}
-	}
-
-	UI_SetVis(menu, "tab_Weapon", !activeFlag);
-	UI_SetVis(menu, "tab_WeaponShadow", !activeFlag);
-	UI_SetVis(menu, "beginmissionShadow", activeFlag);
-
-	if(activeFlag)
-		DC->setCVar("ui_hideAcallout", "0");
-	else
-		DC->setCVar("ui_hideAcallout", "1");	
-#endif
 
 }
 */

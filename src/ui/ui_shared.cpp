@@ -8382,16 +8382,11 @@ static qboolean Item_Paint(itemDef_t *item, qboolean bDraw)
 	//okay to paint
 /*
 	//JLFMOUSE
-#ifndef _XBOX
 	if (item->window.flags & WINDOW_MOUSEOVER)
-#else
-	if (item->window.flags & WINDOW_HASFOCUS)
-#endif
 	{
 		if (item->descText && !Display_KeyBindPending())
 		{
 			// Make DOUBLY sure that this item should have desctext.
-#ifndef _XBOX
 			// NOTE : we can't just check the mouse position on this, what if we TABBED
 			// to the current menu item -- in that case our mouse isn't over the item.
 			// Removing the WINDOW_MOUSEOVER flag just prevents the item's OnExit script from running
@@ -8400,7 +8395,6 @@ static qboolean Item_Paint(itemDef_t *item, qboolean bDraw)
 		//		item->window.flags &= ~WINDOW_MOUSEOVER;
 		//	}
 		//	else
-#endif
 	//END JLFMOUSE
 
 			// items can be enabled and disabled based on cvars

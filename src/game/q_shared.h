@@ -523,33 +523,7 @@ inline void VectorMA( const vec3_t veca, float scale, const vec3_t vecb, vec3_t 
 
 
 inline vec_t DotProduct( const vec3_t v1, const vec3_t v2 ) {
-#ifdef _XBOX1		/// use SSE
-	float res;
-    __asm {
-        mov     edx, v1
-        movss   xmm1, [edx]
-        movhps  xmm1, [edx+4]
-
-        mov     edx, v2
-        movss   xmm2, [edx]
-        movhps  xmm2, [edx+4]
-
-        mulps   xmm1, xmm2
-
-        movaps  xmm0, xmm1
-
-        shufps  xmm0, xmm0, 32h
-        addps   xmm1, xmm0
-
-        shufps  xmm0, xmm0, 32h
-        addps   xmm1, xmm0
-
-        movss   [res], xmm1
-    }
-    return res;
-#else
 	return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
-#endif
 }
 
 
@@ -560,52 +534,16 @@ inline void CrossProduct( const vec3_t v1, const vec3_t v2, vec3_t cross ) {
 }
 
 inline void VectorSubtract( const vec3_t veca, const vec3_t vecb, vec3_t o ) {
-#ifdef _XBOX1
-	__asm {
-        mov      ecx, veca
-        movss    xmm0, [ecx]
-        movhps   xmm0, [ecx+4]
-
-        mov      edx, vecb
-        movss    xmm1, [edx]
-        movhps   xmm1, [edx+4]
-
-        subps    xmm0, xmm1
-
-        mov      eax, o
-        movss    [eax], xmm0
-        movhps   [eax+4], xmm0
-    }
-#else
 	o[0] = veca[0]-vecb[0];
 	o[1] = veca[1]-vecb[1];
 	o[2] = veca[2]-vecb[2];
-#endif
 }
 
 
 inline void VectorAdd( const vec3_t veca, const vec3_t vecb, vec3_t o ) {
-#ifdef _XBOX1
-  __asm {
-        mov      ecx, veca
-        movss    xmm0, [ecx]
-        movhps   xmm0, [ecx+4]
-
-        mov      edx, vecb
-        movss    xmm1, [edx]
-        movhps   xmm1, [edx+4]
-
-        addps    xmm0, xmm1
-
-        mov      eax, o
-        movss    [eax], xmm0
-        movhps   [eax+4], xmm0
-    }
-#else
 	o[0] = veca[0]+vecb[0];
 	o[1] = veca[1]+vecb[1];
 	o[2] = veca[2]+vecb[2];
-#endif
 }
 
 inline void VectorCopy( const vec3_t in, vec3_t out ) {
@@ -616,26 +554,9 @@ inline void VectorCopy( const vec3_t in, vec3_t out ) {
 
 
 inline void VectorScale( const vec3_t i, vec_t scale, vec3_t o ) {
-#ifdef _XBOX1
-__asm {
-        movss    xmm0, scale
-        shufps   xmm0, xmm0, 0h
-
-        mov      edx, i
-        movss    xmm1, [edx]
-        movhps   xmm1, [edx+4]
-
-        mulps    xmm0, xmm1
-
-        mov      eax, o
-        movss    [eax], xmm0
-        movhps   [eax+4], xmm0
-    }
-#else
 	o[0] = i[0]*scale;
 	o[1] = i[1]*scale;
 	o[2] = i[2]*scale;
-#endif
 }
 
 float DotProductNormalize( const vec3_t inVec1, const vec3_t inVec2 );
@@ -689,63 +610,11 @@ inline int VectorCompare2( const vec3_t v1, const vec3_t v2 ) {
 	return 1;
 }
 inline vec_t VectorLength( const vec3_t v ) {
-#ifdef _XBOX1
-	float res;
-
-	__asm {
-        mov     edx, v
-        movss   xmm1, [edx]
-        movhps  xmm1, [edx+4]
-
-        movaps  xmm2, xmm1
-
-        mulps   xmm1, xmm2
-
-        movaps  xmm0, xmm1
-
-        shufps  xmm0, xmm0, 32h
-        addps   xmm1, xmm0
-
-        shufps  xmm0, xmm0, 32h
-        addps   xmm1, xmm0
-
-        sqrtss  xmm1, xmm1
-        movss   [res], xmm1
-    }
-
-    return res;
-#else
 	return (vec_t)sqrt (v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-#endif
 }
 
 inline vec_t VectorLengthSquared( const vec3_t v ) {
-#ifdef _XBOX1
-	float res;
-	__asm {
-        mov     edx, v
-        movss   xmm1, [edx]
-        movhps  xmm1, [edx+4]
-
-        movaps  xmm2, xmm1
-
-        mulps   xmm1, xmm2
-
-        movaps  xmm0, xmm1
-
-        shufps  xmm0, xmm0, 32h
-        addps   xmm1, xmm0
-
-        shufps  xmm0, xmm0, 32h
-        addps   xmm1, xmm0
-
-        movss   [res], xmm1
-    }
-
-    return res;
-#else
 	return (v[0]*v[0] + v[1]*v[1] + v[2]*v[2]);
-#endif
 }
 
 inline vec_t Distance( const vec3_t p1, const vec3_t p2 ) {

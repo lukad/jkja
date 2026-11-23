@@ -921,9 +921,6 @@ static char *SG_GetSaveGameMapName(const char *psPathlessBaseName)
 static qboolean SG_ReadScreenshot(qboolean qbSetAsLoadingScreen, void *pvDest = NULL);
 static qboolean SG_ReadScreenshot(qboolean qbSetAsLoadingScreen, void *pvDest)
 {
-#ifdef _XBOX
-	return qfalse;
-#else
 	qboolean bReturn = qfalse;
 
 	// get JPG screenshot data length...
@@ -966,7 +963,6 @@ static qboolean SG_ReadScreenshot(qboolean qbSetAsLoadingScreen, void *pvDest)
 	Z_Free( pDecompressedPic );
 
 	return bReturn;
-#endif
 }
 // Gets the savegame screenshot
 //
@@ -1020,7 +1016,6 @@ qboolean SG_GetSaveImage( const char *psPathlessBaseName, void *pvAddress )
 
 static void SG_WriteScreenshot(qboolean qbAutosave, LPCSTR psMapName)
 {
-#ifndef _XBOX
 	byte *pbRawScreenShot = NULL;
 
 	if( qbAutosave )
@@ -1046,7 +1041,6 @@ static void SG_WriteScreenshot(qboolean qbAutosave, LPCSTR psMapName)
 	SG_Append('SHOT', pJPGData, iJPGDataSize);
 	Z_Free(pJPGData);
 	SCR_TempRawImage_CleanUp();
-#endif
 }
 */
 

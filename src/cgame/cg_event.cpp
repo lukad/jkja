@@ -278,14 +278,8 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		if (cg_footsteps.integer) {
 			if ( cent->gent && cent->gent->s.number == 0 && !cg.renderingThirdPerson )//!cg_thirdPerson.integer )
 			{//Everyone else has keyframed footsteps in animevents.cfg
-#ifdef _IMMERSION
-				int index = rand()&3;
-				cgi_S_StartSound (NULL, es->number, CHAN_BODY, cgs.media.footsteps[ FOOTSTEP_NORMAL ][index] );
-				cgi_FF_Start( cgs.media.footstepForces[ FOOTSTEP_NORMAL ][ index ], es->number );
-#else
 				cgi_S_StartSound (NULL, es->number, CHAN_BODY, 
 					cgs.media.footsteps[ FOOTSTEP_NORMAL ][rand()&3] );
-#endif // _IMMERSION
 			}
 		}
 		break;
@@ -295,13 +289,7 @@ void CG_EntityEvent( centity_t *cent, vec3_t position ) {
 		{
 			if ( cent->gent && cent->gent->s.number == 0 && !cg.renderingThirdPerson )
 			{//Everyone else has keyframed footsteps in animevents.cfg
-#ifdef _IMMERSION
-				int index = rand()&3;
-				cgi_S_StartSound (NULL, es->number, CHAN_BODY, cgs.media.footsteps[ FOOTSTEP_METAL ][index] );
-				cgi_FF_Start( cgs.media.footstepForces[ FOOTSTEP_METAL ][ index ], es->number );
-#else
 				cgi_S_StartSound (NULL, es->number, CHAN_BODY, cgs.media.footsteps[ FOOTSTEP_METAL ][rand()&3] );
-#endif // _IMMERSION
 			}
 		}
 		break;
