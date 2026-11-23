@@ -12,12 +12,7 @@
 #define GL_INDEX_TYPE		GL_UNSIGNED_INT
 typedef unsigned int glIndex_t;
 
-// fast float to int conversion
-#if id386 && !(defined __linux__ && defined __i386__)
-long myftol( float f );
-#else
 #define	myftol(x) ((int)(x))
-#endif
 
 
 // 14 bits
@@ -103,7 +98,7 @@ typedef struct image_s {
 	char		imgName[MAX_QPATH];		// Only in debug, so imagelist cmd is useful
 #endif
 
-	USHORT		width, height;				// source image
+	unsigned short	width, height;				// source image
 
 	GLuint		texnum;					// gl texture binding
 	int			internalFormat;
@@ -1462,7 +1457,7 @@ struct shaderCommands_s
 	bool		fading;
 };
 
-typedef __declspec(align(16)) shaderCommands_s	shaderCommands_t;
+typedef shaderCommands_s	shaderCommands_t;
 
 extern	shaderCommands_t	tess;
 

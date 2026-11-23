@@ -9,10 +9,12 @@
 #pragma warning (push, 3)
 #include <vector>
 #include <list>
+#include <string>
 #pragma warning (pop)
 
 using std::vector;
 using std::list;
+using std::string;
 
 #if !defined(GENERICPARSER2_H_INC)
 #include "../game/genericparser2.h"
