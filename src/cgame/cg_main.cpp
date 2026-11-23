@@ -87,6 +87,8 @@ This is the only way control passes into the cgame module
 */
 extern cgame_import_t	cgi;
 extern void CG_PreInit();
+void CG_SetDataPadForceText( void );
+void CG_SetDataPadWeaponText( void );
 
 static void CG_ExportDrawDataPadObjectives( void ) {
 	centity_t		*cent;
@@ -154,6 +156,8 @@ Ghoul2 Insert End
 	cge.DrawDataPadWeapons = CG_ExportDrawDataPadWeapons;
 	cge.DrawDataPadInventory = CG_ExportDrawDataPadInventory;
 	cge.DrawDataPadForcePowers = CG_ExportDrawDataPadForcePowers;
+	cge.SetDataPadForceText = CG_SetDataPadForceText;
+	cge.SetDataPadWeaponText = CG_SetDataPadWeaponText;
 
 	return &cge;
 }

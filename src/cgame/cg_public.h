@@ -259,6 +259,8 @@ Ghoul2 Insert End
 	void		(*DrawDataPadWeapons)( void );
 	void		(*DrawDataPadInventory)( void );
 	void		(*DrawDataPadForcePowers)( void );
+	void		(*SetDataPadForceText)( void );
+	void		(*SetDataPadWeaponText)( void );
 } cgame_export_t;
 
 //----------------------------------------------

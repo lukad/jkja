@@ -1320,26 +1320,30 @@ static qboolean UI_RunMenuScript ( const char **args )
 		else if (Q_stricmp(name, "nextDataPadForcePower") == 0)		
 		{
 			ui.Cmd_ExecuteText( EXEC_NOW, "dpforcenext\n");
-			extern void CG_SetDataPadForceText( void );
-			CG_SetDataPadForceText();
+			if ( cge ) {
+				cge->SetDataPadForceText();
+			}
 		}
 		else if (Q_stricmp(name, "prevDataPadForcePower") == 0)		
 		{
 			ui.Cmd_ExecuteText( EXEC_NOW, "dpforceprev\n");
-			extern void CG_SetDataPadForceText( void );
-			CG_SetDataPadForceText();
+			if ( cge ) {
+				cge->SetDataPadForceText();
+			}
 		}
 		else if (Q_stricmp(name, "nextDataPadWeapon") == 0)		
 		{
 			ui.Cmd_ExecuteText( EXEC_NOW, "dpweapnext\n");
-			extern void CG_SetDataPadWeaponText( void );
-			CG_SetDataPadWeaponText();
+			if ( cge ) {
+				cge->SetDataPadWeaponText();
+			}
 		}
 		else if (Q_stricmp(name, "prevDataPadWeapon") == 0)		
 		{
 			ui.Cmd_ExecuteText( EXEC_NOW, "dpweapprev\n");
-			extern void CG_SetDataPadWeaponText( void );
-			CG_SetDataPadWeaponText();
+			if ( cge ) {
+				cge->SetDataPadWeaponText();
+			}
 		}
 		else if (Q_stricmp(name, "nextDataPadInventory") == 0)		
 		{
