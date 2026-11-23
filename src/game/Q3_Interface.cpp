@@ -9650,7 +9650,7 @@ void	CQuake3GameInterface::Remove( int entID, const char *name )
 // Get a random (float) number.
 float	CQuake3GameInterface::Random( float min, float max )
 {
-	return ((rand() * (max - min)) / 32768.0F) + min;
+	return (((rand() & 0x7fff) * (max - min)) / 32768.0F) + min;
 }
 
 void	CQuake3GameInterface::Play( int taskID, int entID, const char *type, const char *name )
