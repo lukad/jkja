@@ -131,6 +131,7 @@ add_executable(jasp
   server/sv_world.cpp
   sys/sys_console.cpp
   sys/sys_files.cpp
+  sys/sys_gamepad.cpp
   sys/sys_input.cpp
   sys/sys_main.cpp
   sys/sys_module.cpp
@@ -160,6 +161,7 @@ jasp_legacy_target(jasp)
 set(jasp_sys_sources
   sys/sys_console.cpp
   sys/sys_files.cpp
+  sys/sys_gamepad.cpp
   sys/sys_input.cpp
   sys/sys_main.cpp
   sys/sys_module.cpp

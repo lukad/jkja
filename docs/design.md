@@ -214,7 +214,7 @@ CD checks (`Sys_CheckCD`), CD paths, streaming-file helpers for consoles, file c
 the rumble scripting layer are removed.
 
 As of M2 the layer provides all of these groups through SDL3 and the standard library,
-gamepads excepted, and keeps the null variants of window, input and sound, which are
+and keeps the null variants of window, input and sound, which are
 chosen at start-up with `+set sys_headless 1`. Points that differ from the Windows
 code of the release:
 
@@ -243,6 +243,20 @@ code of the release:
   have produced. Tests use them to operate the menus and the game without a person.
   `sys_clipboard` puts text on the clipboard, as another program would have, so that
   pasting can be tested the same way.
+- A gamepad is read in the layout SDL gives every pad it knows, not as the numbered
+  axes and buttons of the release's joystick code
+  ([ADR-0019](decisions/0019-gamepads-use-the-standard-layout.md)). With `in_joystick`
+  set, the left stick moves through the engine's joystick axis events, the right stick
+  looks by producing mouse motion at `joy_lookspeed`, and buttons, triggers and d-pad
+  press the keys `JOY0` to `JOY27`, which the controls menu binds. `joy_threshold` is
+  the dead zone, and `joy_xbutton` and `joy_ybutton` make the left stick press the
+  cursor keys, as in the release. The retail game writes its configuration into the
+  game data, where the engine finds it when it has none of its own; it holds
+  `joy_xbutton` at 1, the release's default, so on such an installation the menu's
+  "X axis as buttons" has to be switched off for the stick to move sideways.
+- `sys_padaxis` and `sys_padbutton` deflect the axes and press the buttons of a pad
+  that exists in SDL only, a virtual joystick, which goes the way a real pad does
+  from there.
 
 The null sound device is a device, not the absence of one: the mixer is given a buffer
 and a play position that follows the clock, and what it mixes is discarded. Without a
@@ -490,7 +504,7 @@ and is the main design problem of M6 and M7.
 | Unit tests | New code with logic worth testing (serialisation, shader-script compiler, math replacements for assembly) | with the code |
 | Headless smoke test | Start with null window and sound and the renderer bound to a no-op OpenGL, mount game data, load a map, run N frames, quit cleanly | from M1, needs game data |
 | Render smoke test | The same with a real OpenGL context on a surface nobody sees (SDL's offscreen video driver) and the sound sent to SDL's dummy device, so that texture upload and drawing run for real | from M2, needs game data and such a context |
-| Scripted input | `sys_key`, `sys_char` and `sys_mousemove` on the command line operate menus and game, and `sys_clipboard` fills the clipboard; with `screenshot` the result can be looked at | on demand, needs game data |
+| Scripted input | `sys_key`, `sys_char` and `sys_mousemove` on the command line operate menus and game, `sys_clipboard` fills the clipboard, and `sys_padaxis` and `sys_padbutton` work a gamepad that exists in SDL only; with `screenshot` the result can be looked at | on demand, needs game data |
 | Play test | A fixed checklist on the opening level: movement, combat, cutscene, save, load. Played with the `linux-release` preset: the retail game is a build without assertions, and the debug presets stop on assertions of the release that the game's own data trips | milestone exits |
 | Image comparison | Screenshots at fixed camera positions on a fixed set of maps, new renderer against legacy renderer, perceptual difference under a threshold | M4 onwards |
 | Reference | Retail `jasp.exe` under Wine, for "what did the original do?" | on demand |
@@ -567,7 +581,7 @@ one map, `yavin1b`, for 120 frames.
       "Checkpoint" that nothing writes. The picture of a save is not such a leftover:
       the code that stores one is commented out in the release, the retail executable
       has no code that reads one, and the menus show the picture of the level instead
-- [ ] Gamepads, in SDL3's standard layout
+- [x] Gamepads, in SDL3's standard layout
       ([ADR-0019](decisions/0019-gamepads-use-the-standard-layout.md))
 - [x] Decide and record: brightness without a gamma ramp (section 4.5)
 - [x] Brightness by a pass over the finished frame
@@ -623,9 +637,18 @@ and the renderer restarted with `r_gamma` at 1.8, without a report or an OpenGL 
 The render smoke test runs with `r_gamma` away from its default, so the pass is part
 of every test run. What the pass looks like on a real display has not been seen.
 
+The gamepad was checked with the pad that exists in SDL only, in the `linux-release`
+preset and under the sanitizers. The left stick moves the player forward and sideways,
+at the speed of the keys when fully deflected and slower when not, and not at all
+inside the dead zone; the right stick turns the view; a button, a trigger and the
+d-pad run the commands bound to their keys; with `joy_xbutton` the stick presses the
+cursor keys; and clearing `in_joystick` lets go of the pad. No pad of metal and
+plastic has been tried, and none has been plugged in or pulled out while the game ran.
+
 Still open before the exit criteria can hold: the opening level has not been played to
-its end by a person since these fixes; the clipboard of a real desktop has not been
-tried, only the one SDL keeps for a window nobody sees; and the unticked items above.
+its end by a person since these fixes; the clipboard of a real desktop, the brightness
+pass on a real display and a real gamepad have not been tried; and the unticked items
+above.
 
 ### M3. Runs on Windows and macOS
 

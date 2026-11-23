@@ -1,5 +1,5 @@
 // Keyboard and mouse: what the window system reports becomes the engine's key, character
-// and mouse events.
+// and mouse events. The gamepad is in sys_gamepad.cpp.
 
 #include "sys_local.h"
 
@@ -409,6 +409,7 @@ void Sys_PumpEvents(void) {
 			break;
 
 		default:
+			Gamepad_Event(event);
 			break;
 		}
 	}
@@ -435,6 +436,8 @@ void IN_Init(void) {
 	Cmd_AddCommand("sys_char", ScriptedChar_f);
 	Cmd_AddCommand("sys_mousemove", ScriptedMouseMove_f);
 	Cmd_AddCommand("sys_clipboard", ScriptedClipboard_f);
+
+	Gamepad_Init();
 }
 
 /*
@@ -444,6 +447,7 @@ IN_Shutdown
 */
 void IN_Shutdown(void) {
 	SetMouseActive(false);
+	Gamepad_Shutdown();
 
 	Cmd_RemoveCommand("sys_key");
 	Cmd_RemoveCommand("sys_char");
@@ -461,6 +465,8 @@ not have the keyboard.
 ==================
 */
 void IN_Frame(void) {
+	Gamepad_Frame();
+
 	if (!Sys_Window() || !in_mouse->integer) {
 		SetMouseActive(false);
 		return;

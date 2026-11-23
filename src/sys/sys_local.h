@@ -27,6 +27,14 @@ void IN_Frame(void);
 // events and commands. Does nothing without a window.
 void Sys_PumpEvents(void);
 
+// The gamepad, for the functions above: its cvars and commands, the events of SDL that
+// are its own (returns whether the event was one), and its sticks once a frame.
+union SDL_Event;
+void Gamepad_Init(void);
+void Gamepad_Shutdown(void);
+bool Gamepad_Event(const SDL_Event &event);
+void Gamepad_Frame(void);
+
 // Lines typed on standard input, as console events.
 void Sys_StartConsoleInput(void);
 void Sys_QueueConsoleInput(void);

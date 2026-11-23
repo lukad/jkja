@@ -120,9 +120,10 @@ tests are `smoke-load-map` and `smoke-render-map`; `ctest` reports them as skipp
 offscreen video driver gets no OpenGL context. Without `+set sys_headless 1` the engine
 opens a window and plays sound; for a run that should do neither on the desktop, set
 `SDL_VIDEODRIVER=offscreen` and `SDL_AUDIODRIVER=dummy`. The commands `sys_key`,
-`sys_char` and `sys_mousemove` queue input events and `sys_clipboard` fills the
-clipboard, so menus and game can be operated from the command line and looked at with
-`screenshot`. A command the game queues itself,
+`sys_char` and `sys_mousemove` queue input events, `sys_clipboard` fills the
+clipboard, and `sys_padaxis` and `sys_padbutton` work a gamepad that exists in SDL
+only (it needs `+set in_joystick 1`), so menus and game can be operated from the command
+line and looked at with `screenshot`. A command the game queues itself,
 a change of level for one, runs only after every `+wait` still pending on the command
 line; for a run that crosses one, type the commands on the engine's standard input at
 the right times instead. If a script or preset name changes, update this table in the same
