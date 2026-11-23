@@ -143,7 +143,8 @@ instead of being hardcoded to `jagamex86.dll`
 
 CMake with presets and Ninja; C++20 for all C++ code
 ([ADR-0004](decisions/0004-build-system-and-toolchain.md)). One preset per platform and
-configuration, plus a sanitizer preset on Linux. Visual Studio users open the folder; no
+configuration, plus a Clang preset and a sanitizer preset on Linux; `cmake --list-presets`
+shows the ones usable on the current machine. Visual Studio users open the folder; no
 `.sln` or `.vcxproj` is ever generated into or committed to the tree.
 
 Warnings: new code (`src/sys`, `src/renderer`, tests) builds with a strict warning set
@@ -423,7 +424,7 @@ Each milestone ends when its exit criteria hold. Boxes are ticked as work lands.
 - [x] Convert line endings to LF; add `.gitattributes`, `.gitignore`, `.editorconfig`, `.clang-format`
 - [x] Move `code/` to `src/` with lower-case directories; fix every `#include` to exact case and forward slashes
 - [x] Add the repo check script
-- [ ] CMake skeleton with presets
+- [x] CMake skeleton with presets
 
 Exit: the tree contains only in-scope single-player sources; the repo checks pass.
 

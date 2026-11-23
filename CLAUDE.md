@@ -98,11 +98,15 @@ Checks come into existence milestone by milestone; run all that exist.
 |---|---|---|
 | Repository checks (includes, forbidden files, no data paths) | M0 | `scripts/check-repo` |
 | Configure and build | M0 | `cmake --preset <name>` then `cmake --build --preset <name>` |
-| Tests | M1 | `ctest --preset <name>` |
-| Sanitizer build and tests | M1 | the sanitizer preset, same commands |
+| Tests | M0 | `ctest --preset <name>`; runs the repository checks, and from M1 the unit tests |
+| Sanitizer build and tests | M1 | the `linux-sanitize` preset, same commands |
 | Headless smoke test (needs `JKA_GAMEDATA_DIR`) | M1 | part of `ctest` |
 | Play-test checklist | M2 | manual; listed in `docs/design.md`, section 7 |
 | Image comparison, new renderer against legacy | M4 | part of `ctest`, needs game data |
+
+Presets on Linux: `linux-debug` (GCC), `linux-clang-debug`, `linux-sanitize`,
+`linux-release`; `cmake --list-presets` shows what the current machine can use. The
+Windows and macOS presets have not been run yet.
 
 Nothing compiles before M1; until then the build only configures and runs the
 repository checks. If a script or preset name changes, update this table in the same
