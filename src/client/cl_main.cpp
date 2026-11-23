@@ -754,7 +754,6 @@ static unsigned int frameCount;
 float avgFrametime=0.0;
 void CL_Frame ( int msec,float fractionMsec ) {
 
-	checkAutoSave();	//saves the game immediately after starting a level
 
 	if ( !com_cl_running->integer ) {
 		return;
@@ -800,57 +799,17 @@ void CL_Frame ( int msec,float fractionMsec ) {
 
 	// decide the simulation time
 	cls.frametime = msec;
-	//if(cl_framerate->integer)
-	//{
-	//	avgFrametime+=msec;
-	//	char mess[256];
-	//	if(!(frameCount&0x1f))
-	//	{
-	//		sprintf(mess,"Frame rate=%f\n\n",1000.0f*(1.0/(avgFrametime/32.0f)));
-	////		OutputDebugString(mess);
-	//		Com_Printf(mess);
-	//		avgFrametime=0.0f;
-	//	}
-	//	frameCount++;
-	//}
-	// Always calculate framerate, bias the LOD if low
-	avgFrametime+=msec;
-	extern bool in_camera;
-	float framerate = 1000.0f*(1.0/(avgFrametime/32.0f));
-	static int lodFrameCount = 0;
-	int bias = Cvar_VariableIntegerValue("r_lodbias");
-	if(!(frameCount&0x1f))
+	if(cl_framerate->integer)
 	{
-        if(cl_framerate->integer)
+		avgFrametime+=msec;
+		char mess[256];
+		if(!(frameCount&0x1f))
 		{
-			char mess[256];
-			sprintf(mess,"Frame rate=%f LOD=%d\n\n",framerate,bias);
-			Com_Printf(mess);
+			sprintf(mess,"Frame rate=%f\n\n",1000.0f*(1.0/(avgFrametime/32.0f)));
+			Com_Printf("%s", mess);
+			avgFrametime=0.0f;
 		}
-		avgFrametime=0.0f;
-
-		// If we drop below 20FPS, pull down the LOD bias
-		if(framerate < 20.0f && bias == 0)
-		{
-			bias++;
-			Cvar_SetValue("r_lodbias", bias);
-			lodFrameCount = -1;
-		}
-
-		lodFrameCount++;
-		if(lodFrameCount==5 && bias > 0)
-		{
-			bias--;
-			Cvar_SetValue("r_lodBias", bias);
-			lodFrameCount = 0;
-		}
-	}
-	frameCount++;
-
-	if(in_camera)
-	{
-		// No LOD stuff during cutscenes
-		Cvar_SetValue("r_lodBias", 0);
+		frameCount++;
 	}
 
 	cls.frametimeFraction=fractionMsec;
@@ -1383,52 +1342,3 @@ ping_t* CL_GetFreePing( void )
 	return (best);
 }
 
-bool autosaveTrigger = false;
-bool doAutoSave = false;
-bool allowNormalAutosave = true;
-
-static void checkAutoSave()
-{
-	static int timeToCheckpoint = 0;
-	static int delayCountdown = 3;		// delay a few frames before saving
-
-	if(sv.time < timeToCheckpoint && timeToCheckpoint != 0)
-	{
-		allowNormalAutosave = false;
-	}
-	else
-	{
-		allowNormalAutosave = true;
-		timeToCheckpoint = 0;
-	}
-
-	if(autosaveTrigger)
-	{
-		if( cls.uiStarted && cls.state == CA_ACTIVE && SG_GameAllowedToSaveHere(qfalse)
-			&& Cvar_VariableIntegerValue("disableAutoSave") == 0 )
-		{
-			if(delayCountdown <= 0)
-			{
-				if(doAutoSave)
-				{
-					CG_CenterPrint( "@SP_INGAME_CHECKPOINT", SCREEN_HEIGHT * 0.25 );	//jump the network
-					Cbuf_AddText( "save auto\n" );
-				}
-				timeToCheckpoint = sv.time + 10000;
-				autosaveTrigger = false;
-				doAutoSave = false;
-				allowNormalAutosave = false;
-				delayCountdown = 3;
-			}
-			else
-			{
-				delayCountdown--;
-			}
-		}
-		else
-		{
-			delayCountdown = 3;
-		}
-
-	}
-}

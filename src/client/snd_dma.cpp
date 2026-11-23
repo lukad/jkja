@@ -2301,7 +2301,6 @@ static void S_StopBackgroundTrack_Actual( MusicInfo_t *pMusicInfo )
 	{
 		if ( pMusicInfo->s_backgroundFile != -1)
 		{
-			Sys_EndStreamedFile( pMusicInfo->s_backgroundFile );
 			FS_FCloseFile( pMusicInfo->s_backgroundFile );
 		}
 		pMusicInfo->s_backgroundFile = 0;	
@@ -2533,7 +2532,6 @@ static qboolean S_StartBackgroundTrack_Actual( MusicInfo_t *pMusicInfo, qboolean
 		//
 		// start the background streaming
 		//
-		Sys_BeginStreamedFile( pMusicInfo->s_backgroundFile, 0x10000 );
 	}
 
 	return qtrue;
@@ -3018,7 +3016,7 @@ static qboolean S_UpdateBackgroundTrack_Actual( MusicInfo_t *pMusicInfo, qboolea
 		{
 			// streaming a WAV off disk...
 			//
-			r = Sys_StreamedRead( raw, 1, fileBytes, pMusicInfo->s_backgroundFile );
+			r = FS_Read( raw, fileBytes, pMusicInfo->s_backgroundFile );
 			if ( r != fileBytes ) {
 				Com_Printf(S_COLOR_RED"StreamedRead failure on music track\n");
 				S_StopBackgroundTrack();

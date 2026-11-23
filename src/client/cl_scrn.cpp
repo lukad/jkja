@@ -391,10 +391,6 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 			break;
 		case CA_LOADING:
 		case CA_PRIMED:
-			// We got past the time when the UI needs to prevent swapping
-			extern bool connectSwapOverride;
-			connectSwapOverride = false;
-
 			// draw the game information screen and loading progress
 			CL_CGameRendering( stereoFrame );
 			break;

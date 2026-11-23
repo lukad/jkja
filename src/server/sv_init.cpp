@@ -214,12 +214,6 @@ void SV_SpawnServer( char *iServer, ForceReload_e eForceReload, qboolean bAllowS
 #endif
 
 
-	// Hope this is correct - InitGame gets called later, which does this,
-	// but UI_DrawConnect (in CL_MapLoading) needs it now, to properly
-	// mimic CG_DrawInformation:
-	extern SavedGameJustLoaded_e g_eSavedGameJustLoaded;
-	g_eSavedGameJustLoaded = eSavedGameJustLoaded;
-
 	// don't let sound stutter and dump all stuff on the hunk
 	CL_MapLoading();
 

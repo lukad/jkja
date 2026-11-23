@@ -62,9 +62,7 @@ public:
 
 	CStringEdPackage()
 	{
-		Z_PushNewDeleteTag( TAG_STRINGED );
 		m_Strings = new VVFixedMap< char *, unsigned long >( MAX_STRING_ENTRIES );
-		Z_PopNewDeleteTag();
 
 		Clear( SE_FALSE );
 	}
@@ -890,7 +888,6 @@ void SE_NewLanguage(void)
 //
 void SE_Init(void)
 {
-	Z_PushNewDeleteTag( TAG_STRINGED );
 
 	TheStringPackage.Clear( SE_FALSE );
 
@@ -901,7 +898,6 @@ void SE_Init(void)
 	// twice. Gah.
 	SE_CheckForLanguageUpdates();
 
-	Z_PopNewDeleteTag();
 }
 
 // returns error message else NULL for ok.

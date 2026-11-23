@@ -38,8 +38,6 @@ cvar_t	*cl_paused;
 cvar_t	*sv_paused;
 cvar_t	*com_skippingcin;
 cvar_t	*com_speedslog;		// 1 = buffer log, 2 = flush after each print
-extern cvar_t *inSplashMenu;
-extern cvar_t *controllerOut;
 
 #ifdef G2_PERFORMANCE_ANALYSIS
 cvar_t	*com_G2Report;
@@ -1045,9 +1043,6 @@ void Com_Init( char *commandLine ) {
 		com_version = Cvar_Get ("version", s, CVAR_ROM | CVAR_SERVERINFO );
 
 
-		// So any controller can skip the logo movies:
-		inSplashMenu = Cvar_Get( "inSplashMenu", "1", 0 );
-		controllerOut= Cvar_Get( "ControllerOutNum", "-1", 0);
 
 
 		SE_Init();	// Initialize StringEd

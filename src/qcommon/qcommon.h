@@ -608,8 +608,6 @@ inline void *Hunk_Alloc( int size, qboolean bZeroIt = qtrue)
 }
 
 // Used to re-tag new/delete allocations:
-void Z_PushNewDeleteTag( memtag_t eTag );
-void Z_PopNewDeleteTag( void );
 
 void Com_TouchMemory( void );
 
@@ -757,10 +755,6 @@ void	Sys_DisplaySystemConsole( qboolean show );
 
 int		Sys_GetProcessorId( void );
 
-void	Sys_BeginStreamedFile( fileHandle_t f, int readahead );
-void	Sys_EndStreamedFile( fileHandle_t f );
-int		Sys_StreamedRead( void *buffer, int size, int count, fileHandle_t f );
-void	Sys_StreamSeek( fileHandle_t f, int offset, int origin );
 
 void	Sys_ShowConsole( int level, qboolean quitOnClose );
 void	Sys_SetErrorText( const char *text );
@@ -775,8 +769,6 @@ char	*Sys_DefaultHomePath(void);	// where configuration, saves and screenshots a
 char **Sys_ListFiles( const char *directory, const char *extension, int *numfiles, qboolean wantsubs );
 void	Sys_FreeFileList( char **filelist );
 
-void	Sys_BeginProfiling( void );
-void	Sys_EndProfiling( void );
 
 qboolean Sys_LowPhysicalMemory();
 qboolean Sys_FileOutOfDate( LPCSTR psFinalFileName /* dest */, LPCSTR psDataFileName /* src */ );

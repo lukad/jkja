@@ -2313,15 +2313,8 @@ void RenderSurfaces(CRenderSurface &RS)
 		{
 			CRenderableSurface *newSurf = AllocRS();
 
-			extern bool in_camera;
-			if(shader->index == tfTorsoShader && in_camera == qtrue) {
-				mdxmSurface_t *lowsurface = (mdxmSurface_t *)G2_FindSurface(RS.currentModel, RS.surfaceNum, 1);
-				newSurf->surfaceData = lowsurface;
-			}
-			else {
 			// set the surface info to point at the where the transformed bone list is going to be for when the surface gets rendered out
-				newSurf->surfaceData = surface;
-			}
+			newSurf->surfaceData = surface;
 
 			newSurf->boneCache = RS.boneCache;
 			R_AddDrawSurf( (surfaceType_t *)newSurf, shader, RS.fogNum, qfalse );
