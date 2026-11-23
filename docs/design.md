@@ -210,10 +210,11 @@ Details in [ADR-0007](decisions/0007-game-data-location.md).
 
 ### 4.7 Audio
 
-Proposed, to be fixed by an ADR before M2: keep the engine's software mixer and feed it
-to an SDL3 audio stream; remove the OpenAL and EAX path. The software mixer is the retail
-default, so this loses only the optional EAX reverb. OpenAL Soft is the alternative if
-positional audio quality becomes a goal.
+The engine's software mixer is kept and feeds an SDL3 audio stream; the OpenAL and EAX
+path is removed ([ADR-0014](decisions/0014-audio-software-mixer-only.md)). The software
+mixer is the retail default, so this loses only the optional EAX reverb. The removal
+happens in M1, because that path cannot compile without the proprietary EAX headers;
+the SDL3 audio stream follows in M2.
 
 ### 4.8 64-bit and portability rules
 
@@ -441,6 +442,7 @@ Exit: the tree contains only in-scope single-player sources; the repo checks pas
 - [ ] Remove precompiled-header assumptions; every file includes what it uses
 - [ ] Fix compiler-dialect errors (MSVC keywords, `for` scope, non-standard library calls, pre-standard headers)
 - [ ] Replace bundled jpeg, png and zlib
+- [ ] Remove the OpenAL and EAX sound path
 - [ ] Replace inline assembly
 - [ ] Replace the variadic cgame syscalls with a typed interface
 - [ ] Fix pointer-size compile errors; remove `long`
@@ -452,7 +454,7 @@ test mounts the game data, loads a map and quits cleanly under the sanitizers.
 
 ### M2. Runs on Linux
 
-- [ ] Decide and record: audio backend, savegame format
+- [ ] Decide and record: savegame format
 - [ ] SDL3 window, input and events
 - [ ] Legacy renderer running in an SDL3 OpenGL context
 - [ ] Sound and music
@@ -533,7 +535,6 @@ Still to be made, each before the milestone that needs it:
 
 | Decision | Needed by |
 |---|---|
-| Audio backend | M2 |
 | Savegame format | M2 |
 | Continuous integration provider | M3 |
 | Shader language and toolchain | M5 |
