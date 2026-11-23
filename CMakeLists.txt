@@ -42,11 +42,6 @@ set(CMAKE_C_EXTENSIONS OFF)
 # (docs/design.md, section 8).
 
 include(CTest)
-if(BUILD_TESTING)
-  find_package(Python3 3.8 REQUIRED COMPONENTS Interpreter)
-  add_test(
-    NAME check-repo
-    COMMAND Python3::Interpreter "${CMAKE_SOURCE_DIR}/scripts/check-repo"
-    WORKING_DIRECTORY "${CMAKE_SOURCE_DIR}"
-  )
-endif()
+include(cmake/StrictWarnings.cmake)
+
+add_subdirectory(tools)

@@ -55,6 +55,9 @@ Every piece of work goes through these steps, in order.
 - No binaries, no IDE project files (`.sln`, `.vcproj`, `.vcxproj`, `.dsp`, `.dsw`), no
   copied-in library sources other than single-header libraries.
 - One build system: CMake presets with Ninja. Do not add a second way to build.
+- Repository tooling is C++ under `tools/`, built by the project
+  ([ADR-0011](docs/decisions/0011-repository-tooling-in-cpp.md)). No scripts in other
+  languages; CMake script mode only as glue.
 
 ### Code
 
@@ -72,7 +75,8 @@ Every piece of work goes through these steps, in order.
   warnings.
 - A header that lives in this repository is included in quotes, by its path relative to
   the including file, with forward slashes and the exact letter case of the file on disk.
-  After moving or renaming sources, run `scripts/fix-includes --apply`.
+  After moving or renaming sources, run
+  `git ls-files -z | build/<preset>/tools/fix-includes --apply`.
 
 ### Commits
 
@@ -96,9 +100,9 @@ Checks come into existence milestone by milestone; run all that exist.
 
 | Check | Exists from | Command |
 |---|---|---|
-| Repository checks (includes, forbidden files, no data paths) | M0 | `scripts/check-repo` |
+| Repository checks (includes, forbidden files, no data paths) | M0 | part of `ctest`; the tool is `build/<preset>/tools/check-repo` |
 | Configure and build | M0 | `cmake --preset <name>` then `cmake --build --preset <name>` |
-| Tests | M0 | `ctest --preset <name>`; runs the repository checks, and from M1 the unit tests |
+| Tests | M0 | `ctest --preset <name>`; runs the repository checks and the tools' self-test, and from M1 the unit tests |
 | Sanitizer build and tests | M1 | the `linux-sanitize` preset, same commands |
 | Headless smoke test (needs `JKA_GAMEDATA_DIR`) | M1 | part of `ctest` |
 | Play-test checklist | M2 | manual; listed in `docs/design.md`, section 7 |
@@ -108,8 +112,8 @@ Presets on Linux: `linux-debug` (GCC), `linux-clang-debug`, `linux-sanitize`,
 `linux-release`; `cmake --list-presets` shows what the current machine can use. The
 Windows and macOS presets have not been run yet.
 
-Nothing compiles before M1; until then the build only configures and runs the
-repository checks. If a script or preset name changes, update this table in the same
+Nothing under `src/` compiles before M1; until then the build produces the repository
+tools and runs their checks. If a script or preset name changes, update this table in the same
 change.
 
 "Verified" means the check was run and passed in this session. Anything else is

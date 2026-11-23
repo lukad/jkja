@@ -1,0 +1,12 @@
+# Quoted includes that name a header which is not in the repository.
+#
+# Each line: <including file> <include name>  # why it is tolerated
+#
+# check-repo reports every other quoted include that names nothing in the
+# repository, and it reports an entry here that is no longer needed. The list can
+# only shrink.
+
+src/client/snd_local.h eax/eax.h              # proprietary EAX header; goes with the audio decision due before M2
+src/client/snd_local.h eax/eaxman.h           # proprietary EAX header; goes with the audio decision due before M2
+src/qcommon/stringed_interface.cpp generic.h  # only used when building Raven's StringEd tool (_STRINGED)
+src/mp3code/wavep.c wcvt.c                    # third-party decoder; the file was never part of the release

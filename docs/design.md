@@ -1,6 +1,6 @@
 # Design
 
-Status: basis for work. Decisions 0000 to 0009 accepted on 2026-11-23.
+Status: basis for work. Decisions 0000 to 0011 accepted on 2026-11-23.
 This document is the basis for all work in this repository. It describes where the code
 starts, where it is going, and in what order. Decisions that shape it are recorded as ADRs
 in [decisions/](decisions/README.md); where this document and an accepted ADR disagree,
@@ -100,7 +100,6 @@ cmake/                 build helpers
 docs/
   design.md            this document
   decisions/           ADRs
-scripts/               repo checks, test drivers
 shaders/               shader sources for the new renderer
 src/
   qcommon/             common, cvars, commands, filesystem, collision, memory
@@ -117,6 +116,7 @@ src/
   icarus/              scripting                      } module
   ratl/ ravl/ ragl/ rufl/   Raven template libraries
 tests/
+tools/                 repository tools, built with the project
 ```
 
 The Quake 3 module names are kept because anyone who knows the engine family knows them.
