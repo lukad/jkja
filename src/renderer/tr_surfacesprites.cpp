@@ -703,8 +703,8 @@ static void RB_DrawVerticalSurfaceSprites( shaderStage_t *stage, shaderCommands_
 		}
 		step = stage->ss->density * Q_rsqrt(triarea);
 
-		randomindex = (byte)(v1[0]+v1[1]+v2[0]+v2[1]+v3[0]+v3[1]);
-		randominterval = (byte)(v1[0]+v2[1]+v3[2])|0x03;	// Make sure the interval is at least 3, and always odd
+		randomindex = (byte)(int)(v1[0]+v1[1]+v2[0]+v2[1]+v3[0]+v3[1]);
+		randominterval = (byte)(int)(v1[0]+v2[1]+v3[2])|0x03;	// Make sure the interval is at least 3, and always odd
 		rightvectorcount = 0;
 
 		for (posi=0; posi<1.0; posi+=step)
@@ -1014,8 +1014,8 @@ static void RB_DrawOrientedSurfaceSprites( shaderStage_t *stage, shaderCommands_
 		}
 		step = stage->ss->density * Q_rsqrt(triarea);
 
-		randomindex = (byte)(v1[0]+v1[1]+v2[0]+v2[1]+v3[0]+v3[1]);
-		randominterval = (byte)(v1[0]+v2[1]+v3[2])|0x03;	// Make sure the interval is at least 3, and always odd
+		randomindex = (byte)(int)(v1[0]+v1[1]+v2[0]+v2[1]+v3[0]+v3[1]);
+		randominterval = (byte)(int)(v1[0]+v2[1]+v3[2])|0x03;	// Make sure the interval is at least 3, and always odd
 
 		for (posi=0; posi<1.0; posi+=step)
 		{
@@ -1314,8 +1314,8 @@ static void RB_DrawEffectSurfaceSprites( shaderStage_t *stage, shaderCommands_t 
 		}
 		step = density * Q_rsqrt(triarea);
 
-		randomindex = (byte)(v1[0]+v1[1]+v2[0]+v2[1]+v3[0]+v3[1]);
-		randominterval = (byte)(v1[0]+v2[1]+v3[2])|0x03;	// Make sure the interval is at least 3, and always odd
+		randomindex = (byte)(int)(v1[0]+v1[1]+v2[0]+v2[1]+v3[0]+v3[1]);
+		randominterval = (byte)(int)(v1[0]+v2[1]+v3[2])|0x03;	// Make sure the interval is at least 3, and always odd
 
 		for (posi=0; posi<1.0f; posi+=step)
 		{

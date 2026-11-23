@@ -877,7 +877,7 @@ extern stringID_table_t BSTable[];
 extern stringID_table_t BSETTable[];
 qboolean G_ActivateBehavior (gentity_t *self, int bset )
 {
-	bState_t	bSID = (bState_t)-1;
+	int			bSID = -1;
 	char *bs_name = NULL;
 
 	if ( !self )
@@ -894,26 +894,26 @@ qboolean G_ActivateBehavior (gentity_t *self, int bset )
 
 	if ( self->NPC )
 	{
-		bSID = (bState_t)(GetIDForString( BSTable, bs_name ));
+		bSID = GetIDForString( BSTable, bs_name );
 	}
 
 	if(bSID > -1)
 	{
 		self->NPC->tempBehavior = BS_DEFAULT;
-		self->NPC->behaviorState = bSID;
+		self->NPC->behaviorState = (bState_t)bSID;
 		if ( bSID == BS_SEARCH || bSID == BS_WANDER )
 		{
 			//FIXME: Reimplement?
 			if( self->waypoint != WAYPOINT_NONE )
 			{
-				NPC_BSSearchStart( self->waypoint, bSID );
+				NPC_BSSearchStart( self->waypoint, (bState_t)bSID );
 			}
 			else
 			{
 				self->waypoint = NAV::GetNearestNode(self);
 				if( self->waypoint != WAYPOINT_NONE )
 				{
-					NPC_BSSearchStart( self->waypoint, bSID );
+					NPC_BSSearchStart( self->waypoint, (bState_t)bSID );
 				}
 			}
 		}
