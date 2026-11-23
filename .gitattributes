@@ -1,0 +1,6 @@
+# All text is stored and checked out with LF line endings on every platform.
+* text=auto eol=lf
+
+*.ico binary
+*.bmp binary
+*.png binary

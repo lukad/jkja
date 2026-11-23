@@ -1,0 +1,19 @@
+# Build output
+/build/
+
+# Local build settings; may hold machine-specific paths (ADR-0007)
+/CMakeUserPresets.json
+
+# Tooling state
+/compile_commands.json
+.cache/
+.clangd/
+
+# Editors and operating systems
+.idea/
+.vs/
+.vscode/
+*.swp
+*~
+.DS_Store
+Thumbs.db

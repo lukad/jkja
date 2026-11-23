@@ -1,0 +1,29 @@
+root = true
+
+[*]
+end_of_line = lf
+insert_final_newline = true
+
+# No charset is set for source files: a few legacy files hold Windows-1252 bytes in
+# string and character literals, and re-encoding them would change behaviour.
+[*.{c,cpp,h,hpp,rc}]
+indent_style = tab
+tab_width = 4
+
+[*.{md,json,yml,yaml,cmake}]
+charset = utf-8
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
+[CMakeLists.txt]
+charset = utf-8
+indent_style = space
+indent_size = 2
+trim_trailing_whitespace = true
+
+[*.py]
+charset = utf-8
+indent_style = space
+indent_size = 4
+trim_trailing_whitespace = true

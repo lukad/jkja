@@ -1,0 +1,18 @@
+# Style for new code. Legacy code is not reformatted (see CLAUDE.md).
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++20
+
+# Tabs, four wide, as in the legacy code.
+UseTab: ForIndentation
+TabWidth: 4
+IndentWidth: 4
+ContinuationIndentWidth: 4
+AccessModifierOffset: -4
+
+ColumnLimit: 100
+PointerAlignment: Right
+AllowShortFunctionsOnASingleLine: Empty
+AllowShortIfStatementsOnASingleLine: Never
+AllowShortLoopsOnASingleLine: false
+InsertNewlineAtEOF: true
