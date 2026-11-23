@@ -23,7 +23,7 @@ std::array<byte, sampleCount * (bitsPerSample / 8)> mixBuffer;
 
 } // namespace
 
-qboolean SNDDMA_Init(void) {
+qboolean NullSound_Init(void) {
 	mixBuffer.fill(0);
 	dma.channels = channelCount;
 	dma.samplebits = bitsPerSample;
@@ -35,16 +35,12 @@ qboolean SNDDMA_Init(void) {
 }
 
 // The position in the buffer, in mono samples, of the sample that would be playing now.
-int SNDDMA_GetDMAPos(void) {
+int NullSound_GetDMAPos(void) {
 	const std::int64_t played =
 	    static_cast<std::int64_t>(Sys_Milliseconds()) * samplesPerSecond / 1000 * channelCount;
 	return static_cast<int>(played & (sampleCount - 1));
 }
 
-void SNDDMA_Shutdown(void) {
+void NullSound_Shutdown(void) {
 	dma.buffer = nullptr;
 }
-
-void SNDDMA_BeginPainting(void) {}
-
-void SNDDMA_Submit(void) {}

@@ -133,6 +133,7 @@ add_executable(jasp
   sys/sys_null_sound.cpp
   sys/sys_null_window.cpp
   sys/sys_qgl.cpp
+  sys/sys_sound.cpp
   sys/sys_window.cpp
   ui/ui_atoms.cpp
   ui/ui_connect.cpp
@@ -160,6 +161,7 @@ set(jasp_sys_sources
   sys/sys_null_sound.cpp
   sys/sys_null_window.cpp
   sys/sys_qgl.cpp
+  sys/sys_sound.cpp
   sys/sys_window.cpp
 )
 if(MSVC)
