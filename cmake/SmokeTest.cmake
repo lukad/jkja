@@ -7,7 +7,10 @@
 # WINDOW=none runs without window, input and sound device, and the renderer's OpenGL
 # calls do nothing. WINDOW=offscreen gives the renderer a real OpenGL context on a
 # surface nobody sees, through SDL's offscreen video driver, and sends the sound to
-# SDL's dummy device; where no such context can be had, the test is skipped.
+# SDL's dummy device; where no such context can be had, the test is skipped. It runs
+# with the brightness setting away from its default, so that the pass that applies it
+# to the finished frame (docs/decisions/0018-brightness-without-a-gamma-ramp.md) is
+# part of what is tested.
 #
 # The game data is found through the environment variable JKA_GAMEDATA_DIR, the
 # directory that contains base/ (docs/decisions/0007-game-data-location.md). Without it
@@ -35,7 +38,7 @@ set(ENV{UBSAN_OPTIONS} "halt_on_error=1:print_stacktrace=1")
 if(WINDOW STREQUAL "offscreen")
   set(ENV{SDL_VIDEODRIVER} "offscreen")
   set(ENV{SDL_AUDIODRIVER} "dummy")
-  set(window_arguments +set r_fullscreen 0)
+  set(window_arguments +set r_fullscreen 0 +set r_gamma 1.3)
 elseif(WINDOW STREQUAL "none")
   set(window_arguments +set sys_headless 1)
 else()

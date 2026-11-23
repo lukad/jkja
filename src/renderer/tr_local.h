@@ -1357,7 +1357,6 @@ image_t		*R_CreateImage( const char *name, const byte *pic, int width, int heigh
 qboolean	R_GetModeInfo( int *width, int *height, int mode );
 
 void		R_SetColorMappings( void );
-void		R_GammaCorrect( byte *buffer, int bufSize );
 
 void	R_ImageList_f( void );
 void	R_SkinList_f( void );
@@ -1417,6 +1416,12 @@ glFunction_t GLimp_GetProcAddress( const char *name );
 // The renderer's part of bringing OpenGL up: asks the driver for its strings and limits
 // and binds the extensions. The platform layer calls it once the context exists.
 void		R_InitGLConfig( void );
+
+// tr_gamma.cpp: the table of GLimp_SetGamma applied to the finished frame
+void		RB_GammaInit( void );
+void		RB_GammaShutdown( void );
+void		RB_GammaPass( void );
+void		RB_ReadFrame( GLenum format, byte *pixels );
 
 
 

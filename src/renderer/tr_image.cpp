@@ -20,17 +20,6 @@ int		gl_filter_max = GL_LINEAR;
 #define FILE_HASH_SIZE		1024	// actually, the shader code needs this (from another module, great).
 //static	image_t*		hashTable[FILE_HASH_SIZE];
 
-/*
-** R_GammaCorrect
-*/
-void R_GammaCorrect( byte *buffer, int bufSize ) {
-	int i;
-
-	for ( i = 0; i < bufSize; i++ ) {
-		buffer[i] = s_gammatable[buffer[i]];
-	}
-}
-
 typedef struct {
 	char *name;
 	int	minimize, maximize;
@@ -2026,6 +2015,8 @@ void R_CreateBuiltinImages( void ) {
 	qglTexParameteri( GL_TEXTURE_RECTANGLE_EXT, GL_TEXTURE_WRAP_T, GL_CLAMP );
 	qglDisable( GL_TEXTURE_RECTANGLE_EXT );
 	qglEnable( GL_TEXTURE_2D );
+
+	RB_GammaInit();
 
 	// with overbright bits active, we need an image which is some fraction of full color,
 	// for default lightmaps, etc

@@ -125,10 +125,6 @@ void GLimp_Init(void) {
 	glConfig.displayFrequency =
 	    displayMode ? static_cast<int>(std::lround(displayMode->refresh_rate)) : 0;
 
-	// SDL offers no gamma ramp. The renderer then brightens textures as it loads them
-	// and goes without overbright bits.
-	glConfig.deviceSupportsGamma = qfalse;
-
 	Com_Printf("...%d by %d pixels, %s, %d colour, %d depth and %d stencil bits\n",
 	           glConfig.vidWidth, glConfig.vidHeight, fullscreen ? "full screen" : "in a window",
 	           glConfig.colorBits, glConfig.depthBits, glConfig.stencilBits);
@@ -197,12 +193,3 @@ qgl functions; there is none.
 ===============
 */
 void GLimp_LogComment(char *) {}
-
-/*
-===============
-GLimp_SetGamma
-
-Never called: glConfig.deviceSupportsGamma is false.
-===============
-*/
-void GLimp_SetGamma(unsigned char[256], unsigned char[256], unsigned char[256]) {}

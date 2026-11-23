@@ -84,6 +84,7 @@ add_executable(jasp
   renderer/tr_curve.cpp
   renderer/tr_draw.cpp
   renderer/tr_font.cpp
+  renderer/tr_gamma.cpp
   renderer/tr_ghoul2.cpp
   renderer/tr_glconfig.cpp
   renderer/tr_image.cpp

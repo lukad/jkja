@@ -197,7 +197,7 @@ void RE_GetScreenShot(byte *buffer, int w, int h)
 	{
 		return;
 	}
-	qglReadPixels (0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_RGB, GL_UNSIGNED_BYTE, source ); 
+	RB_ReadFrame( GL_RGB, source );
 	
 	assert (w == h);
 	int count = 0;
@@ -808,7 +808,7 @@ qboolean RE_InitDissolve(qboolean bForceCircularExtroWipe)
 		{
 			// read current screen image...  (GL_RGBA should work even on 3DFX in that the RGB parts will be valid at least)
 			//
-			qglReadPixels (0, 0, glConfig.vidWidth, glConfig.vidHeight, GL_RGBA, GL_UNSIGNED_BYTE, pBuffer );
+			RB_ReadFrame( GL_RGBA, pBuffer );
 			//
 			// now expand the pic over the top of itself so that it has a stride value of {PowerOf2(glConfig.vidWidth)}
 			//	(for GL power-of-2 rules)

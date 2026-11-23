@@ -205,7 +205,7 @@ engine needs, after console and proprietary functions are dropped, is small:
 | Process | `Sys_Init`, `Sys_Quit`, `Sys_Error`, `Sys_Print`, `Sys_Milliseconds`, `Sys_GetEvent`, `Sys_QueEvent` | SDL3 events and timers |
 | Files | `Sys_ListFiles`, `Sys_FreeFileList`, `Sys_Mkdir`, `Sys_Cwd`, `Sys_DefaultBasePath`, `Sys_DefaultHomePath` | C++ `<filesystem>`, SDL3 paths |
 | Modules | `Sys_GetGameFunction`, `Sys_UnloadGame` | SDL3 shared-object loading |
-| Window | `GLimp_Init`, `GLimp_Shutdown`, `GLimp_EndFrame`, `GLimp_SetGamma`, the `qgl*` function pointers | SDL3 window; a GL context for the legacy renderer |
+| Window | `GLimp_Init`, `GLimp_Shutdown`, `GLimp_EndFrame`, the `qgl*` function pointers | SDL3 window; a GL context for the legacy renderer |
 | Input | `IN_Init`, `IN_Shutdown`, `IN_Frame` | SDL3 keyboard, mouse, gamepad |
 | Sound device | `SNDDMA_Init`, `SNDDMA_Shutdown`, `SNDDMA_GetDMAPos`, `SNDDMA_BeginPainting`, `SNDDMA_Submit` | SDL3 audio stream |
 | Misc | `Sys_GetClipboardData`, system console | SDL3 clipboard; stdin/stdout |
@@ -223,14 +223,18 @@ code of the release:
   is part of the game data and ends at 2048 by 1536, therefore has no effect in full
   screen. Menus and HUD are laid out for 4:3 and are stretched to the shape of the
   display, as the release stretches them in a wide custom mode.
-- SDL3 offers no gamma ramp. The renderer therefore takes the path it has for devices
-  without one: the table made from `r_gamma` is applied to textures when they are
-  loaded and to nothing else, and there are no overbright bits. With the default
-  settings that table is the identity and overbright bits are off, so the picture is
-  the release's. The menu's brightness slider, which changes `r_gamma`, is what suffers:
-  it has no visible effect until the renderer restarts, and then only on textures.
-  The table is therefore to be applied to the finished frame by a pass in the
-  renderer's back end ([ADR-0018](decisions/0018-brightness-without-a-gamma-ramp.md)).
+- SDL3 offers no gamma ramp. The table the renderer makes from `r_gamma` and
+  `r_overBrightBits`, which the release hands to the display through `GLimp_SetGamma`,
+  is kept by the renderer's back end and applied to the finished frame, by a fragment
+  program that reads the frame from a copy
+  ([ADR-0018](decisions/0018-brightness-without-a-gamma-ramp.md), `tr_gamma.cpp`). A
+  context with fragment programs and rectangle textures is reported to the renderer as
+  a device with gamma control; `r_ignorehwgamma 1` or a context without them gives the
+  release's path for devices without it, where the table reaches textures only, and
+  only as they are loaded. With the default settings the table is the identity and the
+  pass does nothing. Screenshots show the frame as it is displayed, table applied, and
+  are not corrected a second time as the release corrects them. A frame that is read
+  back to be drawn again, for a dissolve, is read from the copy without the table.
 - The console reads lines from standard input on a thread of its own.
 - The game module is unloaded at the top of the main loop, not at the moment the engine
   lets go of it, because an error can be on its way up a stack that has functions of
@@ -565,7 +569,7 @@ one map, `yavin1b`, for 120 frames.
       has no code that reads one, and the menus show the picture of the level instead
 - [ ] Gamepads
 - [x] Decide and record: brightness without a gamma ramp (section 4.5)
-- [ ] Brightness by a pass over the finished frame
+- [x] Brightness by a pass over the finished frame
       ([ADR-0018](decisions/0018-brightness-without-a-gamma-ramp.md))
 - [ ] Remove `src/win32` once nothing more has to be restored from it
 - [ ] Fix run-time 64-bit defects found by play testing
@@ -609,6 +613,14 @@ with shift and the console key and takes typed and pasted text, and the playback
 of the run animation is limited by the restored value, twice the console version's.
 Music was checked by writing the sound output to a file: with only the music volume up
 there is sound in the menus and on a level, and with it down there is none.
+
+The brightness pass was checked the same way. A screenshot with `r_gamma` at 2 holds
+only values the table produces. A click on the menu's brightness slider brightens the
+next screenshot, menus and the light-mapped level alike, without a restart of the
+renderer. Under the sanitizers a level was played, saved, loaded, left for the next
+and the renderer restarted with `r_gamma` at 1.8, without a report or an OpenGL error.
+The render smoke test runs with `r_gamma` away from its default, so the pass is part
+of every test run. What the pass looks like on a real display has not been seen.
 
 Still open before the exit criteria can hold: the opening level has not been played to
 its end by a person since these fixes; the clipboard of a real desktop has not been

@@ -457,6 +457,13 @@ static void R_InitExtensions( void )
 		g_bDynamicGlowSupported = false;
 		Cvar_Set( "r_DynamicGlow","0" );
 	}
+
+	// No display gives its gamma ramp away any more. The table of the brightness setting
+	// is applied to the finished frame instead, by a fragment program that reads the
+	// frame from a rectangle texture (tr_gamma.cpp). A context that has both is what the
+	// release calls a device with gamma control.
+	glConfig.deviceSupportsGamma = ( bTexRectSupported && bARBFragmentProgram && qglActiveTextureARB
+		&& glConfig.maxActiveTextures >= 2 && !r_ignorehwgamma->integer ) ? qtrue : qfalse;
 }
 
 /*

@@ -492,11 +492,6 @@ void R_TakeScreenshot( int x, int y, int width, int height, char *fileName ) {
 		buffer = (unsigned char *) Z_Malloc(glConfig.vidWidth*glConfig.vidHeight*4, TAG_TEMP_WORKSPACE, qfalse);
 		qglReadPixels( x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE, buffer ); 
 
-		// gamma correct
-		if ( tr.overbrightBits>0 && glConfig.deviceSupportsGamma ) {
-			R_GammaCorrect( buffer, glConfig.vidWidth * glConfig.vidHeight * 4 );
-		}
-
 		SaveJPG(fileName, 95, width, height, buffer);
 	}
 	else
@@ -522,10 +517,6 @@ void R_TakeScreenshot( int x, int y, int width, int height, char *fileName ) {
 			buffer[i+2] = temp;
 		}
 
-		// gamma correct
-		if ( tr.overbrightBits>0 && glConfig.deviceSupportsGamma ) {
-			R_GammaCorrect( buffer + 18, glConfig.vidWidth * glConfig.vidHeight * 3 );
-		}
 		FS_WriteFile( fileName, buffer, c );
 	}
 	
@@ -610,11 +601,6 @@ void R_LevelShot( void ) {
 			dst[1] = g / 12;
 			dst[2] = r / 12;
 		}
-	}
-
-	// gamma correct
-	if ( glConfig.deviceSupportsGamma ) {
-		R_GammaCorrect( buffer + 18, LEVELSHOTSIZE * LEVELSHOTSIZE * 3 );
 	}
 
 	FS_WriteFile( checkname, buffer, LEVELSHOTSIZE * LEVELSHOTSIZE*3 + 18 );
@@ -1391,6 +1377,7 @@ void RE_Shutdown( qboolean destroyWindow ) {
 			// Release the blur texture.
 			qglDeleteTextures( 1, &tr.blurImage );
 		}
+		RB_GammaShutdown();
 		R_SyncRenderThread();
 		R_ShutdownCommandBuffers();
 //#ifndef _XBOX

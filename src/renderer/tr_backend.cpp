@@ -1527,6 +1527,8 @@ const void	*RB_SwapBuffers( const void *data ) {
 		Z_Free( stencilReadback );
 	}
 
+	RB_GammaPass();
+
     if ( !glState.finishCalled ) {
         qglFinish();
 	}
