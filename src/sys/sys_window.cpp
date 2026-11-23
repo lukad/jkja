@@ -106,7 +106,10 @@ void GLimp_Init(void) {
 	}
 
 	// The size in pixels is what the renderer draws to; it differs from the size that
-	// was asked for on a full-screen window and on a display with a scale factor.
+	// was asked for on a full-screen window and on a display with a scale factor. Some
+	// window systems apply the full-screen state only a moment after the window exists,
+	// and until then the window still has the size it was asked for: wait for them.
+	SDL_SyncWindow(window);
 	SDL_GetWindowSizeInPixels(window, &width, &height);
 	glConfig.vidWidth = width;
 	glConfig.vidHeight = height;
