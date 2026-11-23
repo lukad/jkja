@@ -233,7 +233,9 @@ qboolean SV_inPVS (const vec3_t p1, const vec3_t p2)
 	
 	if (!CM_AreasConnected (area1, area2))
 	{
-		timeInPVSCheck += Sys_Milliseconds() - start;
+		if ( com_speeds->integer ) {
+			timeInPVSCheck += Sys_Milliseconds() - start;
+		}
 		return qfalse;		// a door blocks sight
 	}
 	
