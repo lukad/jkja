@@ -1064,11 +1064,12 @@ qboolean SG_WriteSavegame(const char *psPathlessBaseName, qboolean qbAutosave)
 		SG_StoreSaveGameComment(va("--> %s <--",psMapName));
 	}
 
-//	if(!SG_Create( "current" ))
-	if(!SG_Create( psPathlessBaseName ))
+	// The save is written under the name "current" and gets its own name when it is
+	// complete, so a save that fails leaves the one it would have replaced alone.
+	if(!SG_Create( "current" ))
 	{
 		Com_Printf (GetString_FailedToOpenSaveGame(psPathlessBaseName,qfalse));//S_COLOR_RED "Failed to create savegame\n");
-		SG_WipeSavegame( psPathlessBaseName );
+		SG_WipeSavegame( "current" );
 		sv_testsave->integer = iPrevTestSave;
 		return qfalse;
 
@@ -1103,7 +1104,14 @@ qboolean SG_WriteSavegame(const char *psPathlessBaseName, qboolean qbAutosave)
 	if (gbSGWriteFailed)
 	{
 		Com_Printf (GetString_FailedToOpenSaveGame(psPathlessBaseName,qfalse));//S_COLOR_RED "Failed to write savegame!\n");
-		SG_WipeSavegame( psPathlessBaseName );
+		SG_WipeSavegame( "current" );
+		sv_testsave->integer = iPrevTestSave;
+		return qfalse;
+	}
+
+	if (!SG_Move( "current", psPathlessBaseName ))
+	{
+		SG_WipeSavegame( "current" );
 		sv_testsave->integer = iPrevTestSave;
 		return qfalse;
 	}
