@@ -787,11 +787,11 @@ namespace storage
 		// this is so node support does not need to be added to the primitive containers
 		static NODE & node(TValue &v)
 		{
-			return *(NODE *)((unsigned char *)(&v)+int(&((TStorage *)0)->nodeData)-int(&((TStorage *)0)->value));
+			return *(NODE *)((unsigned char *)(&v)+int(offsetof(TStorage, nodeData))-int(offsetof(TStorage, value)));
 		}
 		static const NODE & node(const TValue &v)
 		{
-			return *(const NODE *)((unsigned char *)(&v)+int(&((TStorage *)0)->nodeData)-int(&((TStorage *)0)->value));
+			return *(const NODE *)((unsigned char *)(&v)+int(offsetof(TStorage, nodeData))-int(offsetof(TStorage, value)));
 		}
 		static void swap(TStorage *s1,TStorage *s2)
 		{
@@ -801,8 +801,8 @@ namespace storage
 		static int pointer_to_index(const void *s1,const void *s2)
 		{
 			return 
-				((TStorage *)(((unsigned char *)s1)-int(&((TStorage *)0)->value))) - 
-				((TStorage *)(((unsigned char *)s2)-int(&((TStorage *)0)->value)));
+				((TStorage *)(((unsigned char *)s1)-int(offsetof(TStorage, value)))) - 
+				((TStorage *)(((unsigned char *)s2)-int(offsetof(TStorage, value))));
 		}	
 	};
 
@@ -882,11 +882,11 @@ namespace storage
 		// this is so node support does not need to be added to the primitive containers
 		static NODE & node(TValue &v)
 		{
-			return *(NODE *)((unsigned char *)(&v)+int(&((TStorage *)0)->nodeData)-int(&((TStorage *)0)->value));
+			return *(NODE *)((unsigned char *)(&v)+int(offsetof(TStorage, nodeData))-int(offsetof(TStorage, value)));
 		}
 		static const NODE & node(const TValue &v)
 		{
-			return *(const NODE *)((unsigned char *)(&v)+int(&((TStorage *)0)->nodeData)-int(&((TStorage *)0)->value));
+			return *(const NODE *)((unsigned char *)(&v)+int(offsetof(TStorage, nodeData))-int(offsetof(TStorage, value)));
 		}
 		static void swap(TStorage *s1,TStorage *s2)
 		{
@@ -898,8 +898,8 @@ namespace storage
 		static int pointer_to_index(const void *s1,const void *s2)
 		{
 			return 
-				((TStorage *)(((unsigned char *)s1)-int(&((TStorage *)0)->value))) - 
-				((TStorage *)(((unsigned char *)s2)-int(&((TStorage *)0)->value)));
+				((TStorage *)(((unsigned char *)s1)-int(offsetof(TStorage, value)))) - 
+				((TStorage *)(((unsigned char *)s2)-int(offsetof(TStorage, value))));
 		}	
 	};
 	template<class T,int SIZE,int MAX_CLASS_SIZE,class NODE>
@@ -973,11 +973,11 @@ namespace storage
 		// this is so node support does not need to be added to the primitive containers
 		static NODE & node(TValue &v)
 		{
-			return *(NODE *)((unsigned char *)(&v)+int(&((TStorage *)0)->nodeData)-int(&((TStorage *)0)->value));
+			return *(NODE *)((unsigned char *)(&v)+int(offsetof(TStorage, nodeData))-int(offsetof(TStorage, value)));
 		}
 		static const NODE & node(const TValue &v)
 		{
-			return *(const NODE *)((unsigned char *)(&v)+int(&((TStorage *)0)->nodeData)-int(&((TStorage *)0)->value));
+			return *(const NODE *)((unsigned char *)(&v)+int(offsetof(TStorage, nodeData))-int(offsetof(TStorage, value)));
 		}
 		// this is a bit suspicious, we are forced to do a memory swap, and for a class, that, say
 		// stores a pointer to itself, it won't work right
@@ -989,8 +989,8 @@ namespace storage
 		static int pointer_to_index(const void *s1,const void *s2)
 		{
 			return 
-				((TStorage *)(((unsigned char *)s1)-int(&((TStorage *)0)->value))) - 
-				((TStorage *)(((unsigned char *)s2)-int(&((TStorage *)0)->value)));
+				((TStorage *)(((unsigned char *)s1)-int(offsetof(TStorage, value)))) - 
+				((TStorage *)(((unsigned char *)s2)-int(offsetof(TStorage, value))));
 		}	
 		template<class CAST_TO>
 		static CAST_TO *verify_alloc(CAST_TO *p)
