@@ -142,7 +142,7 @@ target_compile_definitions(jasp PRIVATE
   # ...) and would rename unrelated identifiers wherever its header is included.
   MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 )
-target_link_libraries(jasp PRIVATE miniz)
+target_link_libraries(jasp PRIVATE miniz SDL3::Headers)
 jasp_legacy_target(jasp)
 
 # game, cgame and ICARUS. The file name states the architecture: jagamex86_64, jagamearm64.

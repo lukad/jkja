@@ -40,3 +40,19 @@ jasp_dependency(miniz 3.1.2
   "https://github.com/richgel999/miniz/archive/refs/tags/3.1.2.tar.gz"
   98468f8924934b723276680f85238b6c78bf1f8b49b4459cc9b7214a20e2e9fb
 )
+
+# Platform services (docs/decisions/0005-platform-layer-sdl3.md). Targets: SDL3::SDL3,
+# and SDL3::Headers for code that only needs declarations.
+# Static, and without the parts the project does not use.
+set(SDL_SHARED OFF)
+set(SDL_STATIC ON)
+set(SDL_TEST_LIBRARY OFF)
+set(SDL_TESTS OFF)
+set(SDL_EXAMPLES OFF)
+set(SDL_CAMERA OFF)
+set(SDL_SENSOR OFF)
+set(SDL_RENDER OFF)
+jasp_dependency(SDL3 3.4.20
+  "https://github.com/libsdl-org/SDL/releases/download/release-3.4.20/SDL3-3.4.20.tar.gz"
+  f3bb06f55bed9557227a700af2ea62e49497ebdf58037732a731a5fb3ef8581f
+)

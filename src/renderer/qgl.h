@@ -5,36 +5,7 @@
 #ifndef __QGL_H__
 #define __QGL_H__
 
-#if defined( __LINT__ )
-
-#include <GL/gl.h>
-
-#elif defined( _WIN32 )
-
-#pragma warning (disable: 4201)
-#pragma warning (disable: 4214)
-#pragma warning (disable: 4514)
-#pragma warning (disable: 4032)
-#pragma warning (disable: 4201)
-#pragma warning (disable: 4214)
-#include <windows.h>
-#include <gl/gl.h>
-
-#elif defined( __APPLE__ ) && defined( __MACH__ )
-  
-#include <MesaGL/gl.h>
-
-#elif defined( __linux__ )
-
-#include <GL/gl.h>
-#include <GL/glx.h>
-#include <GL/fxmesa.h>
-
-#else
-
-#include <gl.h>
-
-#endif
+#include "../sys/sys_gl.h"
 
 #ifndef APIENTRY
 #define APIENTRY

@@ -53,3 +53,4 @@ and hashes are in `cmake/Dependencies.cmake`.
 | Library | Notice |
 |---|---|
 | miniz | Copyright 2013-2014 RAD Game Tools and Valve Software; copyright 2010-2014 Rich Geldreich and Tenacious Software LLC. MIT licence. |
+| SDL3 | Copyright 1997-2026 Sam Lantinga. zlib licence. |
