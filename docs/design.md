@@ -207,10 +207,23 @@ engine needs, after console and proprietary functions are dropped, is small:
 CD checks (`Sys_CheckCD`), CD paths, streaming-file helpers for consoles, file codes and
 the rumble scripting layer are removed.
 
-As of M1 the layer provides the process, file and module groups through SDL3 and the
-standard library, and the null variants of window, input and sound. The system console
-is standard output only; console input, the clipboard, and the real window, input and
-sound device come with M2.
+As of M2 the layer provides all of these groups through SDL3 and the standard library,
+gamepads excepted, and keeps the null variants of window, input and sound, which are
+chosen at start-up with `+set sys_headless 1`. Points that differ from the Windows
+code of the release:
+
+- A full-screen window takes the size of the desktop; the display mode is not changed,
+  and `r_mode` sizes a window on the desktop only.
+- SDL3 offers no gamma ramp. The renderer therefore takes the path it has for devices
+  without one: textures are brightened when they are loaded and there are no overbright
+  bits, so the picture is darker in the highlights than the release's on hardware with
+  gamma control. Whether and how that is made up for is open.
+- The console reads lines from standard input on a thread of its own.
+- The game module is unloaded at the top of the main loop, not at the moment the engine
+  lets go of it, because an error can be on its way up a stack that has functions of
+  the module on it.
+- `sys_key`, `sys_char` and `sys_mousemove` queue the events a keyboard or mouse would
+  have produced. Tests use them to operate the menus and the game without a person.
 
 The null sound device is a device, not the absence of one: the mixer is given a buffer
 and a play position that follows the clock, and what it mixes is discarded. Without a
@@ -278,6 +291,12 @@ being added to or removed from a structure
 ([ADR-0015](decisions/0015-savegame-format.md)). The chunk structure is kept and the
 existing pointer tables become part of the new ones, so a retail-format reader could be
 added later.
+
+Two limits are known. The test that compares a table with its structure cannot see a
+missing member that is small enough to fit where alignment would have left padding
+anyway. And a few chunks that are not structures (timer names, script variable names,
+ICARUS state) are still read into buffers of a fixed size with the length the file
+gives; a damaged file is caught by its checksum only after the copy.
 
 ## 5. Order of work
 
@@ -438,6 +457,8 @@ and is the main design problem of M6 and M7.
 | Sanitizers | AddressSanitizer and UBSan preset on Linux | every change from M1 |
 | Unit tests | New code with logic worth testing (serialisation, shader-script compiler, math replacements for assembly) | with the code |
 | Headless smoke test | Start with null window and sound and the renderer bound to a no-op OpenGL, mount game data, load a map, run N frames, quit cleanly | from M1, needs game data |
+| Render smoke test | The same with a real OpenGL context on a surface nobody sees (SDL's offscreen video driver) and the sound sent to SDL's dummy device, so that texture upload and drawing run for real | from M2, needs game data and such a context |
+| Scripted input | `sys_key`, `sys_char` and `sys_mousemove` on the command line operate menus and game; with `screenshot` the result can be looked at | on demand, needs game data |
 | Play test | A fixed checklist on the opening level: movement, combat, cutscene, save, load | milestone exits |
 | Image comparison | Screenshots at fixed camera positions on a fixed set of maps, new renderer against legacy renderer, perceptual difference under a threshold | M4 onwards |
 | Reference | Retail `jasp.exe` under Wine, for "what did the original do?" | on demand |
@@ -505,17 +526,29 @@ one map, `yavin1b`, for 120 frames.
       ([ADR-0016](decisions/0016-menu-mouse-handling.md))
 - [ ] SDL3 window, input and events
 - [ ] System console input and the clipboard
-- [ ] Legacy renderer running in an SDL3 OpenGL context
+- [x] Legacy renderer running in an SDL3 OpenGL context
 - [ ] Sound and music
-- [ ] Cinematics
+- [x] Cinematics
 - [ ] Per-user write directory; read-only game data
-- [ ] Savegames, new format ([ADR-0015](decisions/0015-savegame-format.md)). The
-      writer's naming of the automatic save and its commented-out screenshot calls still
-      follow the console version
+- [x] Savegames, new format ([ADR-0015](decisions/0015-savegame-format.md))
+- [ ] Savegame leftovers of the console version: the picture stored with a save is
+      commented out, and respawning loads a save named "Checkpoint" that nothing writes
+- [ ] Gamepads
+- [ ] Decide and record: brightness without a gamma ramp (section 4.5)
+- [ ] Remove `src/win32` once nothing more has to be restored from it
 - [ ] Fix run-time 64-bit defects found by play testing
 
 Exit: the opening level is playable from start to finish including cutscenes; save and
 load round-trip; no sanitizer reports during the play-test checklist.
+
+State on 2026-11-23. Everything that can be checked without a person is in place and
+checked: menus and levels render in a real OpenGL context, videos play, a save made on
+a level with NPCs loads again in the same and in a new process, damaged saves are
+refused, all under the sanitizers. The items left unticked above that have code behind
+them wait for a person at a real window: nobody has yet pressed a key, moved a mouse or
+heard a sound. Keys and mouse motion were only fed in behind the platform layer, the
+sound was only measured as not silent, the clipboard and the default write directory
+were not exercised, and of the menus only the main menu was operated.
 
 ### M3. Runs on Windows and macOS
 

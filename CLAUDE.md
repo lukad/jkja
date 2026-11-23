@@ -105,6 +105,7 @@ Checks come into existence milestone by milestone; run all that exist.
 | Tests | M0 | `ctest --preset <name>`; runs the repository checks and the tools' self-test, and from M1 the unit tests |
 | Sanitizer build and tests | M1 | the `linux-sanitize` preset, same commands |
 | Headless smoke test (needs `JKA_GAMEDATA_DIR`) | M1 | part of `ctest` |
+| Render smoke test (needs `JKA_GAMEDATA_DIR` and an OpenGL context without a display) | M2 | part of `ctest` |
 | Play-test checklist | M2 | manual; listed in `docs/design.md`, section 7 |
 | Image comparison, new renderer against legacy | M4 | part of `ctest`, needs game data |
 
@@ -114,8 +115,13 @@ Windows and macOS presets have not been run yet.
 
 From M1 the build produces the engine (`jasp`), the game module (`jagame` plus the
 architecture), the unit tests (`tests/`, Catch2) and the repository tools. The smoke
-test is `smoke-load-map`; `ctest` reports it as skipped unless `JKA_GAMEDATA_DIR` is set
-in the environment. If a script or preset name changes, update this table in the same
+tests are `smoke-load-map` and `smoke-render-map`; `ctest` reports them as skipped unless
+`JKA_GAMEDATA_DIR` is set in the environment, and the second one also where SDL's
+offscreen video driver gets no OpenGL context. Without `+set sys_headless 1` the engine
+opens a window and plays sound; for a run that should do neither on the desktop, set
+`SDL_VIDEODRIVER=offscreen` and `SDL_AUDIODRIVER=dummy`. The commands `sys_key`,
+`sys_char` and `sys_mousemove` queue input events, so menus and game can be operated
+from the command line and looked at with `screenshot`. If a script or preset name changes, update this table in the same
 change.
 
 "Verified" means the check was run and passed in this session. Anything else is
