@@ -741,8 +741,6 @@ sysEvent_t	Sys_GetEvent( void );
 
 void	Sys_Init (void);
 
-char	*Sys_GetCurrentUser( void );
-
 void	QDECL Sys_Error( const char *error, ...);
 void	Sys_Quit (void);
 char	*Sys_GetClipboardData( void );	// note that this isn't journaled...
@@ -754,16 +752,7 @@ void	Sys_Print( const char *msg );
 int		Sys_Milliseconds (void);
 
 
-// the system console is shown when a dedicated server is running
-void	Sys_DisplaySystemConsole( qboolean show );
-
-int		Sys_GetProcessorId( void );
-
-
 void	Sys_ShowConsole( int level, qboolean quitOnClose );
-void	Sys_SetErrorText( const char *text );
-
-qboolean	Sys_CheckCD( void );
 
 void	Sys_Mkdir( const char *path );
 char	*Sys_Cwd( void );
@@ -775,8 +764,6 @@ void	Sys_FreeFileList( char **filelist );
 
 
 qboolean Sys_LowPhysicalMemory();
-qboolean Sys_FileOutOfDate( LPCSTR psFinalFileName /* dest */, LPCSTR psDataFileName /* src */ );
-qboolean Sys_CopyFile(LPCSTR lpExistingFileName, LPCSTR lpNewFileName, qboolean bOverwrite);
 
 
 //byte*	SCR_GetScreenshot(qboolean *qValid);

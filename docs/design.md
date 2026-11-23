@@ -145,8 +145,8 @@ tools/                 repository tools, built with the project
 The Quake 3 module names are kept because anyone who knows the engine family knows them.
 Directory names are lower case. `codemp/`, `tools/`, `bin/`, `base/`, `ui/` (top level)
 and all console and Mac Classic directories are removed from the working tree in
-milestone M0. The bundled libraries stay until they are replaced in M1, and the Win32
-platform code stays in `src/win32` until `src/sys` replaces it in M2.
+milestone M0. The bundled libraries stayed until they were replaced in M1, and the
+Win32 platform code stayed in `src/win32` until `src/sys` had replaced it in M2.
 
 ### 4.2 Binaries
 
@@ -197,7 +197,7 @@ time and compiled as part of the project, or a single-header library committed u
 
 ### 4.5 Platform layer
 
-`src/sys` replaces `src/win32`. The surface the
+`src/sys` replaces the release's `win32` directory, which is removed. The surface the
 engine needs, after console and proprietary functions are dropped, is small:
 
 | Group | Functions (today's names) | Backed by |
@@ -257,6 +257,24 @@ code of the release:
 - `sys_padaxis` and `sys_padbutton` deflect the axes and press the buttons of a pad
   that exists in SDL only, a virtual joystick, which goes the way a real pad does
   from there.
+
+Before `win32` was removed it was gone through, function by function, for what it did
+that `src/sys` does not. Still to be given back, because a player can notice it:
+
+- A fatal error opened a window that stayed until it was closed. `Sys_Error` writes to
+  standard error only, which nobody sees when the game is started from a desktop.
+- `vid_xpos` and `vid_ypos` remembered where the window was on the desktop.
+- The sound stopped while another program had the focus, and a minimised game slept
+  between frames.
+- The window had the game's icon, and the title "Jedi Knight®: Jedi Academy".
+
+Not carried over, on purpose: MIDI notes as keys (`in_midi` and its relatives), the
+log of OpenGL calls (`r_logFile`), stereo pixel formats (`r_stereo`), the choice
+between hardware and software OpenGL (`r_allowSoftwareGL`), colour depths other than
+8 bits a channel (`r_colorbits`), the display's refresh rate (`r_displayRefresh`), the
+second attempt at a smaller mode when the first window fails, the test for 128 MB of
+memory at start-up, and the refusal of standby. `in_mouse` knows on and off only.
+Typed characters outside Latin-1 are dropped.
 
 The null sound device is a device, not the absence of one: the mixer is given a buffer
 and a play position that follows the clock, and what it mixes is discarded. Without a
@@ -586,7 +604,11 @@ one map, `yavin1b`, for 120 frames.
 - [x] Decide and record: brightness without a gamma ramp (section 4.5)
 - [x] Brightness by a pass over the finished frame
       ([ADR-0018](decisions/0018-brightness-without-a-gamma-ramp.md))
-- [ ] Remove `src/win32` once nothing more has to be restored from it
+- [x] Remove `src/win32` once nothing more has to be restored from it
+- [ ] Give back what the Windows code did for the player and `src/sys` does not yet do
+      (section 4.5): a window for a fatal error, the remembered position of the window,
+      silence and idling while the game does not have the focus or is minimised, and
+      the window's icon and title
 - [ ] Fix run-time 64-bit defects found by play testing
 
 Exit: the opening level is playable from start to finish including cutscenes; save and

@@ -5,7 +5,7 @@
 # for the engine and game/game.vcproj for the game module, as they stand after M0.
 # Sources are listed explicitly; a new file is added here by hand.
 #
-# The Win32 platform code in win32/ is not built; sys/ replaces it
+# sys/ is the platform layer; it replaced the release's win32/
 # (docs/decisions/0005-platform-layer-sdl3.md).
 add_executable(jasp
   client/cl_cgame.cpp
