@@ -766,9 +766,9 @@ static void unpack_main(unsigned char *pcm, int igr)
 }
 /*--------------------------------------------------------------------*/
 /*-----------------------------------------------------------------*/
-IN_OUT L3audio_decode(unsigned char *bs, unsigned char *pcm)
+IN_OUT L3audio_decode(unsigned char *bs, signed short *pcm)
 {
-   return pMP3Stream->decode_function(bs, pcm);
+   return pMP3Stream->decode_function(bs, (unsigned char *)pcm);
 }
 
 /*--------------------------------------------------------------------*/
