@@ -3,15 +3,6 @@
 
 // this is excluded from PCH usage 'cos it looks kinda scary to me, being game and ui.... -Ste
 
-#ifdef _USRDLL	//UI dll
-
-#include "../ui/gameinfo.h"
-#include "weapons.h"
-extern	gameinfo_import_t	gi;
-extern weaponData_t weaponData[];
-extern ammoData_t ammoData[];
-
-#else	//we are in the game
 
 // ONLY DO THIS ON THE GAME SIDE
 #include "g_local.h"
@@ -95,7 +86,6 @@ func_t	funcs[] = {
 	{"noghri_shot_func",	FX_NoghriShotProjectileThink},
 	{NULL,					NULL}
 };
-#endif
 
 
 //qboolean COM_ParseInt( char **data, int *i );
@@ -1191,7 +1181,6 @@ void WPN_FuncName(const char **holdBuf)
 		return;
 	}
 	// ONLY DO THIS ON THE GAME SIDE
-#ifndef _USRDLL
 	int len = strlen(tokenStr);
 
 	len++;
@@ -1209,7 +1198,6 @@ void WPN_FuncName(const char **holdBuf)
 		}
 	}
 	gi.Printf(S_COLOR_YELLOW"WARNING: FuncName '%s' in external WEAPONS.DAT does not exist\n", tokenStr);
-#endif
 }
 
 
@@ -1224,7 +1212,6 @@ void WPN_AltFuncName(const char **holdBuf)
 	}
 
 	// ONLY DO THIS ON THE GAME SIDE
-#ifndef _USRDLL
 	int len = strlen(tokenStr);
 	len++;
 	if (len > 64)
@@ -1242,7 +1229,6 @@ void WPN_AltFuncName(const char **holdBuf)
 	}
 	gi.Printf(S_COLOR_YELLOW"WARNING: AltFuncName %s in external WEAPONS.DAT does not exist\n", tokenStr);
 
-#endif
 }
 
 //--------------------------------------------
@@ -1255,7 +1241,6 @@ void WPN_MuzzleEffect(const char **holdBuf)
 		return;
 	}
 	// ONLY DO THIS ON THE GAME SIDE
-#ifndef _USRDLL
 
 	int len = strlen(tokenStr);
 
@@ -1269,7 +1254,6 @@ void WPN_MuzzleEffect(const char **holdBuf)
 	G_EffectIndex( tokenStr );
 	Q_strncpyz(weaponData[wpnParms.weaponNum].mMuzzleEffect,tokenStr,len);
 
-#endif
 }
 
 //--------------------------------------------
@@ -1282,7 +1266,6 @@ void WPN_AltMuzzleEffect(const char **holdBuf)
 		return;
 	}
 	// ONLY DO THIS ON THE GAME SIDE
-#ifndef _USRDLL
 
 	int len = strlen(tokenStr);
 
@@ -1296,7 +1279,6 @@ void WPN_AltMuzzleEffect(const char **holdBuf)
 	G_EffectIndex( tokenStr );
 	Q_strncpyz(weaponData[wpnParms.weaponNum].mAltMuzzleEffect,tokenStr,len);
 
-#endif
 }
 
 //--------------------------------------------
