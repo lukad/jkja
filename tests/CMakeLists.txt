@@ -15,7 +15,9 @@ jasp_legacy_target(jasp-test-subjects)
 
 # The tests include headers of the legacy code, so their warnings are not errors.
 add_executable(jasp-tests
+  ../src/qcommon/sg_fields.cpp
   test_images.cpp
+  test_savefields.cpp
   test_shared.cpp
   test_zip.cpp
 )
