@@ -576,7 +576,7 @@ void R_LevelShot( void ) {
 	float		xScale, yScale;
 	int			xx, yy;
 
-	sprintf( checkname, "levelshots/%s.tga", tr.worldDir + strlen("maps/") );
+	Com_sprintf( checkname, sizeof( checkname ), "levelshots/%s.tga", tr.worldDir + strlen("maps/") );
 
 	source = (byte*) Z_Malloc( glConfig.vidWidth * glConfig.vidHeight * 3, TAG_TEMP_WORKSPACE, qfalse );
 

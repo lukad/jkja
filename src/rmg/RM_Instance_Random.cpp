@@ -56,7 +56,7 @@ CRMRandomInstance::CRMRandomInstance ( CGPGroup *instGroup, CRMInstanceFile& ins
 		// Initialize this now
 		mInstance = NULL;
 
-		Com_Printf ( "WARNING: No sub instances specified for random instance '%s'\n", group->FindPairValue ( "name", "unknown" ) );
+		Com_Printf ( "WARNING: No sub instances specified for random instance '%s'\n", instGroup->FindPairValue ( "name", "unknown" ) );
 		return;
 	}
 
