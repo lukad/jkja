@@ -10680,6 +10680,7 @@ void Item_StartCapture(itemDef_t *item, int key)
 	{
 		case ITEM_TYPE_EDITFIELD:
 		case ITEM_TYPE_NUMERICFIELD:
+			break;
 
 		case ITEM_TYPE_LISTBOX:
 		{
