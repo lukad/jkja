@@ -475,15 +475,15 @@ void UI_SaberDrawBlade( itemDef_t *item, char *saberName, int saberModel, saberT
 	char bladeColorString[MAX_QPATH];
 	vec3_t	angles={0};
 
-//	if ( item->flags&(ITF_ISANYSABER) && item->flags&(ITF_ISCHARACTER) )
+	if ( item->flags&(ITF_ISANYSABER) && item->flags&(ITF_ISCHARACTER) )
 	{	//it's bolted to a dude!
 		angles[YAW] = curYaw;
 	}
-//	else
-//	{
-//		angles[PITCH] = curYaw;
-//		angles[ROLL] = 90;
-//	}
+	else
+	{
+		angles[PITCH] = curYaw;
+		angles[ROLL] = 90;
+	}
 
 	if ( saberModel >= item->ghoul2.size() )
 	{//uhh... invalid index!

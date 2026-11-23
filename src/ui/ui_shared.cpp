@@ -7293,11 +7293,11 @@ void Item_Model_Paint(itemDef_t *item)
 	{
 		curYaw += (float)refdef.time/modelPtr->rotationSpeed;
 	}
-//	if ( item->flags&ITF_ISANYSABER && !(item->flags&ITF_ISCHARACTER) )
-//	{//hack to put saber on it's side
-//		VectorSet( angles, curYaw, 0, 90 );
-//	}
-//	else
+	if ( item->flags&ITF_ISANYSABER && !(item->flags&ITF_ISCHARACTER) )
+	{//hack to put saber on it's side
+		VectorSet( angles, curYaw, 0, 90 );
+	}
+	else
 	if (item->flags&ITF_G2VALID)
 	{
 		VectorSet( angles, 0, curYaw, 0 );
