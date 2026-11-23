@@ -281,6 +281,8 @@ int main(int argc, char **argv) {
 
 	// main game loop
 	while (true) {
+		Sys_UnloadRetiredGame();
+
 		// make sure mouse and joystick are only called once a frame
 		IN_Frame();
 

@@ -12,7 +12,12 @@ typedef void (*sysFunction_t)(void);
 // reason has then been printed.
 sysFunction_t Sys_GetGameFunction(const char *name);
 
-// Unloads the game module. Functions obtained from it must not be called afterwards.
+// Lets go of the game module. Functions obtained from it must not be called afterwards.
+// The module itself stays loaded until Sys_UnloadRetiredGame or the next load.
 void Sys_UnloadGame(void);
+
+// Unloads a module that Sys_UnloadGame let go of. For a point where no function of the
+// module can be on the stack: the top of the main loop.
+void Sys_UnloadRetiredGame(void);
 
 #endif // SYS_PUBLIC_H
