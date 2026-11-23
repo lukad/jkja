@@ -102,11 +102,23 @@ void CMod_LoadShaders( lump_t *l, clipMap_t	&cm )
 CMod_LoadSubmodels
 =================
 */
+// Returns a copy of an index array with room for more entries, and frees the original.
+static int *CMod_GrowIndexes( int *indexes, int count, int newCount )
+{
+	int *grown = (int *) Z_Malloc( newCount * sizeof( *grown ), TAG_BSP, qfalse);
+
+	if ( count ) {
+		memcpy( grown, indexes, count * sizeof( *grown ) );
+	}
+	Z_Free( indexes );
+	return grown;
+}
+
 void CMod_LoadSubmodels( lump_t *l, clipMap_t	&cm ) {
 	dmodel_t	*in;
 	cmodel_t	*out;
 	int			i, j, count;
-	int			*indexes;
+	int			modelBrushes, modelSurfaces;
 
 	in = (dmodel_t *)(cmod_base + l->fileofs);
 	if (l->filelen % sizeof(*in))
@@ -124,6 +136,23 @@ void CMod_LoadSubmodels( lump_t *l, clipMap_t	&cm ) {
 
 	cm.cmodels = (struct cmodel_s *) Z_Malloc( count * sizeof( *cm.cmodels ), TAG_BSP, qtrue );
 	cm.numSubModels = count;
+
+	// Each model gets a "leaf" that holds its brushes and surfaces. The numbers of those
+	// are appended to the leaf brush and leaf surface arrays, which are made longer here.
+	// (They used to be allocations of their own, addressed by their distance from the two
+	// arrays; that distance does not fit an int when pointers are 64 bits wide.)
+	modelBrushes = 0;
+	modelSurfaces = 0;
+	for ( i=0 ; i<count ; i++ )
+	{
+		if ( i == 0 && &cm == &cmg ) {
+			continue;
+		}
+		modelBrushes += LittleLong( in[i].numBrushes );
+		modelSurfaces += LittleLong( in[i].numSurfaces );
+	}
+	cm.leafbrushes = CMod_GrowIndexes( cm.leafbrushes, cm.numLeafBrushes, BOX_BRUSHES + cm.numLeafBrushes + modelBrushes );
+	cm.leafsurfaces = CMod_GrowIndexes( cm.leafsurfaces, cm.numLeafSurfaces, cm.numLeafSurfaces + modelSurfaces );
 
 	for ( i=0 ; i<count ; i++, in++, out++)
 	{
@@ -146,17 +175,15 @@ void CMod_LoadSubmodels( lump_t *l, clipMap_t	&cm ) {
 
 		// make a "leaf" just to hold the model's brushes and surfaces
 		out->leaf.numLeafBrushes = LittleLong( in->numBrushes );
-		indexes = (int *) Z_Malloc( out->leaf.numLeafBrushes * 4, TAG_BSP, qfalse);
-		out->leaf.firstLeafBrush = indexes - cm.leafbrushes;
+		out->leaf.firstLeafBrush = cm.numLeafBrushes;
 		for ( j = 0 ; j < out->leaf.numLeafBrushes ; j++ ) {
-			indexes[j] = LittleLong( in->firstBrush ) + j;
+			cm.leafbrushes[cm.numLeafBrushes++] = LittleLong( in->firstBrush ) + j;
 		}
 
 		out->leaf.numLeafSurfaces = LittleLong( in->numSurfaces );
-		indexes = (int *) Z_Malloc( out->leaf.numLeafSurfaces * 4, TAG_BSP, qfalse);
-		out->leaf.firstLeafSurface = indexes - cm.leafsurfaces;
+		out->leaf.firstLeafSurface = cm.numLeafSurfaces;
 		for ( j = 0 ; j < out->leaf.numLeafSurfaces ; j++ ) {
-			indexes[j] = LittleLong( in->firstSurface ) + j;
+			cm.leafsurfaces[cm.numLeafSurfaces++] = LittleLong( in->firstSurface ) + j;
 		}
 	}
 }
