@@ -287,6 +287,13 @@ Targets are 64-bit only: x86-64 and arm64.
 - **Alignment and aliasing.** File formats are read through `memcpy` or packed accessors
   where the original cast pointers into unaligned data. arm64 tolerates unaligned loads
   but the sanitizer builds do not, and they are the gate.
+- **Speed.** The levels rely on timing that every machine of the time produced. One
+  such place is known: a frame that loads files while a level comes up always exceeded
+  the engine's clamp of 200 ms, so the player entered a level a fixed number of server
+  frames after its start, and level scripts count on the characters spawned in those
+  frames. Such frames are counted as 200 ms whatever they took. The optimised build
+  shows this kind of defect and the debug build hides it, so a fix is checked in the
+  `linux-release` preset as well.
 - **Byte order.** All targets are little-endian. The byte-swap macros stay as no-ops at
   the file-format boundary; no big-endian work is done.
 
@@ -565,6 +572,7 @@ test found, and what became of it:
 | "Load checkpoint" does nothing | Respawning loaded the console's "Checkpoint" save, which nothing writes | fixed, PC logic restored |
 | Garbage text on the console when a cutscene is skipped | A format without its argument | fixed |
 | "glGetError() = 0x501" at level changes | Cloud layers drawn for skies that have none | fixed |
+| In the release preset the companion does nothing after a change of level | Level-load frames shorter than the engine's 200 ms clamp let the player into the level before the characters its start script addresses are spawned (section 4.8) | fixed |
 | Loading bar is a blank upright box | `CG_LoadBar` is the console version; the PC one is not in the release | waits for [ADR-0017](decisions/0017-missing-pc-code-from-jedi-outcast.md) |
 | Debug build aborts when a droid loses a limb | An assertion of the release that the game's own data trips; the retail build has assertions off | kept; play tests use the `linux-release` preset |
 | Sound drops out while models load in the menus | The release empties the sound buffer before every file read (section 4.7) | kept; listed under "Not scheduled" |
