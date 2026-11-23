@@ -11,6 +11,9 @@
 // src/game/g_savetables.cpp
 std::span<const sg::Table *const> G_SaveTables();
 
+// src/ghoul2/G2_savetables.cpp
+std::span<const sg::Table *const> G2_SaveTables();
+
 namespace {
 
 void CheckWithNested(const sg::Table &table, std::set<const sg::Table *> &seen) {
@@ -38,4 +41,12 @@ TEST_CASE("the tables of the game structures name every member", "[savetables]")
 		CheckWithNested(*table, seen);
 	}
 	CHECK(seen.size() >= G_SaveTables().size());
+}
+
+TEST_CASE("the tables of the Ghoul2 structures name every member", "[savetables]") {
+	std::set<const sg::Table *> seen;
+	for (const sg::Table *table : G2_SaveTables()) {
+		CheckWithNested(*table, seen);
+	}
+	CHECK(seen.size() >= G2_SaveTables().size());
 }

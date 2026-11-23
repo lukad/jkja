@@ -16,6 +16,10 @@
 
 #if !defined(G2_H_INC)
 	#include "G2.h"
+#include "G2_savetables.h"
+
+#include <string>
+#include <vector>
 #endif
 
 #if !defined (MINIHEAP_H_INC)
@@ -1688,97 +1692,122 @@ void *G2_FindSurface(const model_s *mod, int index, int lod)
 	return (void *)current;
 }
 
-#define SURFACE_SAVE_BLOCK_SIZE	sizeof(surfaceInfo_t)
-#define BOLT_SAVE_BLOCK_SIZE sizeof(boltInfo_t)
-#define BONE_SAVE_BLOCK_SIZE sizeof(boneInfo_t)
+// The state of a set of models is saved with the field tables in G2_savetables.cpp
+// (docs/decisions/0015-savegame-format.md): the number of models, and for every model its
+// CGhoul2Info followed by its lists of surfaces, bones and bolts, each with its length
+// in front.
+
+// The tables the file that is being read was written with.
+static sg::Schema g2SavedSchema;
+
+// Nothing that is saved here is a pointer.
+static const sg::Codec g2SaveCodec;
+
+static void G2_SaveCount(std::vector<std::uint8_t> &out, int count)
+{
+	for (int shift = 0; shift < 32; shift += 8)
+	{
+		out.push_back((std::uint8_t)((unsigned int)count >> shift));
+	}
+}
+
+// Takes a count off the front of the data. Returns -1 if the data ends before it.
+static int G2_LoadCount(std::span<const std::uint8_t> &in)
+{
+	if (in.size() < 4)
+	{
+		return -1;
+	}
+	const unsigned int count = in[0] | in[1] << 8 | in[2] << 16 | (unsigned int)in[3] << 24;
+	in = in.subspan(4);
+	return (int)count;
+}
+
+// Written once to every save file, before the first set of models.
+void G2_SaveSchema(void)
+{
+	std::vector<std::uint8_t> out;
+
+	sg::WriteSchema(out, G2_SaveTables());
+	SG_Append('G2SC', out.data(), out.size());
+}
+
+void G2_LoadSchema(void)
+{
+	void *pvChunk = NULL;
+	const int iLength = SG_Read('G2SC', NULL, 0, &pvChunk);
+
+	std::string sError = "it is missing";
+	const bool bOk = pvChunk && g2SavedSchema.Parse(std::span<const std::uint8_t>((const std::uint8_t *) pvChunk, iLength), sError);
+
+	if (pvChunk)
+	{
+		Z_Free(pvChunk);
+	}
+	if (!bOk)
+	{
+		Com_Error(ERR_DROP, "The save game could not be read (description of the models): %s", sError.c_str());
+	}
+}
+
+template <typename T>
+static void G2_SaveList(std::vector<std::uint8_t> &out, const std::vector<T> &list)
+{
+	G2_SaveCount(out, list.size());
+	for (const T &element : list)
+	{
+		sg::Write(out, sg::TableOf<T>(), &element, g2SaveCodec);
+	}
+}
+
+template <typename T>
+static bool G2_LoadList(std::span<const std::uint8_t> &in, std::vector<T> &list, std::string &sError)
+{
+	const int count = G2_LoadCount(in);
+
+	// an element takes at least a byte, which bounds what a damaged count can ask for
+	if (count < 0 || (size_t)count > in.size())
+	{
+		sError = "a list of a model is damaged";
+		return false;
+	}
+	list.resize(count);
+	for (T &element : list)
+	{
+		if (!g2SavedSchema.Read(in, sg::TableOf<T>(), &element, NULL, g2SaveCodec, sError))
+		{
+			return false;
+		}
+	}
+	return true;
+}
 
 void G2_SaveGhoul2Models(CGhoul2Info_v &ghoul2)
 {
-	char *pGhoul2Data = NULL;
-	int   iGhoul2Size = 0;
+	std::vector<std::uint8_t> out;
 
 	// is there anything to save?
 	if (!ghoul2.IsValid()||!ghoul2.size())
 	{
-		SG_Append('GHL2',&pGhoul2Data, 4);	//write out a zero buffer
+		G2_SaveCount(out, 0);
+		SG_Append('GHL2', out.data(), out.size());
 		return;
 	}
 
-	// this one isn't a define since I couldn't work out how to figure it out at compile time
-	const int ghoul2BlockSize = (int)((byte *)&ghoul2[0].BSAVE_END_FIELD - (byte *)&ghoul2[0].BSAVE_START_FIELD);
-
-	// add in count for number of ghoul2 models
-	iGhoul2Size += 4;	
-	// start out working out the total size of the buffer we need to allocate
-	int i;
-	for (i=0; i<ghoul2.size();i++)
-	{
-		iGhoul2Size += ghoul2BlockSize;
-		// add in count for number of surfaces
-		iGhoul2Size += 4;	
-		iGhoul2Size += (ghoul2[i].mSlist.size() * SURFACE_SAVE_BLOCK_SIZE);
-		// add in count for number of bones
-		iGhoul2Size += 4;	
-		iGhoul2Size += (ghoul2[i].mBlist.size() * BONE_SAVE_BLOCK_SIZE);
-		// add in count for number of bolts
-		iGhoul2Size += 4;	
-		iGhoul2Size += (ghoul2[i].mBltlist.size() * BOLT_SAVE_BLOCK_SIZE);
-	}
-
-	// ok, we should know how much space we need now
-	pGhoul2Data = (char*)Z_Malloc(iGhoul2Size, TAG_GHOUL2, qfalse);
-
-	// now lets start putting the data we care about into the buffer
-	char *tempBuffer = pGhoul2Data;
-
 	// save out how many ghoul2 models we have
-	*(int *)tempBuffer = ghoul2.size();
-	tempBuffer +=4;
+	G2_SaveCount(out, ghoul2.size());
 
-	for (i=0; i<ghoul2.size();i++)
+	for (int i=0; i<ghoul2.size();i++)
 	{
 		// first save out the ghoul2 details themselves
-//		OutputDebugString(va("G2_SaveGhoul2Models(): ghoul2[%d].mModelindex = %d\n",i,ghoul2[i].mModelindex));
-		memcpy(tempBuffer, &ghoul2[i].mModelindex, ghoul2BlockSize);
-		tempBuffer += ghoul2BlockSize;
+		sg::Write(out, sg::TableOf<CGhoul2Info>(), &ghoul2[i], g2SaveCodec);
 
-		// save out how many surfaces we have
-		*(int*)tempBuffer = ghoul2[i].mSlist.size();
-		tempBuffer +=4;
-
-		// now save the all the surface list info
-		int x;
-		for (x=0; x<ghoul2[i].mSlist.size(); x++)
-		{
-			memcpy(tempBuffer, &ghoul2[i].mSlist[x], SURFACE_SAVE_BLOCK_SIZE);
-			tempBuffer += SURFACE_SAVE_BLOCK_SIZE;
-		}
-		
-		// save out how many bones we have
-		*(int*)tempBuffer = ghoul2[i].mBlist.size();
-		tempBuffer +=4;
-
-		// now save the all the bone list info
-		for (x=0; x<ghoul2[i].mBlist.size(); x++)
-		{
-			memcpy(tempBuffer, &ghoul2[i].mBlist[x], BONE_SAVE_BLOCK_SIZE);
-			tempBuffer += BONE_SAVE_BLOCK_SIZE;
-		}
-
-		// save out how many bolts we have
-		*(int*)tempBuffer = ghoul2[i].mBltlist.size();
-		tempBuffer +=4;
-
-		// lastly save the all the bolt list info
-		for (x=0; x<ghoul2[i].mBltlist.size(); x++)
-		{
-			memcpy(tempBuffer, &ghoul2[i].mBltlist[x], BOLT_SAVE_BLOCK_SIZE);
-			tempBuffer += BOLT_SAVE_BLOCK_SIZE;
-		}
+		G2_SaveList(out, ghoul2[i].mSlist);
+		G2_SaveList(out, ghoul2[i].mBlist);
+		G2_SaveList(out, ghoul2[i].mBltlist);
 	}
 
-	SG_Append('GHL2',pGhoul2Data, iGhoul2Size);
-	Z_Free(pGhoul2Data);
+	SG_Append('GHL2', out.data(), out.size());
 }
 
 int G2_FindConfigStringSpace(char *name, int start, int max)
@@ -1803,33 +1832,31 @@ int G2_FindConfigStringSpace(char *name, int start, int max)
 	return i;
 }
 
-void G2_LoadGhoul2Model(CGhoul2Info_v &ghoul2, char *buffer)
+void G2_LoadGhoul2Model(CGhoul2Info_v &ghoul2, char *buffer, int length)
 {
+	std::span<const std::uint8_t> in((const std::uint8_t *) buffer, buffer ? length : 0);
+	std::string sError = "the models of an entity are damaged";
+
 	// first thing, lets see how many ghoul2 models we have, and resize our buffers accordingly
-	int newSize = *(int*)buffer;
-	ghoul2.resize(newSize);
-	buffer += 4;
+	const int newSize = G2_LoadCount(in);
+	bool bOk = newSize >= 0 && (size_t)newSize <= in.size();
 
-	// did we actually resize to a value?
-	if (!newSize)
-	{
-		// no, ok, well, done then.
-		return;
-	}
-
-	// this one isn't a define since I couldn't work out how to figure it out at compile time
-	const int ghoul2BlockSize = (int)((byte *)&ghoul2[0].mTransformedVertsArray - (byte *)&ghoul2[0].mModelindex);
+	ghoul2.resize(bOk ? newSize : 0);
 
 	// now we have enough instances, lets go through each one and load up the relevant details
-	for (int i=0; i<ghoul2.size(); i++)
+	for (int i=0; bOk && i<ghoul2.size(); i++)
 	{
 		ghoul2[i].mSkelFrameNum = 0;
 		ghoul2[i].mModelindex=-1;
 		ghoul2[i].mFileName[0]=0;
 		ghoul2[i].mValid=false;
+
 		// load the ghoul2 info from the buffer
-		memcpy(&ghoul2[i].mModelindex, buffer, ghoul2BlockSize);
-		buffer +=ghoul2BlockSize;
+		bOk = g2SavedSchema.Read(in, sg::TableOf<CGhoul2Info>(), &ghoul2[i], NULL, g2SaveCodec, sError);
+		if (!bOk)
+		{
+			break;
+		}
 
 		if (ghoul2[i].mModelindex!=-1&&ghoul2[i].mFileName[0])
 		{
@@ -1837,38 +1864,13 @@ void G2_LoadGhoul2Model(CGhoul2Info_v &ghoul2, char *buffer)
 			G2_SetupModelPointers(&ghoul2[i]);
 		}
 
-		// give us enough surfaces to load up the data
-		ghoul2[i].mSlist.resize(*(int*)buffer);
-		buffer +=4;
+		bOk = G2_LoadList(in, ghoul2[i].mSlist, sError)
+			&& G2_LoadList(in, ghoul2[i].mBlist, sError)
+			&& G2_LoadList(in, ghoul2[i].mBltlist, sError);
+	}
 
-		// now load all the surfaces
-		int x;
-		for (x=0; x<ghoul2[i].mSlist.size(); x++)
-		{
-			memcpy(&ghoul2[i].mSlist[x], buffer, SURFACE_SAVE_BLOCK_SIZE);
-			buffer += SURFACE_SAVE_BLOCK_SIZE;
-		}
-
-		// give us enough bones to load up the data
-		ghoul2[i].mBlist.resize(*(int*)buffer);
-		buffer +=4;
-
-		// now load all the bones
-		for (x=0; x<ghoul2[i].mBlist.size(); x++)
-		{
-			memcpy(&ghoul2[i].mBlist[x], buffer, BONE_SAVE_BLOCK_SIZE);
-			buffer += BONE_SAVE_BLOCK_SIZE;
-		}
-
-		// give us enough bolts to load up the data
-		ghoul2[i].mBltlist.resize(*(int*)buffer);
-		buffer +=4;
-
-		// now load all the bolts
-		for (x=0; x<ghoul2[i].mBltlist.size(); x++)
-		{
-			memcpy(&ghoul2[i].mBltlist[x], buffer, BOLT_SAVE_BLOCK_SIZE);
-			buffer += BOLT_SAVE_BLOCK_SIZE;
-		}
+	if (!bOk)
+	{
+		Com_Error(ERR_DROP, "The save game could not be read: %s", sError.c_str());
 	}
 }

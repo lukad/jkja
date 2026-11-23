@@ -20,6 +20,10 @@
 #include "../game/weapons.h"
 #include "../game/g_items.h"
 
+// ghoul2/G2_misc.cpp
+void G2_SaveSchema(void);
+void G2_LoadSchema(void);
+
 
 #pragma warning(disable : 4786)  // identifier was truncated (STL crap)
 #pragma warning(disable : 4710)  // function was not inlined (STL crap)
@@ -1092,6 +1096,7 @@ qboolean SG_WriteSavegame(const char *psPathlessBaseName, qboolean qbAutosave)
 		CM_WritePortalState();
 		SG_WriteServerConfigStrings();		
 	}
+	G2_SaveSchema();	// the description of the model state that the entities carry
 	ge->WriteLevel(qbAutosave);	// always done now, but ent saver only does player if auto
 
 	SG_Close();
@@ -1160,6 +1165,7 @@ qboolean SG_ReadSavegame(const char *psPathlessBaseName)
 		CM_ReadPortalState();
 		SG_ReadServerConfigStrings();		
 	}
+	G2_LoadSchema();
 	ge->ReadLevel(qbAutosave, qbLoadTransition);	// always done now, but ent reader only does player if auto
 
 

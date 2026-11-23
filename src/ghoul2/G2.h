@@ -93,7 +93,9 @@ void		TransformPoint (const vec3_t in, vec3_t out, mdxaBone_t *mat);
 void		Inverse_Matrix(mdxaBone_t *src, mdxaBone_t *dest);
 void		*G2_FindSurface(const model_s *, int index, int lod);
 void		G2_SaveGhoul2Models(CGhoul2Info_v &ghoul2);
-void		G2_LoadGhoul2Model(CGhoul2Info_v &ghoul2, char *buffer);
+void		G2_LoadGhoul2Model(CGhoul2Info_v &ghoul2, char *buffer, int length);
+void		G2_SaveSchema(void);
+void		G2_LoadSchema(void);
 
 // internal bolt calls. G2_bolts.cpp
 int			G2_Add_Bolt(CGhoul2Info *ghlInfo, boltInfo_v &bltlist, surfaceInfo_v &slist, const char *boneName);
@@ -178,7 +180,7 @@ qboolean	G2API_SetBoneAnimIndex(CGhoul2Info *ghlInfo, const int index, const int
 qboolean	G2API_SetAnimIndex(CGhoul2Info *ghlInfo, const int index);
 int			G2API_GetAnimIndex(CGhoul2Info *ghlInfo);
 void		G2API_SaveGhoul2Models(CGhoul2Info_v &ghoul2);
-void		G2API_LoadGhoul2Models(CGhoul2Info_v &ghoul2, char *buffer);
+void		G2API_LoadGhoul2Models(CGhoul2Info_v &ghoul2, char *buffer, int length);
 void		G2API_LoadSaveCodeDestructGhoul2Info(CGhoul2Info_v &ghoul2);
 char		*G2API_GetAnimFileNameIndex(qhandle_t modelIndex);
 char		*G2API_GetAnimFileInternalNameIndex(qhandle_t modelIndex);

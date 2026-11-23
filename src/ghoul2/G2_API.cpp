@@ -1852,9 +1852,9 @@ void G2API_SaveGhoul2Models(CGhoul2Info_v &ghoul2)
 	G2_SaveGhoul2Models(ghoul2);
 }
 
-void G2API_LoadGhoul2Models(CGhoul2Info_v &ghoul2, char *buffer)
+void G2API_LoadGhoul2Models(CGhoul2Info_v &ghoul2, char *buffer, int length)
 {
-	G2_LoadGhoul2Model(ghoul2, buffer);
+	G2_LoadGhoul2Model(ghoul2, buffer, length);
 	G2ANIM(ghoul2,"G2API_LoadGhoul2Models");
 //	G2ERROR(ghoul2.IsValid(),"Invalid ghlInfo after load");
 }

@@ -30,6 +30,7 @@ add_executable(jasp
   ghoul2/G2_bolts.cpp
   ghoul2/G2_bones.cpp
   ghoul2/G2_misc.cpp
+  ghoul2/G2_savetables.cpp
   ghoul2/G2_surfaces.cpp
   mp3code/cdct.c
   mp3code/csbt.c

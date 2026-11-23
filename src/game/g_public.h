@@ -2,7 +2,7 @@
 #define __G_PUBLIC_H__
 // g_public.h -- game module information visible to server
 
-#define	GAME_API_VERSION	8
+#define	GAME_API_VERSION	9
 
 // entity->svFlags
 // the server does not know how to interpret most of the values
@@ -308,7 +308,7 @@ qboolean	(*G2API_SetBoneAnglesMatrixIndex)(CGhoul2Info *ghlInfo, const int index
 qboolean	(*G2API_SetAnimIndex)(CGhoul2Info *ghlInfo, const int index);
 int			(*G2API_GetAnimIndex)(CGhoul2Info *ghlInfo);
 void		(*G2API_SaveGhoul2Models)(CGhoul2Info_v &ghoul2);
-void		(*G2API_LoadGhoul2Models)(CGhoul2Info_v &ghoul2, char *buffer);
+void		(*G2API_LoadGhoul2Models)(CGhoul2Info_v &ghoul2, char *buffer, int length);
 void		(*G2API_LoadSaveCodeDestructGhoul2Info)(CGhoul2Info_v &ghoul2);
 char		*(*G2API_GetAnimFileNameIndex)(qhandle_t modelIndex);
 char		*(*G2API_GetAnimFileInternalNameIndex)(qhandle_t modelIndex);

@@ -5,6 +5,7 @@
 add_library(jasp-test-subjects STATIC
   ../src/game/q_math.cpp
   ../src/game/q_shared.cpp
+  ../src/ghoul2/G2_savetables.cpp
   ../src/qcommon/unzip.cpp
   ../src/renderer/tr_stb.cpp
   engine_stubs.cpp
