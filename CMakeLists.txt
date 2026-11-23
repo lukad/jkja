@@ -38,6 +38,9 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_C_EXTENSIONS OFF)
 
+# No C++ modules are used; skip the dependency scan CMake would run for them.
+set(CMAKE_CXX_SCAN_FOR_MODULES OFF)
+
 # Nothing under src/ is built yet; the engine and game module targets arrive in M1
 # (docs/design.md, section 8).
 
