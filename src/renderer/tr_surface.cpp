@@ -2115,24 +2115,32 @@ void RB_SurfaceSkip( void *surf ) {
 
 void RB_SurfaceTerrain( surfaceInfo_t *surf );
 
+// The table is called with a pointer to the surface type, and each function takes the
+// surface it draws. This adapts one to the other, so that a function is only ever called
+// through its own type.
+template <typename Surface, void (*Function)( Surface * )>
+static void RB_Surface( void *surface ) {
+	Function( (Surface *)surface );
+}
+
 void (*rb_surfaceTable[SF_NUM_SURFACE_TYPES])( void *) = {
-	(void(*)(void*))RB_SurfaceBad,			// SF_BAD, 
-	(void(*)(void*))RB_SurfaceSkip,			// SF_SKIP, 
-	(void(*)(void*))RB_SurfaceFace,			// SF_FACE,
-	(void(*)(void*))RB_SurfaceGrid,			// SF_GRID,
-	(void(*)(void*))RB_SurfaceTriangles,	// SF_TRIANGLES,
-	(void(*)(void*))RB_SurfacePolychain,	// SF_POLY,
-	(void(*)(void*))RB_SurfaceTerrain,		// SF_TERRAIN,
-	(void(*)(void*))RB_SurfaceMesh,			// SF_MD3,
+	RB_Surface<surfaceType_t, RB_SurfaceBad>,			// SF_BAD, 
+	RB_SurfaceSkip,						// SF_SKIP, 
+	RB_Surface<srfSurfaceFace_t, RB_SurfaceFace>,			// SF_FACE,
+	RB_Surface<srfGridMesh_t, RB_SurfaceGrid>,			// SF_GRID,
+	RB_Surface<srfTriangles_t, RB_SurfaceTriangles>,	// SF_TRIANGLES,
+	RB_Surface<srfPoly_t, RB_SurfacePolychain>,	// SF_POLY,
+	RB_Surface<surfaceInfo_t, RB_SurfaceTerrain>,		// SF_TERRAIN,
+	RB_Surface<md3Surface_t, RB_SurfaceMesh>,			// SF_MD3,
 /*
 Ghoul2 Insert Start
 */
 
-	(void(*)(void*))RB_SurfaceGhoul,		// SF_MDX,
+	RB_Surface<CRenderableSurface, RB_SurfaceGhoul>,		// SF_MDX,
 /*
 Ghoul2 Insert End
 */
-	(void(*)(void*))RB_SurfaceFlare,		// SF_FLARE,
-	(void(*)(void*))RB_SurfaceEntity,		// SF_ENTITY
-	(void(*)(void*))RB_SurfaceDisplayList	// SF_DISPLAY_LIST
+	RB_Surface<srfFlare_t, RB_SurfaceFlare>,		// SF_FLARE,
+	RB_Surface<surfaceType_t, RB_SurfaceEntity>,		// SF_ENTITY
+	RB_Surface<srfDisplayList_t, RB_SurfaceDisplayList>	// SF_DISPLAY_LIST
 };
