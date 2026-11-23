@@ -1714,8 +1714,7 @@ static bool UpdateRider( Vehicle_t *pVeh, bgEntity_t *pRider, usercmd_t *pUmcd )
 
 				// Force first person mode when exiting the vehicle
 				// If you're carrying a saber, it will get reset later
-				extern void Cvar_SetValue(const char *var_name, float value);
-				Cvar_SetValue("cg_thirdPerson", 0);
+				gi.cvar_set("cg_thirdPerson", "0");
 #else
 
 #endif

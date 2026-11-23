@@ -1189,6 +1189,8 @@ void	cgi_UI_MenuPaintAll(void);
 void	cgi_UI_MenuCloseAll(void);
 void	cgi_UI_String_Init(void);
 int		cgi_UI_GetMenuItemInfo(const char *menuFile,const char *itemName,int *x,int *y,int *w,int *h,vec4_t color,qhandle_t *background);
+qboolean	cgi_UI_MenuHasFocus(void);
+void	cgi_UI_SetFocusedMenuItemText(const char *itemName, const char *text);
 int		cgi_UI_GetMenuInfo(char *menuFile,int *x,int *y,int *w,int *h);
 
 void	SetWeaponSelectTime(void);

@@ -1578,15 +1578,6 @@ static qboolean UI_RunMenuScript ( const char **args )
 				UI_ResetSaberCvars();
 			}
     	}
-		else if( Q_stricmp(name, "fixforsabercheat") == 0)
-		{
-			if(strstr(Cvar_Get("g_saber2"," ", 0)->string, "single"))
-			{
-				extern bool Cheat_ChangeSaber( void );
-				Cheat_ChangeSaber();
-				Cheat_ChangeSaber();
-			}
-		}
 		else if (Q_stricmp(name, "updatefightingstylechoices") == 0) 
 		{
 			UI_UpdateFightingStyleChoices();

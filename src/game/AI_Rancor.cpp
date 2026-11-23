@@ -1269,14 +1269,7 @@ void Rancor_CheckDropVictim( void )
 	vec3_t end={NPC->activator->currentOrigin[0],NPC->activator->currentOrigin[1],NPC->activator->absmax[2]-1}; 
 	trace_t	trace;
 	gi.trace( &trace, start, mins, maxs, end, NPC->activator->s.number, NPC->activator->clipmask, (EG2_Collision)0, 0 );
-	// First, if the held person is outside the world, eat them instead!
-	extern int CM_LeafCluster( int );
-	extern int CM_PointLeafnum( const vec3_t p );
-	if( CM_LeafCluster( CM_PointLeafnum( NPC->activator->currentOrigin ) ) == -1 )
-	{
-		Rancor_Attack( 0, qfalse, qfalse );
-	}
-	else if ( !trace.allsolid && !trace.startsolid && trace.fraction >= 1.0f )
+	if ( !trace.allsolid && !trace.startsolid && trace.fraction >= 1.0f )
 	{
 		Rancor_DropVictim( NPC );
 	}

@@ -544,6 +544,16 @@ int cgi_UI_GetItemText(char *menuFile,char *itemName, char* text)
 	return(int) cgi.UI_GetItemText( menuFile,itemName,text);
 }
 
+qboolean cgi_UI_MenuHasFocus(void)
+{
+	return cgi.UI_MenuHasFocus();
+}
+
+void cgi_UI_SetFocusedMenuItemText(const char *itemName, const char *text)
+{
+	cgi.UI_SetFocusedMenuItemText( itemName, text );
+}
+
 int cgi_SP_GetStringTextString(const char *text, char *buffer, int bufferLength)
 {
 	return cgi.SP_GetStringTextString( text, buffer, bufferLength );

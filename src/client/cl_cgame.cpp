@@ -819,6 +819,16 @@ static int CGI_UI_GetMenuItemInfo( const char *menuFile, const char *itemName, i
 	return result;
 }
 
+void Menu_SetItemText(const menuDef_t *menu,const char *itemName, const char *text);
+
+static qboolean CGI_UI_MenuHasFocus( void ) {
+	return Menu_GetFocused() != NULL;
+}
+
+static void CGI_UI_SetFocusedMenuItemText( const char *itemName, const char *text ) {
+	Menu_SetItemText( Menu_GetFocused(), itemName, text );
+}
+
 static int CGI_SP_GetStringTextString( const char *reference, char *buffer, int bufferLength ) {
 	const char* text;
 
@@ -985,6 +995,8 @@ qboolean CL_BindCGame( void ) {
 	import.SP_GetStringTextString = CGI_SP_GetStringTextString;
 	import.UI_GetItemText = CGI_UI_GetItemText;
 	import.UI_GetMenuItemInfo = CGI_UI_GetMenuItemInfo;
+	import.UI_MenuHasFocus = CGI_UI_MenuHasFocus;
+	import.UI_SetFocusedMenuItemText = CGI_UI_SetFocusedMenuItemText;
 
 	GetCGameAPI = (GetCGameAPI_t) Sys_GetGameFunction( "GetCGameAPI" );
 	if ( !GetCGameAPI ) {

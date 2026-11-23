@@ -1053,7 +1053,7 @@ runicarus:
 	{
 		if ( ent->NPC == NULL )
 		{
-			if ( ent->m_iIcarusID != IIcarusInterface::ICARUS_INVALID && !stop_icarus && cls.state != CA_CONNECTED )
+			if ( ent->m_iIcarusID != IIcarusInterface::ICARUS_INVALID && !stop_icarus )
 			{
 				IIcarusInterface::GetIcarus()->Update( ent->m_iIcarusID );
 			}
@@ -1979,7 +1979,6 @@ int AITime = 0;
 int navTime = 0;
 #endif//	AI_TIMERS
 
-extern cvar_t*	in_shaking_rumble;
 void G_RunFrame( int levelTime ) {
 	int			i;
 	gentity_t	*ent;
@@ -2004,7 +2003,7 @@ void G_RunFrame( int levelTime ) {
 	
 	if (player && gi.WE_IsShaking(player->currentOrigin))
 	{
-		CGCam_Shake(0.45f, 100, in_shaking_rumble->integer);
+		CGCam_Shake(0.45f, 100);
 	}
 
 	

@@ -224,6 +224,8 @@ Ghoul2 Insert End
 	int			(*SP_GetStringTextString)( const char *text, char *buffer, int bufferLength );
 	int			(*UI_GetItemText)( char *menuFile, char *itemName, char *text );
 	int			(*UI_GetMenuItemInfo)( const char *menuFile, const char *itemName, int *x, int *y, int *w, int *h, vec4_t color, qhandle_t *background );
+	qboolean	(*UI_MenuHasFocus)( void );
+	void		(*UI_SetFocusedMenuItemText)( const char *itemName, const char *text );
 } cgame_import_t;
 
 /*

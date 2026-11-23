@@ -1397,15 +1397,14 @@ char *weaponDesc[13] =
 
 extern char forceDesc[2048];
 #include "../ui/ui_shared.h"
-extern void Menu_SetItemText(const menuDef_t *menu,const char *itemName, const char *text);
 void CG_SetDataPadWeaponText( void )
 {
 	// Print the weapon description
 	if(!cg.DataPadWeaponSelect) { //Print nothing if you have no weapons.
-		Menu_SetItemText(Menu_GetFocused(), "desc", "");
+		cgi_UI_SetFocusedMenuItemText( "desc", "" );
 	} else {
 		cgi_SP_GetStringTextString( va("SP_INGAME_%s",weaponDesc[cg.DataPadWeaponSelect-1]), forceDesc, sizeof(forceDesc) );
-		Menu_SetItemText(Menu_GetFocused(), "desc", forceDesc);
+		cgi_UI_SetFocusedMenuItemText( "desc", forceDesc );
 	}
 }
 /*
@@ -1475,8 +1474,7 @@ void CG_DrawDataPadWeaponSelect( void )
 		CG_RegisterWeapon( cg.DataPadWeaponSelect );	
 		weaponInfo = &cg_weapons[cg.DataPadWeaponSelect];
 
-		extern void Cvar_Set( const char *var_name, const char *value);
-		Cvar_Set("ui_rules", va("%d", cg.DataPadWeaponSelect));
+		cgi_Cvar_Set("ui_rules", va("%d", cg.DataPadWeaponSelect));
 
 		// Draw graphic to show weapon has ammo or no ammo
 		if (!CG_WeaponCheck(cg.DataPadWeaponSelect))
@@ -1968,10 +1966,6 @@ extern qboolean Q3_TaskIDPending( gentity_t *ent, taskID_t taskType );
 CG_NextWeapon_f
 ===============
 */
-extern void IN_HotSwap1Off(void);
-extern void IN_HotSwap2Off(void);
-extern void IN_HotSwap3Off(void);
-
 void CG_NextWeapon_f( void ) {
 	int		i;
 	int		original;
@@ -2013,10 +2007,6 @@ void CG_NextWeapon_f( void ) {
 			return;
 		}
 	}
-
-	IN_HotSwap1Off();
-	IN_HotSwap2Off();
-	IN_HotSwap3Off();
 
 	original = cg.weaponSelect;
 
@@ -2222,10 +2212,6 @@ void CG_PrevWeapon_f( void ) {
 		}
 	}
 
-
-	IN_HotSwap1Off();
-	IN_HotSwap2Off();
-	IN_HotSwap3Off();
 
 	original = cg.weaponSelect;
 

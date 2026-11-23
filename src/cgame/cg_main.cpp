@@ -1849,10 +1849,6 @@ static void CG_GameStateReceived( void ) {
 
 	CG_RegisterSounds();
 
-	// Xbox hack: Start a huge pile of sound loads right now:
-	extern void S_LoadCommonSounds( void );
-	S_LoadCommonSounds();
-
 	CG_RegisterGraphics();
 
 	//jfm: moved down to preinit
@@ -3725,9 +3721,6 @@ qboolean ForcePower_Valid(int index)
 CG_NextForcePower_f
 ===============
 */
-extern void IN_HotSwap1Off(void);
-extern void IN_HotSwap2Off(void);
-extern void IN_HotSwap3Off(void);
 void CG_NextForcePower_f( void ) 
 {
 	int		i;
@@ -3736,10 +3729,6 @@ void CG_NextForcePower_f( void )
 	{
 		return;
 	}
-
-	IN_HotSwap1Off();
-	IN_HotSwap2Off();
-	IN_HotSwap3Off();
 
 	SetForcePowerTime();
 
@@ -3782,10 +3771,6 @@ void CG_PrevForcePower_f( void )
 	{
 		return;
 	}
-
-	IN_HotSwap1Off();
-	IN_HotSwap2Off();
-	IN_HotSwap3Off();
 
 	SetForcePowerTime();
 
@@ -4159,8 +4144,6 @@ CG_DrawDataPadForceSelect
 ===================
 */
 #include "../ui/ui_shared.h"
-extern void Menu_SetItemText(const menuDef_t *menu,const char *itemName, const char *text);
-
 char forceDesc[2048];
 void CG_SetDataPadForceText( void )
 {
@@ -4184,7 +4167,7 @@ void CG_SetDataPadForceText( void )
 	const char* craptext	= va("%s%s",text,text2);
 	assert(strlen(craptext) < 2048);
 	strcpy(forceDesc, craptext);
-	Menu_SetItemText(Menu_GetFocused(), "desc", forceDesc);
+	cgi_UI_SetFocusedMenuItemText( "desc", forceDesc );
 }
 
 void CG_DrawDataPadForceSelect( void ) 

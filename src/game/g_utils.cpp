@@ -1849,11 +1849,6 @@ void G_ChangeMap (const char *mapname, const char *spawntarget, qboolean hub)
 
 	if (mapname[0] == '+')	//fire up the menu instead
 	{
-		// Flush sound memory to make room for any UI loading that doesn't happen
-		// until the end of the level:
-		extern int SND_FreeOldestSound( void );
-		SND_FreeOldestSound();
-
 		gi.SendConsoleCommand( va("uimenu %s\n", mapname+1) );
 		gi.cvar_set("skippingCinematic", "0");
 		gi.cvar_set("timescale", "1");

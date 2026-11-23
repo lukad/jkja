@@ -81,7 +81,7 @@ void CG_MissionFailed(void)
 		// If you're in camera mode when when you lose (Chewie kills you)
 		// then the above fails. This should check for that. We'll end up
 		// waiting until the camera stuff stops:
-		if( !Menu_GetFocused() )
+		if( !cgi_UI_MenuHasFocus() )
 			return;
 
 		cg.missionFailedScreen = qtrue;

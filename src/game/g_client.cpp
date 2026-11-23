@@ -611,13 +611,6 @@ void ClientBegin( int clientNum, usercmd_t *cmd, SavedGameJustLoaded_e eSavedGam
 		client->ps.inventory[INV_SECURITY_KEY] = 0;
 		
 	}
-	extern bool autosaveTrigger;
-	extern bool doAutoSave;
-	autosaveTrigger = true;
-	if(eSavedGameJustLoaded == eNO)
-		doAutoSave = true;
-	else
-		doAutoSave = false;
 }
 
 

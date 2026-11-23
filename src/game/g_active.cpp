@@ -4741,7 +4741,6 @@ usually be a couple times for each server frame on fast clients.
 
 extern int		G_FindLocalInterestPoint( gentity_t *self );
 extern float	G_CanJumpToEnemyVeh(Vehicle_t *pVeh, const usercmd_t *pUmcd );
-extern void Cbuf_ExecuteText( int exec_when, const char *text );
 
 void ClientThink_real( gentity_t *ent, usercmd_t *ucmd ) 
 {
@@ -5474,19 +5473,6 @@ extern cvar_t	*g_skippingcin;
 	// check for respawning
 	if ( client->ps.stats[STAT_HEALTH] <= 0 ) 
 	{
-		if( client->ps.clientNum == 0 )
-		{
-			Cbuf_ExecuteText(EXEC_NOW, "-moveup");
-			Cbuf_ExecuteText(EXEC_NOW, "-movedown");
-			Cbuf_ExecuteText(EXEC_NOW, "-hotswap1");
-			Cbuf_ExecuteText(EXEC_NOW, "-hotswap2");
-			Cbuf_ExecuteText(EXEC_NOW, "-hotswap3");
-			Cbuf_ExecuteText(EXEC_NOW, "-attack");
-			Cbuf_ExecuteText(EXEC_NOW, "-altattack");
-			Cbuf_ExecuteText(EXEC_NOW, "-use");
-			Cbuf_ExecuteText(EXEC_NOW, "-useforce");
-		}
-
 		// wait for the attack button to be pressed
 		if ( ent->NPC == NULL && level.time > client->respawnTime ) 
 		{
