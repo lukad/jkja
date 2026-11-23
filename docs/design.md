@@ -100,6 +100,7 @@ cmake/                 build helpers
 docs/
   design.md            this document
   decisions/           ADRs
+external/              single-header libraries, unmodified
 shaders/               shader sources for the new renderer
 src/
   qcommon/             common, cvars, commands, filesystem, collision, memory
@@ -154,19 +155,23 @@ tightened over time.
 
 ### 4.4 Dependencies
 
-Proposed, to be fixed by an ADR before M1:
+Decided in [ADR-0012](decisions/0012-dependencies.md):
 
-| Need | Today | Proposed |
-|---|---|---|
-| Window, input, timers, threads, library loading, audio device, GPU | `src/win32` | SDL3 ([ADR-0005](decisions/0005-platform-layer-sdl3.md)) |
-| Inflate for `.pk3` | bundled zlib 1.1.3 + asm variant | current zlib or miniz |
-| JPEG, PNG, TGA decode; screenshot encode | bundled jpeg-6, libpng | stb_image / stb_image_write, or current libjpeg-turbo and libpng |
-| MP3 decode | bundled Xing decoder (portable C, GPL) | keep at first; replace only if it causes trouble |
-| Memory debugging | SmartHeap | AddressSanitizer |
-| Force feedback | Immersion | removed; SDL haptics if wanted later |
+| Need | In the release | Now | Where it comes from |
+|---|---|---|---|
+| Window, input, timers, threads, library loading, audio device, GPU | `src/win32` | SDL3 ([ADR-0005](decisions/0005-platform-layer-sdl3.md)) | downloaded and built by the project |
+| Inflate for `.pk3`, CRC-32 | Raven's rewrite of zlib 1.1.3, with assembly | miniz | downloaded and built by the project |
+| JPEG and PNG decode; screenshot encode | jpeg-6, Raven's PNG code | stb_image, stb_image_write | committed, `external/stb/` |
+| TGA decode | the renderer's own loader | unchanged | in the tree |
+| MP3 decode | Xing decoder (portable C, GPL) | unchanged; replaced only if it causes trouble | in the tree |
+| Unit tests | none | Catch2 | downloaded and built by the project |
+| Memory debugging | SmartHeap | AddressSanitizer | compiler |
+| Force feedback | Immersion | removed; SDL haptics if wanted later | |
 
-Dependencies are found on the system first and fetched at a pinned version otherwise.
-No library source is copied into the tree except single-header libraries.
+Nothing is taken from the system: the build never searches for an installed library.
+A dependency is either a release archive pinned by URL and hash, downloaded at configure
+time and compiled as part of the project, or a single-header library committed under
+`external/`. No other library source is copied into the tree.
 
 ### 4.5 Platform layer
 
@@ -527,7 +532,6 @@ Still to be made, each before the milestone that needs it:
 
 | Decision | Needed by |
 |---|---|
-| Dependency policy and replacements for bundled libraries | M1 |
 | Game module interface (shape of the typed cgame interface) | M1 |
 | Audio backend | M2 |
 | Savegame format | M2 |
