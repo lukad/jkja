@@ -103,7 +103,6 @@ A raw string should NEVER be passed as fmt, because of "%f" type crashers.
 =============
 */
 void QDECL Com_Printf( const char *fmt, ... ) {
-#ifndef FINAL_BUILD
 	va_list		argptr;
 	char		msg[MAXPRINTMSG];
 
@@ -139,7 +138,6 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 			FS_Write(msg, strlen(msg), logfile);
 		}
 	}
-#endif
 }
 
 void QDECL Com_PrintfAlways( const char *fmt, ... ) {
@@ -162,9 +160,7 @@ void QDECL Com_PrintfAlways( const char *fmt, ... ) {
 	CL_ConsolePrint( msg );
 
 	// echo to dedicated console and early console
-#ifndef FINAL_BUILD
 	Sys_Print( msg );
-#endif
 
 	// logfile
 	if ( com_logfile && com_logfile->integer ) {
