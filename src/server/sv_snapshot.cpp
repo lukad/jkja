@@ -4,7 +4,7 @@
 
 
 
-#include "../client/vmachine.h"
+#include "../client/client.h"
 #include "server.h"
 
 
@@ -278,9 +278,9 @@ qboolean SV_PlayerCanSeeEnt( gentity_t *ent, int sightLevel )
 	{
 		return qfalse;
 	}
-	if ( VM_Call( CG_CAMERA_POS, viewOrg))
+	if ( cge && cge->CameraPos( viewOrg ) )
 	{
-		if ( VM_Call( CG_CAMERA_ANG, viewAngles))
+		if ( cge->CameraAng( viewAngles ) )
 		{
 			float dot = 0.25f;//1.0f;
 			float range = sv_sightRangeForLevel[sightLevel];
@@ -524,7 +524,7 @@ static clientSnapshot_t *SV_BuildClientSnapshot( client_t *client ) {
 	// find the client's viewpoint
 
 	//if in camera mode use camera position instead
-	if ( VM_Call( CG_CAMERA_POS, org))
+	if ( cge && cge->CameraPos( org ) )
 	{
 		//org[2] += clent->client->viewheight;
 	}

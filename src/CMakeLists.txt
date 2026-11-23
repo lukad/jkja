@@ -25,7 +25,6 @@ add_executable(jasp EXCLUDE_FROM_ALL
   client/snd_mem.cpp
   client/snd_mix.cpp
   client/snd_music.cpp
-  client/vmachine.cpp
   game/genericparser2.cpp
   game/q_math.cpp
   game/q_shared.cpp
@@ -304,7 +303,16 @@ add_library(jagame MODULE EXCLUDE_FROM_ALL
 set_target_properties(jagame PROPERTIES
   PREFIX ""
   OUTPUT_NAME "jagame${JASP_ARCHITECTURE}"
+  # The engine and the module define many functions of the same name. Only the two
+  # entry points, marked JAGAME_EXPORT, are visible outside the module.
+  C_VISIBILITY_PRESET hidden
+  CXX_VISIBILITY_PRESET hidden
+  VISIBILITY_INLINES_HIDDEN ON
 )
+# <jagame_export.h>, which defines JAGAME_EXPORT for the compiler in use.
+include(GenerateExportHeader)
+generate_export_header(jagame)
+target_include_directories(jagame PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 jasp_legacy_target(jagame)
 
 # C++ in files named .c: the vehicle code, which the release shared with the

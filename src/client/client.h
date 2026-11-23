@@ -428,6 +428,10 @@ void CIN_CloseAllVideos(void);
 //
 // cl_cgame.c
 //
+extern cgame_export_t	*cge;	// the cgame half of the game module, or NULL while it is not loaded
+
+qboolean CL_BindCGame( void );
+void CL_UnbindCGame( void );
 void CL_InitCGame( void );
 void CL_ShutdownCGame( void );
 qboolean CL_GameCommand( void );

@@ -6,11 +6,9 @@
 #include "client.h"
 #include "client_ui.h"
 
-#include "vmachine.h"
 
 int PC_ReadTokenHandle(int handle, struct pc_token_s *pc_token);
 
-int CL_UISystemCalls( int *args );
 
 //prototypes
 //extern qboolean SG_GetSaveImage( const char *psPathlessBaseName, void *pvAddress );
@@ -169,16 +167,16 @@ void CL_DrawDatapad(int HUDType)
 	switch(HUDType)
 	{
 	case DP_OBJECTIVES:
-		VM_Call( CG_DRAW_DATAPAD_OBJECTIVES );
+		if ( cge ) cge->DrawDataPadObjectives();
 		break;
 	case DP_WEAPONS:
-		VM_Call( CG_DRAW_DATAPAD_WEAPONS );
+		if ( cge ) cge->DrawDataPadWeapons();
 		break;
 	case DP_INVENTORY:
-		VM_Call( CG_DRAW_DATAPAD_INVENTORY );
+		if ( cge ) cge->DrawDataPadInventory();
 		break;
 	case DP_FORCEPOWERS:
-		VM_Call( CG_DRAW_DATAPAD_FORCEPOWERS );
+		if ( cge ) cge->DrawDataPadForcePowers();
 		break;
 	default:
 		break;
@@ -339,153 +337,3 @@ static void CL_GetGlconfig( glconfig_t *config )
 int PC_ReadTokenHandle(int handle, pc_token_t *pc_token);
 int PC_SourceFileAndLine(int handle, char *filename, int *line);
 */
-/*
-====================
-CL_UISystemCalls
-
-The ui module is making a system call
-====================
-*/
-vm_t	uivm;
-
-#define	VMA(x) ((void*)args[x])
-#define	VMF(x)	((float *)args)[x]
-int CL_UISystemCalls( int *args ) 
-{
-
-	switch( args[0] ) 
-	{
-	case UI_ERROR:
-		Com_Error( ERR_DROP, "%s", VMA(1) );
-		return 0;
-
-	case UI_CVAR_REGISTER:
-		Cvar_Register( (vmCvar_t *)VMA(1),(const char *) VMA(2),(const char *) VMA(3), args[4] ); 
-		return 0;
-
-	case UI_CVAR_SET:
-		Cvar_Set( (const char *) VMA(1), (const char *) VMA(2) );
-		return 0;
-
-	case UI_CVAR_SETVALUE:
-		Cvar_SetValue( (const char *) VMA(1), VMF(2) );
-		return 0;
-
-	case UI_CVAR_UPDATE:
-		Cvar_Update( (vmCvar_t *) VMA(1) );
-		return 0;
-
-	case UI_R_REGISTERMODEL:
-		return re.RegisterModel((const char *) VMA(1) );
-
-	case UI_R_REGISTERSHADERNOMIP:
-		return re.RegisterShaderNoMip((const char *) VMA(1) );
-
-	case UI_GETGLCONFIG:
-		CL_GetGlconfig( ( glconfig_t *) VMA(1) );
-		return 0;
-
-	case UI_CMD_EXECUTETEXT:
-		Cbuf_ExecuteText( args[1], (const char *) VMA(2) );
-		return 0;
-
-	case UI_CVAR_VARIABLEVALUE:
-		return FloatAsInt( Cvar_VariableValue( (const char *) VMA(1) ) );
-
-	case UI_FS_GETFILELIST:
-		return FS_GetFileList( (const char *) VMA(1), (const char *) VMA(2), (char *) VMA(3), args[4] );
-
-	case UI_KEY_SETCATCHER:
-		Key_SetCatcher( args[1] );
-		return 0;
-
-	case UI_KEY_CLEARSTATES:
-		Key_ClearStates();
-		return 0;
-
-	case UI_R_SETCOLOR:
-		re.SetColor( (const float *) VMA(1) );
-		return 0;
-
-	case UI_R_DRAWSTRETCHPIC:
-		re.DrawStretchPic( VMF(1), VMF(2), VMF(3), VMF(4), VMF(5), VMF(6), VMF(7), VMF(8), args[9] );
-		return 0;
-
-	case UI_CVAR_VARIABLESTRINGBUFFER:
-		Cvar_VariableStringBuffer( (const char *) VMA(1), (char *) VMA(2), args[3] );
-		return 0;
-
-  case UI_R_MODELBOUNDS:
-		re.ModelBounds( args[1], (float *) VMA(2),(float *) VMA(3) );
-		return 0;
-
-	case UI_R_CLEARSCENE:
-		re.ClearScene();
-		return 0;
-
-//	case UI_KEY_GETOVERSTRIKEMODE:
-//		return Key_GetOverstrikeMode();
-//		return 0;
-
-//	case UI_PC_READ_TOKEN:
-//		return PC_ReadTokenHandle( args[1], VMA(2) );
-		
-//	case UI_PC_SOURCE_FILE_AND_LINE:
-//		return PC_SourceFileAndLine( args[1], VMA(2), VMA(3) );
-
-	case UI_KEY_GETCATCHER:
-		return Key_GetCatcher();
-
-	case UI_MILLISECONDS:
-		return Sys_Milliseconds();
-
-	case UI_S_REGISTERSOUND:
-		return S_RegisterSound((const char *) VMA(1));
-
-	case UI_S_STARTLOCALSOUND:
-		S_StartLocalSound( args[1], args[2] );
-		return 0;
-
-//	case UI_R_REGISTERFONT:
-//		re.RegisterFont( VMA(1), args[2], VMA(3));
-//		return 0;
-
-	case UI_CIN_PLAYCINEMATIC:
-	  Com_DPrintf("UI_CIN_PlayCinematic\n");
-	  return CIN_PlayCinematic((const char *)VMA(1), args[2], args[3], args[4], args[5], args[6], (const char *)VMA(7));
-
-	case UI_CIN_STOPCINEMATIC:
-	  return CIN_StopCinematic(args[1]);
-
-	case UI_CIN_RUNCINEMATIC:
-	  return CIN_RunCinematic(args[1]);
-
-	case UI_CIN_DRAWCINEMATIC:
-	  CIN_DrawCinematic(args[1]);
-	  return 0;
-
-	case UI_KEY_SETBINDING:
-		Key_SetBinding( args[1], (const char *) VMA(2) );
-		return 0;
-
-	case UI_KEY_KEYNUMTOSTRINGBUF:
-		Key_KeynumToStringBuf( args[1],(char *) VMA(2), args[3] );
-		return 0;
-
-	case UI_CIN_SETEXTENTS:
-	  CIN_SetExtents(args[1], args[2], args[3], args[4], args[5]);
-	  return 0;
-
-	case UI_KEY_GETBINDINGBUF:
-		Key_GetBindingBuf( args[1], (char *) VMA(2), args[3] );
-		return 0;
-
-
-	default:
-		Com_Error( ERR_DROP, "Bad UI system trap: %i", args[0] );
-
-	}
-
-	return 0;
-}
-

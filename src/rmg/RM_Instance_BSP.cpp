@@ -15,7 +15,6 @@
 
 #include "RM_Instance_BSP.h"
 
-#include "../client/vmachine.h"
 
 /************************************************************************************************
  * CRMBSPInstance::CRMBSPInstance

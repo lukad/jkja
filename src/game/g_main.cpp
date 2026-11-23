@@ -1,6 +1,7 @@
 // leave this line at the top for all g_xxxx.cpp files...
 #include "g_headers.h"
-#include <xtl.h>
+
+#include <jagame_export.h>
 
 
 #include "g_local.h"
@@ -850,7 +851,7 @@ and global variables
 =================
 */
 extern int PM_ValidateAnimRange( const int startFrame, const int endFrame, const float animSpeed );
-game_export_t *GetGameAPI( game_import_t *import ) {
+extern "C" JAGAME_EXPORT game_export_t *GetGameAPI( game_import_t *import ) {
 	gameinfo_import_t	gameinfo_import;
 
 	gi = *import;

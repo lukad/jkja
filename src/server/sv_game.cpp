@@ -9,7 +9,8 @@
 #include "../qcommon/cm_local.h"
 
 #include "server.h"
-#include "../client/vmachine.h"
+#include "../client/client.h"
+#include "../sys/sys_public.h"
 #include "../client/client.h"
 #include "../renderer/tr_local.h"
 #include "../renderer/tr_WorldEffects.h"
@@ -25,8 +26,6 @@ Ghoul2 Insert End
 */
 
 //prototypes
-extern void	Sys_UnloadGame( void );
-extern void	*Sys_GetGameAPI( void *parms);
 extern void Com_WriteCam ( const char *text );
 extern void Com_FlushCamFile();
 
@@ -400,7 +399,7 @@ void SV_ShutdownGameProgs (qboolean shutdownCin) {
 	Sys_UnloadGame ();	//this kills cgame as well.
 
 	ge = NULL;
-	cgvm.entryPoint = 0;
+	CL_UnbindCGame();
 }
 
 // this is a compile-helper function since Z_Malloc can now become a macro with __LINE__ etc
@@ -638,13 +637,16 @@ Ghoul2 Insert Start
 Ghoul2 Insert End
 */
 
-	ge = (game_export_t *)Sys_GetGameAPI (&import);
+	typedef game_export_t *(*GetGameAPI_t)( game_import_t *import );
+	GetGameAPI_t GetGameAPI = (GetGameAPI_t) Sys_GetGameFunction( "GetGameAPI" );
+
+	ge = GetGameAPI ? GetGameAPI( &import ) : NULL;
 
 	if (!ge)
 		Com_Error (ERR_DROP, "failed to load game DLL");
 
 	//hook up the client while we're here
-	if (!VM_Create("cl"))
+	if (!CL_BindCGame())
 		Com_Error (ERR_DROP, "failed to attach to the client DLL");
 
 	if (ge->apiversion != GAME_API_VERSION)

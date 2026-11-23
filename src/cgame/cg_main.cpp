@@ -6,7 +6,7 @@
 #include "cg_media.h"
 #include "FxScheduler.h"
 
-#include "../client/vmachine.h"
+#include <jagame_export.h>
 #include "cg_lights.h"
 
 #include "../qcommon/sstring.h"
@@ -79,86 +79,83 @@ void CG_DrawDataPadForceSelect( void );
 
 /*
 ================
-vmMain
+GetCGameAPI
 
-This is the only way control passes into the cgame module.
-This must be the very first function compiled into the .q3vm file
+This is the only way control passes into the cgame module
+(docs/decisions/0013-typed-cgame-interface.md).
 ================
 */
-int vmMain( int command, int arg0, int arg1, int arg2, int arg3, int arg4, int arg5, int arg6, int arg7 ) {
+extern cgame_import_t	cgi;
+extern void CG_PreInit();
+
+static void CG_ExportDrawDataPadObjectives( void ) {
 	centity_t		*cent;
 
-	switch ( command ) {
-	case CG_INIT:
-		CG_Init( arg0 );
-		return 0;
-	case CG_SHUTDOWN:
-		CG_Shutdown();
-		return 0;
-	case CG_CONSOLE_COMMAND:
-		return CG_ConsoleCommand();
-	case CG_DRAW_ACTIVE_FRAME:
-		CG_DrawActiveFrame( arg0, (stereoFrame_t) arg1 );
-		return 0;
-	case CG_CROSSHAIR_PLAYER:
-		return CG_CrosshairPlayer();
-	case CG_CAMERA_POS:
-		return CG_GetCameraPos( (float*)arg0);
-	case CG_CAMERA_ANG:
-		return CG_GetCameraAng( (float*)arg0);
+	if (cg.snap)
+	{
+		cent = &cg_entities[cg.snap->ps.clientNum];
+		CG_DrawDataPadObjectives(cent);
+	}
+}
+
+static void CG_ExportDrawDataPadWeapons( void ) {
+	if (cg.snap)
+	{
+		CG_DrawDataPadIconBackground(ICON_WEAPONS);
+		CG_DrawDataPadWeaponSelect();
+	}
+}
+
+static void CG_ExportDrawDataPadInventory( void ) {
+	if (cg.snap)
+	{
+		CG_DrawDataPadIconBackground(ICON_INVENTORY);
+		CG_DrawDataPadInventorySelect();
+	}
+}
+
+static void CG_ExportDrawDataPadForcePowers( void ) {
+	if (cg.snap)
+	{
+		CG_DrawDataPadIconBackground(ICON_FORCE);
+		CG_DrawDataPadForceSelect();
+	}
+}
+
+extern "C" JAGAME_EXPORT cgame_export_t *GetCGameAPI( int apiVersion, cgame_import_t *import ) {
+	static cgame_export_t	cge;
+
+	if ( apiVersion != CGAME_API_VERSION ) {
+		return NULL;
+	}
+
+	cgi = *import;
+	CG_PreInit();
+
+	cge.Init = CG_Init;
+	cge.Shutdown = CG_Shutdown;
+	cge.ConsoleCommand = CG_ConsoleCommand;
+	cge.DrawActiveFrame = CG_DrawActiveFrame;
+	cge.CrosshairPlayer = CG_CrosshairPlayer;
+	cge.CameraPos = CG_GetCameraPos;
+	cge.CameraAng = CG_GetCameraAng;
 /*
 Ghoul2 Insert Start
 */
-	case CG_RESIZE_G2:
-		CG_ResizeG2((CGhoul2Info_v *)arg0, arg1);
-		return 0;
-	case CG_RESIZE_G2_BOLT:
-		CG_ResizeG2Bolt((boltInfo_v *)arg0, arg1);
-		return 0;
-	case CG_RESIZE_G2_BONE:
-		CG_ResizeG2Bone((boneInfo_v *)arg0, arg1);
-		return 0;
-	case CG_RESIZE_G2_SURFACE:
-		CG_ResizeG2Surface((surfaceInfo_v *)arg0, arg1);
-		return 0;
-	case CG_RESIZE_G2_TEMPBONE:
-		CG_ResizeG2TempBone((mdxaBone_v *)arg0, arg1);
-		return 0;
-
+	cge.ResizeG2Bolt = CG_ResizeG2Bolt;
+	cge.ResizeG2 = CG_ResizeG2;
+	cge.ResizeG2Bone = CG_ResizeG2Bone;
+	cge.ResizeG2Surface = CG_ResizeG2Surface;
+	cge.ResizeG2TempBone = CG_ResizeG2TempBone;
 /*
 Ghoul2 Insert End
 */
-	case CG_DRAW_DATAPAD_OBJECTIVES:
-		if (cg.snap)
-		{
-			cent = &cg_entities[cg.snap->ps.clientNum];
-			CG_DrawDataPadObjectives(cent);
-		}
-		return 0;
+	cge.DrawDataPadObjectives = CG_ExportDrawDataPadObjectives;
+	cge.DrawDataPadWeapons = CG_ExportDrawDataPadWeapons;
+	cge.DrawDataPadInventory = CG_ExportDrawDataPadInventory;
+	cge.DrawDataPadForcePowers = CG_ExportDrawDataPadForcePowers;
 
-	case CG_DRAW_DATAPAD_WEAPONS:
-		if (cg.snap)
-		{
-			CG_DrawDataPadIconBackground(ICON_WEAPONS);
-			CG_DrawDataPadWeaponSelect();
-		}
-		return 0;
-	case CG_DRAW_DATAPAD_INVENTORY:
-		if (cg.snap)
-		{
-			CG_DrawDataPadIconBackground(ICON_INVENTORY);
-			CG_DrawDataPadInventorySelect();
-		}
-		return 0;
-	case CG_DRAW_DATAPAD_FORCEPOWERS:
-		if (cg.snap)
-		{
-			CG_DrawDataPadIconBackground(ICON_FORCE);
-			CG_DrawDataPadForceSelect();
-		}
-		return 0;
-	}
-	return -1;
+	return &cge;
 }
 
 /*

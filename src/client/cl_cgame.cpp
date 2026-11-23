@@ -10,10 +10,10 @@
 	   		
 
 #include "client.h"
-#include "fffx.h"
-#include "vmachine.h"
+#include "../sys/sys_public.h"
 
-vm_t	cgvm;
+// the cgame half of the game module, or NULL while it is not loaded
+cgame_export_t	*cge;
 /*
 Ghoul2 Insert Start
 */
@@ -381,10 +381,10 @@ CL_ShutdonwCGame
 void CL_ShutdownCGame( void ) {
 	cls.cgameStarted = qfalse;
 
-	if ( !cgvm.entryPoint) {
+	if ( !cge ) {
 		return;
 	}
-	VM_Call( CG_SHUTDOWN );
+	cge->Shutdown();
 	RM_ShutdownTerrain();
 
 //	VM_Free( cgvm );
@@ -404,556 +404,609 @@ extern qboolean tr_distortionNegate; //tr_shadows.cpp
 float g_oldRangedFog = 0.0f;
 /*
 ====================
-CL_CgameSystemCalls
+The functions the cgame module calls
 
-The cgame module is making a system call
+They fill the cgame_import_t that the module receives from GetCGameAPI
+(docs/decisions/0013-typed-cgame-interface.md).
 ====================
 */
-void *VM_ArgPtr( int intValue );
 void CM_SnapPVS(vec3_t origin,byte *buffer);
-//#define	VMA(x) VM_ArgPtr(args[x])
-#define	VMA(x) ((void*)args[x])
-#define	VMF(x)	((float *)args)[x]
-int CL_CgameSystemCalls( int *args ) {
-	switch( args[0] ) {
-	case CG_PRINT:
-		Com_Printf( "%s", VMA(1) );
-		return 0;
-	case CG_ERROR:
-		Com_Error( ERR_DROP, S_COLOR_RED"%s", VMA(1) );
-		return 0;
-	case CG_MILLISECONDS:
-		return Sys_Milliseconds();
-	case CG_CVAR_REGISTER:
-		Cvar_Register( (vmCvar_t *) VMA(1), (const char *) VMA(2), (const char *) VMA(3), args[4] ); 
-		return 0;
-	case CG_CVAR_UPDATE:
-		Cvar_Update( (vmCvar_t *) VMA(1) );
-		return 0;
-	case CG_CVAR_SET:
-		Cvar_Set( (const char *) VMA(1), (const char *) VMA(2) );
-		return 0;
-	case CG_ARGC:
-		return Cmd_Argc();
-	case CG_ARGV:
-		Cmd_ArgvBuffer( args[1], (char *) VMA(2), args[3] );
-		return 0;
-	case CG_ARGS:
-		Cmd_ArgsBuffer( (char *) VMA(1), args[2] );
-		return 0;
-	case CG_FS_FOPENFILE:
-		return FS_FOpenFileByMode( (const char *) VMA(1), (int *) VMA(2), (fsMode_t) args[3] );
-	case CG_FS_READ:
-		FS_Read( VMA(1), args[2], args[3] );
-		return 0;
-	case CG_FS_WRITE:
-		FS_Write( VMA(1), args[2], args[3] );
-		return 0;
-	case CG_FS_FCLOSEFILE:
-		FS_FCloseFile( args[1] );
-		return 0;
-	case CG_SENDCONSOLECOMMAND:
-		Cbuf_AddText( (const char *) VMA(1) );
-		return 0;
-	case CG_ADDCOMMAND:
-		CL_AddCgameCommand( (const char *) VMA(1) );
-		return 0;
-	case CG_SENDCLIENTCOMMAND:
-		CL_AddReliableCommand( (const char *) VMA(1) );
-		return 0;
-	case CG_UPDATESCREEN:
-		// this is used during lengthy level loading, so pump message loop
-		Com_EventLoop();	// FIXME: if a server restarts here, BAD THINGS HAPPEN!
-		SCR_UpdateScreen();
-		return 0;
 
-	case CG_RMG_INIT:
-		/*
-		if (!com_sv_running->integer)
-		{	// don't do this if we are connected locally
-			if (!TheRandomMissionManager)
-			{
-				TheRandomMissionManager = new CRMManager;
-			}
-			TheRandomMissionManager->SetLandScape( cmg.landScapes[args[1]] );
-			TheRandomMissionManager->LoadMission(qfalse);
-			TheRandomMissionManager->SpawnMission(qfalse);
-			cmg.landScapes[args[1]]->UpdatePatches();
-		}
-		*/ //this is SP.. I guess we're always the client and server.
-//		cl.mRMGChecksum = cm.landScapes[args[1]]->get_rand_seed();
-		RM_CreateRandomModels(args[1], (const char *)VMA(2));
-		//cmg.landScapes[args[1]]->rand_seed(cl.mRMGChecksum);		// restore it, in case we do a vid restart
-		cmg.landScape->rand_seed(cmg.landScape->get_rand_seed());
-//		TheRandomMissionManager->CreateMap();
-		return 0;
-	case CG_CM_REGISTER_TERRAIN:
-		return CM_RegisterTerrain((const char *)VMA(1), false)->GetTerrainId();
+static void CGI_Printf( const char *fmt ) {
+	Com_Printf( "%s", fmt );
+}
 
-	case CG_RE_INIT_RENDERER_TERRAIN:
-		RE_InitRendererTerrain((const char *)VMA(1));
-		return 0;
+static void CGI_Error( const char *fmt ) {
+	Com_Error( ERR_DROP, S_COLOR_RED"%s", fmt );
+}
 
-	case CG_CM_LOADMAP:
-		CL_CM_LoadMap( (const char *) VMA(1), args[2] );
-		return 0;
-	case CG_CM_NUMINLINEMODELS:
-		return CM_NumInlineModels();
-	case CG_CM_INLINEMODEL:
-		return CM_InlineModel( args[1] );
-	case CG_CM_TEMPBOXMODEL:
-		return CM_TempBoxModel( (const float *) VMA(1), (const float *) VMA(2) );//, (int) VMA(3) );
-	case CG_CM_POINTCONTENTS:
-		return CM_PointContents( (float *)VMA(1), args[2] );
-	case CG_CM_TRANSFORMEDPOINTCONTENTS:
-		return CM_TransformedPointContents( (const float *) VMA(1), args[2], (const float *) VMA(3), (const float *) VMA(4) );
-	case CG_CM_BOXTRACE:
-		CM_BoxTrace( (trace_t *) VMA(1), (const float *) VMA(2), (const float *) VMA(3), (const float *) VMA(4), (const float *) VMA(5), args[6], args[7] );
-		return 0;
-	case CG_CM_TRANSFORMEDBOXTRACE:
-		CM_TransformedBoxTrace( (trace_t *) VMA(1), (const float *) VMA(2), (const float *) VMA(3), (const float *) VMA(4), (const float *) VMA(5), args[6], args[7], (const float *) VMA(8), (const float *) VMA(9) );
-		return 0;
-	case CG_CM_MARKFRAGMENTS:
-		return re.MarkFragments( args[1], (float(*)[3]) VMA(2), (const float *) VMA(3), args[4], (float *) VMA(5), args[6], (markFragment_t *) VMA(7) );
-	case CG_CM_SNAPPVS:
-		CM_SnapPVS((float(*))VMA(1),(byte *) VMA(2));
-		return 0;
-	case CG_S_STOPSOUNDS:
-		S_StopSounds( );
-		return 0;
+static int CGI_FS_FOpenFile( const char *qpath, fileHandle_t *f, fsMode_t mode ) {
+	return FS_FOpenFileByMode( qpath, f, mode );
+}
 
-	case CG_S_STARTSOUND:
-		// stops an ERR_DROP internally if called illegally from game side, but note that it also gets here 
-		//	legally during level start where normally the internal s_soundStarted check would return. So ok to hit this.
-		if (!cls.cgameStarted){
-			return 0;	
-		}
-		S_StartSound( (float *) VMA(1), args[2], (soundChannel_t)args[3], args[4] );
-		return 0;
-	case CG_S_UPDATEAMBIENTSET:
-		// stops an ERR_DROP internally if called illegally from game side, but note that it also gets here 
-		//	legally during level start where normally the internal s_soundStarted check would return. So ok to hit this.
-		if (!cls.cgameStarted){
-			return 0;
-		}
-		S_UpdateAmbientSet( (const char *) VMA(1), (float *) VMA(2) );
-		return 0;
-	case CG_S_ADDLOCALSET:
-		return S_AddLocalSet( (const char *) VMA(1), (float *) VMA(2), (float *) VMA(3), args[4], args[5] );
-	case CG_AS_PARSESETS:
-		AS_ParseSets();
-		return 0;
-	case CG_AS_ADDENTRY:
-		AS_AddPrecacheEntry( (const char *) VMA(1) );
-		return 0;
-	case CG_AS_GETBMODELSOUND:
-		return AS_GetBModelSound( (const char *) VMA(1), args[2] );	
-	case CG_S_STARTLOCALSOUND:
-		// stops an ERR_DROP internally if called illegally from game side, but note that it also gets here 
-		//	legally during level start where normally the internal s_soundStarted check would return. So ok to hit this.
-		if (!cls.cgameStarted){
-			return 0;
-		}
-		S_StartLocalSound( args[1], args[2] );
-		return 0;
-	case CG_S_CLEARLOOPINGSOUNDS:
-		S_ClearLoopingSounds();
-		return 0;
-	case CG_S_ADDLOOPINGSOUND:
-		// stops an ERR_DROP internally if called illegally from game side, but note that it also gets here 
-		//	legally during level start where normally the internal s_soundStarted check would return. So ok to hit this.
-		if (!cls.cgameStarted){
-			return 0;
-		}
-		S_AddLoopingSound( args[1], (const float *) VMA(2), (const float *) VMA(3), args[4], (soundChannel_t)args[5] );
-		return 0;
-	case CG_S_UPDATEENTITYPOSITION:
-		S_UpdateEntityPosition( args[1], (const float *) VMA(2) );
-		return 0;
-	case CG_S_RESPATIALIZE:
-		S_Respatialize( args[1], (const float *) VMA(2), (float(*)[3]) VMA(3), args[4] );
-		return 0;
-	case CG_S_REGISTERSOUND:
-		return S_RegisterSound( (const char *) VMA(1) );
-	case CG_S_STARTBACKGROUNDTRACK:
-		S_StartBackgroundTrack( (const char *) VMA(1), (const char *) VMA(2), args[3]);
-		return 0;
-	case CG_S_GETSAMPLELENGTH:
-		return S_GetSampleLengthInMilliSeconds(  args[1]);
-	case CG_FF_STARTFX:
-		FFFX_START( (ffFX_e) args[1] );
-		return 0;
-	case CG_FF_ENSUREFX:
-		FFFX_ENSURE( (ffFX_e) args[1] );
-		return 0;
-	case CG_FF_STOPFX:
-		FFFX_STOP( (ffFX_e) args[1] );
-		return 0;
-	case CG_FF_STOPALLFX:
-		FFFX_STOPALL;
-		return 0;
-	case CG_R_LOADWORLDMAP:
-		re.LoadWorld( (const char *) VMA(1) );
-		return 0; 
-	case CG_R_REGISTERMODEL:
-		return re.RegisterModel( (const char *) VMA(1) );
-	case CG_R_REGISTERSKIN:
-		return re.RegisterSkin( (const char *) VMA(1) );
-	case CG_R_REGISTERSHADER:
-		return re.RegisterShader( (const char *) VMA(1) );
-	case CG_R_REGISTERSHADERNOMIP:
-		return re.RegisterShaderNoMip( (const char *) VMA(1) );
-	case CG_R_REGISTERFONT:
-		return re.RegisterFont( (const char *) VMA(1) );
-	case CG_R_FONTSTRLENPIXELS:
-		return re.Font_StrLenPixels( (const char *) VMA(1), args[2], VMF(3) );
-	case CG_R_FONTSTRLENCHARS:
-		return re.Font_StrLenChars( (const char *) VMA(1) );
-	case CG_R_FONTHEIGHTPIXELS:
-		return re.Font_HeightPixels( args[1], VMF(2) );
-	case CG_R_FONTDRAWSTRING:
-		re.Font_DrawString(args[1],args[2], (const char *) VMA(3), (float*)args[4], args[5], args[6], VMF(7));
-		return 0;
-	case CG_LANGUAGE_ISASIAN:
-		return re.Language_IsAsian();
-	case CG_LANGUAGE_USESSPACES:
-		return re.Language_UsesSpaces();
-	case CG_ANYLANGUAGE_READFROMSTRING:
-		return re.AnyLanguage_ReadCharFromString( (const char *) VMA(1), (int *) VMA(2), (qboolean *) VMA(3) );
-	case CG_R_SETREFRACTIONPROP:
-		tr_distortionAlpha = VMF(1);
-		tr_distortionStretch = VMF(2);
-		tr_distortionPrePost = (qboolean)args[3];
-		tr_distortionNegate = (qboolean)args[4];
-		return 0;
-	case CG_R_CLEARSCENE:
-		re.ClearScene();
-		return 0;
-	case CG_R_ADDREFENTITYTOSCENE:
-		re.AddRefEntityToScene( (const refEntity_t *) VMA(1) );
-		return 0;
+static int CGI_FS_Read( void *buffer, int len, fileHandle_t f ) {
+	FS_Read( buffer, len, f );
+	return 0;
+}
 
-	case CG_R_INPVS:
-		return R_inPVS((float *) VMA(1), (float *) VMA(2));
+static int CGI_FS_Write( const void *buffer, int len, fileHandle_t f ) {
+	FS_Write( buffer, len, f );
+	return 0;
+}
 
-	case CG_R_GETLIGHTING:
-		return re.GetLighting( (const float * ) VMA(1), (float *) VMA(2), (float *) VMA(3), (float *) VMA(4) );
-	case CG_R_ADDPOLYTOSCENE:
-		re.AddPolyToScene( args[1], args[2], (const polyVert_t *) VMA(3) );
-		return 0;
-	case CG_R_ADDLIGHTTOSCENE:
-		re.AddLightToScene( (const float *) VMA(1), VMF(2), VMF(3), VMF(4), VMF(5) );
-		return 0;
-	case CG_R_RENDERSCENE:
-		re.RenderScene( (const refdef_t *) VMA(1) );
-		return 0;
-	case CG_R_SETCOLOR:
-		re.SetColor( (const float *) VMA(1) );
-		return 0;
-	case CG_R_DRAWSTRETCHPIC:
-		re.DrawStretchPic( VMF(1), VMF(2), VMF(3), VMF(4), VMF(5), VMF(6), VMF(7), VMF(8), args[9] );
-		return 0;
-	//case CG_R_DRAWSCREENSHOT:
-	//	re.DrawStretchRaw( VMF(1), VMF(2), VMF(3), VMF(4), SG_SCR_WIDTH, SG_SCR_HEIGHT, SCR_GetScreenshot(0), 0, qtrue);
-	//	return 0;
-	case CG_R_MODELBOUNDS:
-		re.ModelBounds( args[1], (float *) VMA(2), (float *) VMA(3) );
-		return 0;
-	case CG_R_LERPTAG:
-		re.LerpTag( (orientation_t *) VMA(1), args[2], args[3], args[4], VMF(5), (const char *) VMA(6) );
-		return 0;
-	case CG_R_DRAWROTATEPIC:
-		re.DrawRotatePic( VMF(1), VMF(2), VMF(3), VMF(4), VMF(5), VMF(6), VMF(7), VMF(8), VMF(9), args[10] );
-		return 0;
-	case CG_R_DRAWROTATEPIC2:
-		re.DrawRotatePic2( VMF(1), VMF(2), VMF(3), VMF(4), VMF(5), VMF(6), VMF(7), VMF(8), VMF(9), args[10] );
-		return 0;
-	case CG_R_SETRANGEFOG:
-		if (tr.rangedFog <= 0.0f)
+static void CGI_UpdateScreen( void ) {
+	// this is used during lengthy level loading, so pump message loop
+	Com_EventLoop();	// FIXME: if a server restarts here, BAD THINGS HAPPEN!
+	SCR_UpdateScreen();
+}
+
+static void CGI_RMG_Init( int terrainID, const char *terrainInfo ) {
+	/*
+	if (!com_sv_running->integer)
+	{	// don't do this if we are connected locally
+		if (!TheRandomMissionManager)
 		{
-			g_oldRangedFog = tr.rangedFog;
+			TheRandomMissionManager = new CRMManager;
 		}
-		tr.rangedFog = VMF(1);
-		if (tr.rangedFog == 0.0f && g_oldRangedFog)
-		{ //restore to previous state if applicable
-			tr.rangedFog = g_oldRangedFog;
-		}
-		return 0;
-	case CG_R_LA_GOGGLES:
-		re.LAGoggles();
-		return 0;
-	case CG_R_SCISSOR:
-		re.Scissor( VMF(1), VMF(2), VMF(3), VMF(4));
-		return 0;
-	case CG_GETGLCONFIG:
-		CL_GetGlconfig( (glconfig_t *) VMA(1) );
-		return 0;
-	case CG_GETGAMESTATE:
-		CL_GetGameState( (gameState_t *) VMA(1) );
-		return 0;
-	case CG_GETCURRENTSNAPSHOTNUMBER:
-		CL_GetCurrentSnapshotNumber( (int *) VMA(1), (int *) VMA(2) );
-		return 0;
-	case CG_GETSNAPSHOT:
-		return CL_GetSnapshot( args[1], (snapshot_t *) VMA(2) );
+		TheRandomMissionManager->SetLandScape( cmg.landScapes[args[1]] );
+		TheRandomMissionManager->LoadMission(qfalse);
+		TheRandomMissionManager->SpawnMission(qfalse);
+		cmg.landScapes[args[1]]->UpdatePatches();
+	}
+	*/ //this is SP.. I guess we're always the client and server.
+//	cl.mRMGChecksum = cm.landScapes[args[1]]->get_rand_seed();
+	RM_CreateRandomModels(terrainID, terrainInfo);
+	//cmg.landScapes[args[1]]->rand_seed(cl.mRMGChecksum);		// restore it, in case we do a vid restart
+	cmg.landScape->rand_seed(cmg.landScape->get_rand_seed());
+//	TheRandomMissionManager->CreateMap();
+}
 
-	case CG_GETDEFAULTSTATE:
-		return CL_GetDefaultState(args[1], (entityState_t *)VMA(2));
+static int CGI_CM_RegisterTerrain( const char *terrainInfo ) {
+	return CM_RegisterTerrain(terrainInfo, false)->GetTerrainId();
+}
 
-	case CG_GETSERVERCOMMAND:
-		return CL_GetServerCommand( args[1] );
-	case CG_GETCURRENTCMDNUMBER:
-		return CL_GetCurrentCmdNumber();
-	case CG_GETUSERCMD:
-		return CL_GetUserCmd( args[1], (usercmd_s *) VMA(2) );
-	case CG_SETUSERCMDVALUE:
-		CL_SetUserCmdValue( args[1], VMF(2), VMF(3), VMF(4) );
-		return 0;
-	case CG_SETUSERCMDANGLES:
-		CL_SetUserCmdAngles( VMF(1), VMF(2), VMF(3) );
-		return 0;
-	case COM_SETORGANGLES:
-		Com_SetOrgAngles((float *)VMA(1),(float *)VMA(2));
-		return 0;
+static int CGI_CM_PointContents( const vec3_t p, clipHandle_t model ) {
+	return CM_PointContents( (float *)p, model );
+}
+
+static int CGI_CM_MarkFragments( int numPoints, const vec3_t *points, const vec3_t projection,
+				int maxPoints, vec3_t pointBuffer, int maxFragments, markFragment_t *fragmentBuffer ) {
+	return re.MarkFragments( numPoints, (float(*)[3]) points, projection, maxPoints, pointBuffer, maxFragments, fragmentBuffer );
+}
+
+static void CGI_S_StartSound( const vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfx ) {
+	// stops an ERR_DROP internally if called illegally from game side, but note that it also gets here 
+	//	legally during level start where normally the internal s_soundStarted check would return. So ok to hit this.
+	if (!cls.cgameStarted){
+		return;	
+	}
+	S_StartSound( (float *) origin, entityNum, (soundChannel_t)entchannel, sfx );
+}
+
+static void CGI_S_UpdateAmbientSet( const char *name, vec3_t origin ) {
+	// stops an ERR_DROP internally if called illegally from game side, but note that it also gets here 
+	//	legally during level start where normally the internal s_soundStarted check would return. So ok to hit this.
+	if (!cls.cgameStarted){
+		return;
+	}
+	S_UpdateAmbientSet( name, origin );
+}
+
+static void CGI_S_StartLocalSound( sfxHandle_t sfx, int channelNum ) {
+	// stops an ERR_DROP internally if called illegally from game side, but note that it also gets here 
+	//	legally during level start where normally the internal s_soundStarted check would return. So ok to hit this.
+	if (!cls.cgameStarted){
+		return;
+	}
+	S_StartLocalSound( sfx, channelNum );
+}
+
+static void CGI_S_AddLoopingSound( int entityNum, const vec3_t origin, const vec3_t velocity, sfxHandle_t sfx, soundChannel_t chan ) {
+	// stops an ERR_DROP internally if called illegally from game side, but note that it also gets here 
+	//	legally during level start where normally the internal s_soundStarted check would return. So ok to hit this.
+	if (!cls.cgameStarted){
+		return;
+	}
+	S_AddLoopingSound( entityNum, origin, velocity, sfx, chan );
+}
+
+static int CGI_S_GetSampleLength( sfxHandle_t sfx ) {
+	return S_GetSampleLengthInMilliSeconds( sfx );
+}
+
+static void CGI_R_LoadWorldMap( const char *mapname ) {
+	re.LoadWorld( mapname );
+}
+
+static qhandle_t CGI_R_RegisterModel( const char *name ) {
+	return re.RegisterModel( name );
+}
+
+static qhandle_t CGI_R_RegisterSkin( const char *name ) {
+	return re.RegisterSkin( name );
+}
+
+static qhandle_t CGI_R_RegisterShader( const char *name ) {
+	return re.RegisterShader( name );
+}
+
+static qhandle_t CGI_R_RegisterShaderNoMip( const char *name ) {
+	return re.RegisterShaderNoMip( name );
+}
+
+static qhandle_t CGI_R_RegisterFont( const char *name ) {
+	return re.RegisterFont( name );
+}
+
+static int CGI_R_Font_StrLenPixels( const char *text, const int iFontIndex, const float scale ) {
+	return re.Font_StrLenPixels( text, iFontIndex, scale );
+}
+
+static int CGI_R_Font_StrLenChars( const char *text ) {
+	return re.Font_StrLenChars( text );
+}
+
+static int CGI_R_Font_HeightPixels( const int iFontIndex, const float scale ) {
+	return re.Font_HeightPixels( iFontIndex, scale );
+}
+
+static void CGI_R_Font_DrawString( int ox, int oy, const char *text, const float *rgba, const int setIndex, int iMaxPixelWidth, const float scale ) {
+	re.Font_DrawString( ox, oy, text, rgba, setIndex, iMaxPixelWidth, scale );
+}
+
+static qboolean CGI_Language_IsAsian( void ) {
+	return re.Language_IsAsian();
+}
+
+static qboolean CGI_Language_UsesSpaces( void ) {
+	return re.Language_UsesSpaces();
+}
+
+static unsigned int CGI_AnyLanguage_ReadCharFromString( const char *psText, int *piAdvanceCount, qboolean *pbIsTrailingPunctuation ) {
+	return re.AnyLanguage_ReadCharFromString( psText, piAdvanceCount, pbIsTrailingPunctuation );
+}
+
+static void CGI_R_SetRefractProp( float alpha, float stretch, qboolean prepost, qboolean negate ) {
+	tr_distortionAlpha = alpha;
+	tr_distortionStretch = stretch;
+	tr_distortionPrePost = prepost;
+	tr_distortionNegate = negate;
+}
+
+static void CGI_R_ClearScene( void ) {
+	re.ClearScene();
+}
+
+static void CGI_R_AddRefEntityToScene( const refEntity_t *ent ) {
+	re.AddRefEntityToScene( ent );
+}
+
+static qboolean CGI_R_inPVS( vec3_t p1, vec3_t p2 ) {
+	return R_inPVS( p1, p2 );
+}
+
+static void CGI_R_GetLighting( const vec3_t origin, vec3_t ambientLight, vec3_t directedLight, vec3_t ligthDir ) {
+	re.GetLighting( origin, ambientLight, directedLight, ligthDir );
+}
+
+static void CGI_R_AddPolyToScene( qhandle_t hShader, int numVerts, const polyVert_t *verts ) {
+	re.AddPolyToScene( hShader, numVerts, verts );
+}
+
+static void CGI_R_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b ) {
+	re.AddLightToScene( org, intensity, r, g, b );
+}
+
+static void CGI_R_RenderScene( const refdef_t *fd ) {
+	re.RenderScene( fd );
+}
+
+static void CGI_R_SetColor( const float *rgba ) {
+	re.SetColor( rgba );
+}
+
+static void CGI_R_DrawStretchPic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, qhandle_t hShader ) {
+	re.DrawStretchPic( x, y, w, h, s1, t1, s2, t2, hShader );
+}
+
+static void CGI_R_ModelBounds( qhandle_t model, vec3_t mins, vec3_t maxs ) {
+	re.ModelBounds( model, mins, maxs );
+}
+
+static void CGI_R_LerpTag( orientation_t *tag, qhandle_t mod, int startFrame, int endFrame, float frac, const char *tagName ) {
+	re.LerpTag( tag, mod, startFrame, endFrame, frac, tagName );
+}
+
+static void CGI_R_DrawRotatePic( float x, float y, float w, float h, float s1, float t1, float s2, float t2, float a, qhandle_t hShader ) {
+	re.DrawRotatePic( x, y, w, h, s1, t1, s2, t2, a, hShader );
+}
+
+static void CGI_R_DrawRotatePic2( float x, float y, float w, float h, float s1, float t1, float s2, float t2, float a, qhandle_t hShader ) {
+	re.DrawRotatePic2( x, y, w, h, s1, t1, s2, t2, a, hShader );
+}
+
+static void CGI_R_SetRangeFog( float range ) {
+	if (tr.rangedFog <= 0.0f)
+	{
+		g_oldRangedFog = tr.rangedFog;
+	}
+	tr.rangedFog = range;
+	if (tr.rangedFog == 0.0f && g_oldRangedFog)
+	{ //restore to previous state if applicable
+		tr.rangedFog = g_oldRangedFog;
+	}
+}
+
+static void CGI_R_LAGoggles( void ) {
+	re.LAGoggles();
+}
+
+static void CGI_R_Scissor( float x, float y, float w, float h ) {
+	re.Scissor( x, y, w, h );
+}
+
+static qboolean CGI_GetUserCmd( int cmdNumber, usercmd_t *ucmd ) {
+	return CL_GetUserCmd( cmdNumber, ucmd );
+}
+
 /*
 Ghoul2 Insert Start
 */
-		
-	case CG_G2_LISTSURFACES:
-		G2API_ListSurfaces( (CGhoul2Info *) VMA(1) );
-		return 0;
+static void CGI_G2_ListBones( CGhoul2Info *ghlInfo, int frame ) {
+	G2API_ListBones( ghlInfo, frame );
+}
 
-	case CG_G2_LISTBONES:
-		G2API_ListBones( (CGhoul2Info *) VMA(1), args[2]);
-		return 0;
+static void CGI_G2_ListSurfaces( CGhoul2Info *ghlInfo ) {
+	G2API_ListSurfaces( ghlInfo );
+}
 
-	case CG_G2_HAVEWEGHOULMODELS:
-		return G2API_HaveWeGhoul2Models( *((CGhoul2Info_v *)VMA(1)) );
+static qboolean CGI_G2_HaveWeGhoul2Models( CGhoul2Info_v &ghoul2 ) {
+	return G2API_HaveWeGhoul2Models( ghoul2 );
+}
 
-	case CG_G2_SETMODELS:
-		G2API_SetGhoul2ModelIndexes( *((CGhoul2Info_v *)VMA(1)),(qhandle_t *)VMA(2),(qhandle_t *)VMA(3));
-		return 0;
-
+static void CGI_G2_SetGhoul2ModelIndexes( CGhoul2Info_v &ghoul2, qhandle_t *modelList, qhandle_t *skinList ) {
+	G2API_SetGhoul2ModelIndexes( ghoul2, modelList, skinList );
+}
 /*
 Ghoul2 Insert End
 */
 
-	case CG_R_GET_LIGHT_STYLE:
-		re.GetLightStyle(args[1], (byte*) VMA(2) );
-		return 0;
-	case CG_R_SET_LIGHT_STYLE:
-		re.SetLightStyle(args[1], args[2] );
-		return 0;
+static void CGI_R_GetLightStyle( int style, color4ub_t color ) {
+	re.GetLightStyle( style, color );
+}
 
-	case CG_R_GET_BMODEL_VERTS:
-		re.GetBModelVerts( args[1], (float (*)[3])VMA(2), (float *)VMA(3) );
-		return 0;
-	
-	case CG_R_WORLD_EFFECT_COMMAND:
-		re.WorldEffectCommand( (const char *) VMA(1) );
-		return 0;
+static void CGI_R_SetLightStyle( int style, int color ) {
+	re.SetLightStyle( style, color );
+}
 
-	case CG_CIN_PLAYCINEMATIC:
-	  return CIN_PlayCinematic( (const char *) VMA(1), args[2], args[3], args[4], args[5], args[6], (const char *) VMA(7));
+static void CGI_R_GetBModelVerts( int bmodelIndex, vec3_t *verts, vec3_t normal ) {
+	re.GetBModelVerts( bmodelIndex, verts, normal );
+}
 
-	case CG_CIN_STOPCINEMATIC:
-	  return CIN_StopCinematic(args[1]);
+static void CGI_R_WorldEffectCommand( const char *command ) {
+	re.WorldEffectCommand( command );
+}
 
-	case CG_CIN_RUNCINEMATIC:
-	  return CIN_RunCinematic(args[1]);
+static void *CGI_Z_Malloc( int size, int tag ) {
+	return Z_Malloc( size, (memtag_t) tag, qfalse );
+}
 
-	case CG_CIN_DRAWCINEMATIC:
-	  CIN_DrawCinematic(args[1]);
-	  return 0;
+static void CGI_Z_Free( void *ptr ) {
+	Z_Free( ptr );
+}
 
-	case CG_CIN_SETEXTENTS:
-	  CIN_SetExtents(args[1], args[2], args[3], args[4], args[5]);
-	  return 0;
+static void CGI_UI_SetActive_Menu( char *name ) {
+	UI_SetActiveMenu( name, NULL );
+}
 
-	case CG_Z_MALLOC:
-		return (int)Z_Malloc(args[1], (memtag_t) args[2], qfalse);
+static void CGI_UI_Menu_OpenByName( char *buf ) {
+	Menus_OpenByName( buf );
+}
 
-	case CG_Z_FREE:
-		Z_Free((void *) VMA(1));
-		return 0;
+static void CGI_UI_Parse_Int( int *value ) {
+	PC_ParseInt( value );
+}
 
-	case CG_UI_SETACTIVE_MENU:
-		UI_SetActiveMenu((const char *) VMA(1),NULL);
-		return 0;
+static void CGI_UI_Parse_String( const char **value ) {
+	PC_ParseString( value );
+}
 
-	case CG_UI_MENU_OPENBYNAME:
-		Menus_OpenByName((const char *) VMA(1));
-		return 0;
+static void CGI_UI_Parse_Float( float *value ) {
+	PC_ParseFloat( value );
+}
 
-	case CG_UI_MENU_RESET:
-		Menu_Reset();
-		return 0;
+static int CGI_UI_StartParseSession( char *menuFile, char **buf ) {
+	return PC_StartParseSession( menuFile, buf );
+}
 
-	case CG_UI_MENU_NEW:
-		Menu_New((char *) VMA(1));
-		return 0;
+static void CGI_UI_ParseExt( char **token ) {
+	*token = PC_ParseExt();
+}
 
-	case CG_UI_PARSE_INT:
-		PC_ParseInt((int *) VMA(1));
-		return 0;
+static int CGI_UI_GetMenuInfo( char *menuFile, int *x, int *y, int *w, int *h ) {
+	menuDef_t *menu;
+	int		result;
 
-	case CG_UI_PARSE_STRING:
-		PC_ParseString((const char **) VMA(1));
-		return 0;
+	menu = Menus_FindByName( menuFile );	// Get menu 
+	if (menu)
+	{
+		*x = (int) menu->window.rect.x;
+		*y = (int) menu->window.rect.y;
+		*w = (int) menu->window.rect.w;
+		*h = (int) menu->window.rect.h;
+		result = qtrue;
+	}
+	else
+	{
+		result = qfalse;
+	}
 
-	case CG_UI_PARSE_FLOAT:
-		PC_ParseFloat((float *) VMA(1));
-		return 0;
+	return result;
+}
 
-	case CG_UI_STARTPARSESESSION:
-		return(PC_StartParseSession((char *) VMA(1),(char **) VMA(2)));
+static int CGI_UI_GetItemText( char *menuFile, char *itemName, char *text ) {
+	menuDef_t *menu;
+	itemDef_t *item;
+	int		result;
 
-	case CG_UI_ENDPARSESESSION:
-		PC_EndParseSession((char *) VMA(1));
-		return 0;
+	menu = Menus_FindByName( menuFile );	// Get menu 
 
-	case CG_UI_PARSEEXT:
-		char **holdPtr;
-
-		holdPtr = (char **) VMA(1);
-		*holdPtr = PC_ParseExt();
-		return 0;
-
-	case CG_UI_MENUCLOSE_ALL:
-		Menus_CloseAll();
-		return 0;
-
-	case CG_UI_MENUPAINT_ALL:
-		Menu_PaintAll();
-		return 0;
-
-	case CG_UI_STRING_INIT:
-		String_Init();
-		return 0;
-
-	case CG_UI_GETMENUINFO:
-		menuDef_t *menu;
-		int		*xPos,*yPos,*w,*h,result;
-
-		menu = Menus_FindByName((char *) VMA(1));	// Get menu 
-		if (menu)
+	if (menu)
+	{
+		item = (itemDef_s *) Menu_FindItemByName((menuDef_t *) menu, itemName);
+		if (item)
 		{
-			xPos = (int *) VMA(2);
-			*xPos = (int) menu->window.rect.x;
-			yPos = (int *) VMA(3);
-			*yPos = (int) menu->window.rect.y;
-			w = (int *) VMA(4);
-			*w = (int) menu->window.rect.w;
-			h = (int *) VMA(5);
-			*h = (int) menu->window.rect.h;
+			Q_strncpyz( text, item->text, 256 );
 			result = qtrue;
 		}
 		else
 		{
 			result = qfalse;
 		}
-
-		return result;
-
-	case CG_UI_GETITEMTEXT:
-		itemDef_t *item;
-		menu = Menus_FindByName((char *) VMA(1));	// Get menu 
-
-		if (menu)
-		{
-			item = (itemDef_s *) Menu_FindItemByName((menuDef_t *) menu, (char *) VMA(2));
-			if (item)
-			{
-				Q_strncpyz( (char *) VMA(3), item->text, 256 );
-				result = qtrue;
-			}
-			else
-			{
-				result = qfalse;
-			}
-		}
-		else
-		{
-			result = qfalse;
-		}
-
-		return result;
-
-	case CG_UI_GETITEMINFO:
-		menu = Menus_FindByName((char *) VMA(1));	// Get menu 
-
-		if (menu)
-		{
-			qhandle_t *background;
-
-			item = (itemDef_s *) Menu_FindItemByName((menuDef_t *) menu, (char *) VMA(2));
-			if (item)
-			{
-				xPos = (int *) VMA(3);
-				*xPos = (int) item->window.rect.x;
-				yPos = (int *) VMA(4);
-				*yPos = (int) item->window.rect.y;
-				w = (int *) VMA(5);
-				*w = (int) item->window.rect.w;
-				h = (int *) VMA(6);
-				*h = (int) item->window.rect.h;
-
-				vec4_t *color;
-
-				color = (vec4_t *) VMA(7);
-				if (!color)
-				{
-					return qfalse;
-				}
-
-				(*color)[0] = (float) item->window.foreColor[0];
-				(*color)[1] = (float) item->window.foreColor[1];
-				(*color)[2] = (float) item->window.foreColor[2];
-				(*color)[3] = (float) item->window.foreColor[3];
-				background = (qhandle_t *) VMA(8);
-				if (!background)
-				{
-					return qfalse;
-				}
-				*background = item->window.background;
-
-				result = qtrue;
-			}
-			else
-			{
-				result = qfalse;
-			}
-		}
-		else
-		{
-			result = qfalse;
-		}
-
-		return result;
-		
-	case CG_SP_GETSTRINGTEXTSTRING:
-		const char* text;
-
-		assert(VMA(1));	
-		text = SE_GetString( (const char *) VMA(1) );
-
-		if (VMA(2))	// only if dest buffer supplied...
-		{
-			if ( text[0] )
-			{
-				Q_strncpyz( (char *) VMA(2), text, args[3] );				
-			}
-			else 
-			{
-				Com_sprintf( (char *) VMA(2), args[3], "??%s", VMA(1) );
-			}
-		}
-		return strlen(text);
-		//break;
-	default:
-		Com_Error( ERR_DROP, "Bad cgame system trap: %i", args[0] );
 	}
-	return 0;
+	else
+	{
+		result = qfalse;
+	}
+
+	return result;
+}
+
+static int CGI_UI_GetMenuItemInfo( const char *menuFile, const char *itemName, int *x, int *y, int *w, int *h, vec4_t color, qhandle_t *background ) {
+	menuDef_t *menu;
+	itemDef_t *item;
+	int		result;
+
+	menu = Menus_FindByName( menuFile );	// Get menu 
+
+	if (menu)
+	{
+		item = (itemDef_s *) Menu_FindItemByName((menuDef_t *) menu, itemName);
+		if (item)
+		{
+			*x = (int) item->window.rect.x;
+			*y = (int) item->window.rect.y;
+			*w = (int) item->window.rect.w;
+			*h = (int) item->window.rect.h;
+
+			if (!color)
+			{
+				return qfalse;
+			}
+
+			color[0] = (float) item->window.foreColor[0];
+			color[1] = (float) item->window.foreColor[1];
+			color[2] = (float) item->window.foreColor[2];
+			color[3] = (float) item->window.foreColor[3];
+			if (!background)
+			{
+				return qfalse;
+			}
+			*background = item->window.background;
+
+			result = qtrue;
+		}
+		else
+		{
+			result = qfalse;
+		}
+	}
+	else
+	{
+		result = qfalse;
+	}
+
+	return result;
+}
+
+static int CGI_SP_GetStringTextString( const char *reference, char *buffer, int bufferLength ) {
+	const char* text;
+
+	assert(reference);	
+	text = SE_GetString( reference );
+
+	if (buffer)	// only if dest buffer supplied...
+	{
+		if ( text[0] )
+		{
+			Q_strncpyz( buffer, text, bufferLength );				
+		}
+		else 
+		{
+			Com_sprintf( buffer, bufferLength, "??%s", reference );
+		}
+	}
+	return strlen(text);
+}
+
+/*
+====================
+CL_BindCGame
+
+Hands the engine's functions to the cgame half of the game module and takes its
+entry points. The module itself is loaded by the server (SV_InitGameProgs).
+====================
+*/
+qboolean CL_BindCGame( void ) {
+	typedef cgame_export_t *(*GetCGameAPI_t)( int apiVersion, cgame_import_t *import );
+	static cgame_import_t	import;
+	GetCGameAPI_t	GetCGameAPI;
+
+	import.Printf = CGI_Printf;
+	import.Error = CGI_Error;
+	import.Milliseconds = Sys_Milliseconds;
+
+	import.Cvar_Register = Cvar_Register;
+	import.Cvar_Update = Cvar_Update;
+	import.Cvar_Set = Cvar_Set;
+
+	import.Argc = Cmd_Argc;
+	import.Argv = Cmd_ArgvBuffer;
+	import.Args = Cmd_ArgsBuffer;
+
+	import.FS_FOpenFile = CGI_FS_FOpenFile;
+	import.FS_Read = CGI_FS_Read;
+	import.FS_Write = CGI_FS_Write;
+	import.FS_FCloseFile = FS_FCloseFile;
+
+	import.SendConsoleCommand = Cbuf_AddText;
+	import.AddCommand = CL_AddCgameCommand;
+	import.SendClientCommand = CL_AddReliableCommand;
+	import.UpdateScreen = CGI_UpdateScreen;
+
+	import.RMG_Init = CGI_RMG_Init;
+	import.CM_RegisterTerrain = CGI_CM_RegisterTerrain;
+	import.RE_InitRendererTerrain = RE_InitRendererTerrain;
+
+	import.CM_LoadMap = CL_CM_LoadMap;
+	import.CM_NumInlineModels = CM_NumInlineModels;
+	import.CM_InlineModel = CM_InlineModel;
+	import.CM_TempBoxModel = CM_TempBoxModel;
+	import.CM_PointContents = CGI_CM_PointContents;
+	import.CM_TransformedPointContents = CM_TransformedPointContents;
+	import.CM_BoxTrace = CM_BoxTrace;
+	import.CM_TransformedBoxTrace = CM_TransformedBoxTrace;
+	import.CM_MarkFragments = CGI_CM_MarkFragments;
+	import.CM_SnapPVS = CM_SnapPVS;
+
+	import.S_StartSound = CGI_S_StartSound;
+	import.S_StartLocalSound = CGI_S_StartLocalSound;
+	import.S_ClearLoopingSounds = S_ClearLoopingSounds;
+	import.S_AddLoopingSound = CGI_S_AddLoopingSound;
+	import.S_StopSounds = S_StopSounds;
+	import.S_UpdateEntityPosition = S_UpdateEntityPosition;
+	import.S_Respatialize = S_Respatialize;
+	import.S_RegisterSound = S_RegisterSound;
+	import.S_StartBackgroundTrack = S_StartBackgroundTrack;
+
+	import.R_LoadWorldMap = CGI_R_LoadWorldMap;
+	import.R_RegisterModel = CGI_R_RegisterModel;
+	import.R_RegisterSkin = CGI_R_RegisterSkin;
+	import.R_RegisterShader = CGI_R_RegisterShader;
+	import.R_RegisterShaderNoMip = CGI_R_RegisterShaderNoMip;
+	import.R_RegisterFont = CGI_R_RegisterFont;
+	import.R_Font_StrLenPixels = CGI_R_Font_StrLenPixels;
+	import.R_Font_StrLenChars = CGI_R_Font_StrLenChars;
+	import.R_Font_HeightPixels = CGI_R_Font_HeightPixels;
+	import.R_Font_DrawString = CGI_R_Font_DrawString;
+	import.Language_IsAsian = CGI_Language_IsAsian;
+	import.Language_UsesSpaces = CGI_Language_UsesSpaces;
+	import.AnyLanguage_ReadCharFromString = CGI_AnyLanguage_ReadCharFromString;
+	import.R_SetRefractProp = CGI_R_SetRefractProp;
+	import.R_ClearScene = CGI_R_ClearScene;
+	import.R_AddRefEntityToScene = CGI_R_AddRefEntityToScene;
+	import.R_inPVS = CGI_R_inPVS;
+	import.R_GetLighting = CGI_R_GetLighting;
+	import.R_AddPolyToScene = CGI_R_AddPolyToScene;
+	import.R_AddLightToScene = CGI_R_AddLightToScene;
+	import.R_RenderScene = CGI_R_RenderScene;
+	import.R_SetColor = CGI_R_SetColor;
+	import.R_DrawStretchPic = CGI_R_DrawStretchPic;
+	import.R_ModelBounds = CGI_R_ModelBounds;
+	import.R_LerpTag = CGI_R_LerpTag;
+	import.R_DrawRotatePic = CGI_R_DrawRotatePic;
+	import.R_DrawRotatePic2 = CGI_R_DrawRotatePic2;
+	import.R_SetRangeFog = CGI_R_SetRangeFog;
+	import.R_LAGoggles = CGI_R_LAGoggles;
+	import.R_Scissor = CGI_R_Scissor;
+
+	import.GetGlconfig = CL_GetGlconfig;
+	import.GetGameState = CL_GetGameState;
+	import.GetCurrentSnapshotNumber = CL_GetCurrentSnapshotNumber;
+	import.GetSnapshot = CL_GetSnapshot;
+	import.GetDefaultState = CL_GetDefaultState;
+	import.GetServerCommand = CL_GetServerCommand;
+	import.GetCurrentCmdNumber = CL_GetCurrentCmdNumber;
+	import.GetUserCmd = CGI_GetUserCmd;
+	import.SetUserCmdValue = CL_SetUserCmdValue;
+	import.SetUserCmdAngles = CL_SetUserCmdAngles;
+
+	import.S_UpdateAmbientSet = CGI_S_UpdateAmbientSet;
+	import.S_AddLocalSet = S_AddLocalSet;
+	import.AS_ParseSets = AS_ParseSets;
+	import.AS_AddPrecacheEntry = AS_AddPrecacheEntry;
+	import.AS_GetBModelSound = AS_GetBModelSound;
+	import.S_GetSampleLength = CGI_S_GetSampleLength;
+	import.Com_SetOrgAngles = Com_SetOrgAngles;
+
+	import.G2_ListBones = CGI_G2_ListBones;
+	import.G2_ListSurfaces = CGI_G2_ListSurfaces;
+	import.G2_HaveWeGhoul2Models = CGI_G2_HaveWeGhoul2Models;
+	import.G2_SetGhoul2ModelIndexes = CGI_G2_SetGhoul2ModelIndexes;
+
+	import.R_GetLightStyle = CGI_R_GetLightStyle;
+	import.R_SetLightStyle = CGI_R_SetLightStyle;
+	import.R_GetBModelVerts = CGI_R_GetBModelVerts;
+	import.R_WorldEffectCommand = CGI_R_WorldEffectCommand;
+
+	import.CIN_PlayCinematic = CIN_PlayCinematic;
+	import.CIN_StopCinematic = CIN_StopCinematic;
+	import.CIN_RunCinematic = CIN_RunCinematic;
+	import.CIN_DrawCinematic = CIN_DrawCinematic;
+	import.CIN_SetExtents = CIN_SetExtents;
+
+	import.Z_Malloc = CGI_Z_Malloc;
+	import.Z_Free = CGI_Z_Free;
+
+	import.UI_Menu_Reset = Menu_Reset;
+	import.UI_Menu_New = Menu_New;
+	import.UI_SetActive_Menu = CGI_UI_SetActive_Menu;
+	import.UI_Menu_OpenByName = CGI_UI_Menu_OpenByName;
+	import.UI_Parse_Int = CGI_UI_Parse_Int;
+	import.UI_Parse_String = CGI_UI_Parse_String;
+	import.UI_Parse_Float = CGI_UI_Parse_Float;
+	import.UI_StartParseSession = CGI_UI_StartParseSession;
+	import.UI_EndParseSession = PC_EndParseSession;
+	import.UI_ParseExt = CGI_UI_ParseExt;
+	import.UI_MenuPaintAll = Menu_PaintAll;
+	import.UI_MenuCloseAll = Menus_CloseAll;
+	import.UI_String_Init = String_Init;
+	import.UI_GetMenuInfo = CGI_UI_GetMenuInfo;
+	import.SP_GetStringTextString = CGI_SP_GetStringTextString;
+	import.UI_GetItemText = CGI_UI_GetItemText;
+	import.UI_GetMenuItemInfo = CGI_UI_GetMenuItemInfo;
+
+	GetCGameAPI = (GetCGameAPI_t) Sys_GetGameFunction( "GetCGameAPI" );
+	if ( !GetCGameAPI ) {
+		return qfalse;
+	}
+
+	cge = GetCGameAPI( CGAME_API_VERSION, &import );
+	if ( !cge ) {
+		Com_Error( ERR_DROP, "the cgame half of the game module does not speak interface version %i", CGAME_API_VERSION );
+	}
+	return qtrue;
+}
+
+/*
+====================
+CL_UnbindCGame
+
+The game module is about to be unloaded.
+====================
+*/
+void CL_UnbindCGame( void ) {
+	cge = NULL;
 }
 
 
@@ -983,7 +1036,7 @@ void CL_InitCGame( void ) {
 	cls.state = CA_LOADING;
 
 	// init for this gamestate
-	VM_Call( CG_INIT, clc.serverCommandSequence );
+	cge->Init( clc.serverCommandSequence );
 
 	// we will send a usercmd this frame, which
 	// will cause the server to send us the first snapshot
@@ -1019,7 +1072,7 @@ qboolean CL_GameCommand( void ) {
 		return qfalse;
 	}
 
-	return VM_Call( CG_CONSOLE_COMMAND );
+	return cge->ConsoleCommand();
 }
 
 
@@ -1045,7 +1098,7 @@ void CL_CGameRendering( stereoFrame_t stereo ) {
 		timei-=0;
 	}
 	G2API_SetTime(cl.serverTime,G2T_CG_TIME);
-	VM_Call( CG_DRAW_ACTIVE_FRAME,timei, stereo, qfalse );
+	cge->DrawActiveFrame( timei, stereo );
 //	VM_Debug( 0 );
 }
 

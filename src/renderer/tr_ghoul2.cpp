@@ -5,7 +5,6 @@
 
  
 #include "../client/client.h"	//FIXME!! EVIL - just include the definitions needed 
-#include "../client/vmachine.h"
 
 						  
 #if !defined(TR_LOCAL_H)
