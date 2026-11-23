@@ -17,6 +17,7 @@ Architectural decisions for this project, recorded as
 | [0008](0008-renderer-feature-scope.md) | Renderer scope: rasterised HDR, shadows, PBR; no ray tracing | accepted |
 | [0009](0009-graphics-api.md) | Graphics API: SDL3 GPU | accepted |
 | [0010](0010-project-and-binary-names.md) | Project name `jasp`; binaries keep their original names | accepted |
+| [0011](0011-repository-tooling-in-cpp.md) | Repository tooling is written in C++ and built by the project | accepted |
 
 ## How to add a decision
 
