@@ -130,8 +130,8 @@ char *Sys_GetClipboardData(void) {
 
 	// The clipboard holds UTF-8 and the engine's characters are single bytes: what does
 	// not fit is left out, so the result is never longer than the original.
-	char *data = static_cast<char *>(Z_Malloc(static_cast<int>(std::strlen(text)) + 1,
-	                                          TAG_CLIPBOARD, qfalse));
+	char *data = static_cast<char *>(
+	    Z_Malloc(static_cast<int>(std::strlen(text)) + 1, TAG_CLIPBOARD, qfalse));
 	char *out = data;
 	const char *cursor = text;
 	while (Uint32 codepoint = SDL_StepUTF8(&cursor, NULL)) {

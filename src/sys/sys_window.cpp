@@ -118,8 +118,7 @@ void GLimp_Init(void) {
 	glConfig.depthBits = Attribute(SDL_GL_DEPTH_SIZE);
 	glConfig.stencilBits = Attribute(SDL_GL_STENCIL_SIZE);
 
-	const SDL_DisplayMode *displayMode =
-	    SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(window));
+	const SDL_DisplayMode *displayMode = SDL_GetCurrentDisplayMode(SDL_GetDisplayForWindow(window));
 	glConfig.displayFrequency =
 	    displayMode ? static_cast<int>(std::lround(displayMode->refresh_rate)) : 0;
 
