@@ -36,7 +36,6 @@ These components carry their own notices in their source files, which are kept i
 | Xing MP3 decoder, via FreeAmp | `src/mp3code/` | Copyright 1995-1997 Xing Technology; portions copyright 1998-1999 EMusic.com. GPL version 2 or later. |
 | MD4 message digest | `src/qcommon/md4.cpp` | Copyright 1991-1992 RSA Data Security, Inc. Derived from the RSA Data Security, Inc. MD4 Message-Digest Algorithm. |
 | OpenGL extension header | `src/renderer/glext.h` | Copyright 1991-2000 Silicon Graphics, Inc. SGI Free Software License B, version 1.1. |
-| OpenAL headers | `src/client/openal/` | Copyright 1999-2000 by authors. GNU Library General Public License, version 2 or later. |
 | stb_image 2.34 and stb_image_write 1.19, unmodified, from commit `6b5799b` of github.com/nothings/stb | `external/stb/` | By Sean Barrett and contributors. Public domain, or MIT licence at the user's choice; see `external/stb/LICENSE`. |
 
 Some engine files carry a copyright line of id Software, Inc. (1999-2000) from the Quake
