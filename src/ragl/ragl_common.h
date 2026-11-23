@@ -61,12 +61,6 @@
 	#define  RAGL_ASSERT_INC
 	#include <assert.h>
 #endif
-#if !defined(FINAL_BUILD)
-	#if !defined(RAGL_PROFILE_INC)
-		#define  RAGL_PROFILE_INC
-		#include <windows.h>
-	#endif
-#endif
 #if !defined(RAVL_VEC_INC)
 	#include "../ravl/CVec.h"
 #endif

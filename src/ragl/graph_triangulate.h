@@ -221,8 +221,8 @@ public:
 	{
 		ratl::vector_vs<int, MAXEDGES>		CullEdges;
 		int		nEdge;
-		TEdges::iterator stop=mEdges.end();
-		for (TEdges::iterator it=mEdges.begin(); it!=mEdges.end(); it++)
+		typename TEdges::iterator stop=mEdges.end();
+		for (typename TEdges::iterator it=mEdges.begin(); it!=mEdges.end(); it++)
 		{
 			if (!(*it).mOnHull)
 			{
@@ -290,7 +290,7 @@ public:
 	{
 		ratl::vector_vs<int, MAXEDGES>		CullEdges;
 		float cost;
-		for (TEdges::iterator it=mEdges.begin(); it!=mEdges.end(); it++)
+		for (typename TEdges::iterator it=mEdges.begin(); it!=mEdges.end(); it++)
 		{
 			cost = user.cost(mGraph.get_node((*it).mA), mGraph.get_node((*it).mB));
 			if (cost<min || cost>max)
@@ -316,7 +316,7 @@ public:
 	{
 		mGraph.clear_edges();
 		TEDGE	DefaultEdge;
-		for (TEdges::iterator it=mEdges.begin(); it!=mEdges.end(); it++)
+		for (typename TEdges::iterator it=mEdges.begin(); it!=mEdges.end(); it++)
 		{
 			user.setup_edge(DefaultEdge, (*it).mA, (*it).mB, (*it).mOnHull, mGraph.get_node((*it).mA), mGraph.get_node((*it).mB));
 			mGraph.connect_node(DefaultEdge, (*it).mA, (*it).mB);
@@ -505,7 +505,7 @@ private:
 	void	sort_points()
 	{
 		mSortNodes.clear();
-		for (TGraph::TNodes::iterator i=mGraph.nodes_begin(); i!=mGraph.nodes_end(); i++)
+		for (typename TGraph::TNodes::iterator i=mGraph.nodes_begin(); i!=mGraph.nodes_end(); i++)
 		{
 			mSortNode.mNodeHandle	= mGraph.node_handle(i);
 			mSortNode.mNodePointer	= &(*i);

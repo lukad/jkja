@@ -441,7 +441,7 @@ public:
 	{
 		int nNew= mPool.alloc();
 		insert_low(it,nNew);
-		return mPool[mNew];
+		return mPool[nNew];
 	}
 	////////////////////////////////////////////////////////////////////////////////////
 	// Iterator Insert Value(BEFORE POINTED ELEMENT)
@@ -469,7 +469,7 @@ public:
 		int nNew= mPool.alloc();
 		insert_low_after(it,nNew);
 		it = iterator(this, nNew);
-		return mPool[mNew];
+		return mPool[nNew];
 	}
 	////////////////////////////////////////////////////////////////////////////////////
 	// Iterator Insert Value(AFTER POINTED ELEMENT) (ALSO - NOT CONSTANT, WILL CHANGE it)
@@ -501,7 +501,7 @@ public:
 	{
 		int nNew= mPool.alloc();
 		insert_low(begin(),nNew);
-		return mPool[mNew];
+		return mPool[nNew];
 	}
 	////////////////////////////////////////////////////////////////////////////////////
 	// Front Insert Value(BEFORE POINTED ELEMENT)
@@ -528,7 +528,7 @@ public:
 	{
 		int nNew= mPool.alloc();
 		insert_low(end(),nNew);
-		return mPool[mNew];
+		return mPool[nNew];
 	}
 	////////////////////////////////////////////////////////////////////////////////////
 	// Front Insert Value(BEFORE POINTED ELEMENT)

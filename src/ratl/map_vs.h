@@ -847,10 +847,10 @@ public:
 	void insert(const TTValue &key)
 	{
 		
-		assert(!IS_MULTI || find_index(key)==tree_node::NULL_NODE); //fixme handle duplicates more sensibly?
+		assert(!IS_MULTI || this->find_index(key)==tree_node::NULL_NODE); //fixme handle duplicates more sensibly?
 
-		alloc_key(key);
-		insert_alloced_key();
+		this->alloc_key(key);
+		this->insert_alloced_key();
 
 	}
 
@@ -859,7 +859,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////
 	TTValue & alloc()
 	{		
-		return alloc_key();
+		return this->alloc_key();
 	}
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -867,7 +867,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////
 	TRatlNew *alloc_raw()
 	{
-		return alloc_key_raw();
+		return this->alloc_key_raw();
 	}
 	template<class CAST_TO>
 	CAST_TO *verify_alloc(CAST_TO *p) const
@@ -877,7 +877,7 @@ public:
 
 	void insert_alloced()
 	{
-		insert_alloced_key();
+		this->insert_alloced_key();
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////
@@ -886,10 +886,10 @@ public:
 	void		erase(const TTValue &key)
 	{
 		//fixme this is a double search currently
-		int i=find_index(key);
+		int i=this->find_index(key);
 		if (i!=tree_node::NULL_NODE)
 		{
-			erase_index(i);
+			this->erase_index(i);
 		}
 	}
 
@@ -1060,7 +1060,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////
 	iterator	find(const TTValue &key)
 	{
-		return iterator(this,find_index(key));		
+		return iterator(this,this->find_index(key));		
 	}
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -1068,7 +1068,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////
 	iterator	begin()
 	{
-		return iterator(this, front());	
+		return iterator(this, this->front());	
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////
@@ -1076,7 +1076,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////
 	iterator	rbegin()
 	{
-		return iterator(this, back());
+		return iterator(this, this->back());
 	}
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -1092,7 +1092,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////
 	const_iterator	find(const TTValue &key) const
 	{
-		return const_iterator(this, find_index(key));		
+		return const_iterator(this, this->find_index(key));		
 	}
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -1100,7 +1100,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////
 	const_iterator	begin() const
 	{
-		return const_iterator(this, front());	
+		return const_iterator(this, this->front());	
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////
@@ -1108,7 +1108,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////
 	const_iterator	rbegin() const
 	{
-		return const_iterator(this, back());
+		return const_iterator(this, this->back());
 	}
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -1124,7 +1124,7 @@ public:
 	void		erase(const iterator &it)
 	{
 		assert(it.mOwner==this && it.mLoc>=0&&it.mLoc<CAPACITY);
-		erase_index(it.mLoc);
+		this->erase_index(it.mLoc);
 	}
 
 
@@ -1133,7 +1133,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////
 	iterator	lower_bound(const TTValue &key)
 	{
-		return iterator(this, find_index(key));
+		return iterator(this, this->find_index(key));
 	}
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -1142,7 +1142,7 @@ public:
 	iterator	upper_bound(const TTValue &key)
 	{
 		// fixme, this don't work
-		iterator ubound(this, find_index(key));
+		iterator ubound(this, this->find_index(key));
 		ubound++;
 		return ubound;
 	}
@@ -1224,12 +1224,12 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////
 	void insert(const TKTValue &key,const TVTValue &value)
 	{
-		assert(!IS_MULTI || find_index(key)==tree_node::NULL_NODE); //fixme handle duplicates more sensibly?
+		assert(!IS_MULTI || this->find_index(key)==tree_node::NULL_NODE); //fixme handle duplicates more sensibly?
 
-		alloc_key(key);
-		insert_alloced_key();		
+		this->alloc_key(key);
+		this->insert_alloced_key();		
 		assert(check_validity());
-		mValues.construct(index_of_alloced_key(),value);
+		mValues.construct(this->index_of_alloced_key(),value);
 	}
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -1238,12 +1238,12 @@ public:
 	TVTValue &insert(const TKTValue &key)
 	{
 		
-		assert(!IS_MULTI || find_index(key)==tree_node::NULL_NODE); //fixme handle duplicates more sensibly?
+		assert(!IS_MULTI || this->find_index(key)==tree_node::NULL_NODE); //fixme handle duplicates more sensibly?
 
-		alloc_key(key);
-		insert_alloced_key();		
+		this->alloc_key(key);
+		this->insert_alloced_key();		
 
-		int idx=index_of_alloced_key();
+		int idx=this->index_of_alloced_key();
 		assert(check_validity());
 		mValues.construct(idx);
 		return mValues[idx];
@@ -1254,12 +1254,12 @@ public:
 	TRatlNew *insert_raw(const TKTValue &key)
 	{
 		
-		assert(!IS_MULTI || find_index(key)==tree_node::NULL_NODE); //fixme handle duplicates more sensibly?
+		assert(!IS_MULTI || this->find_index(key)==tree_node::NULL_NODE); //fixme handle duplicates more sensibly?
 
-		alloc_key(key);
-		insert_alloced_key();		
+		this->alloc_key(key);
+		this->insert_alloced_key();		
 		assert(check_validity());
-		return mValues.alloc_raw(index_of_alloced_key());
+		return mValues.alloc_raw(this->index_of_alloced_key());
 	}
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -1267,8 +1267,8 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////
 	TVTValue &alloc_value()
 	{		
-		mValues.construct(index_of_alloced_key());
-		return mValues[index_of_alloced_key()];
+		mValues.construct(this->index_of_alloced_key());
+		return mValues[this->index_of_alloced_key()];
 	}
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -1276,7 +1276,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////
 	TRatlNew *alloc_value_raw()
 	{
-		return mValues.alloc_raw(index_of_alloced_key());
+		return mValues.alloc_raw(this->index_of_alloced_key());
 	}
 
 	template<class CAST_TO>
@@ -1291,10 +1291,10 @@ public:
 	void		erase(const TKTValue &key)
 	{
 		//fixme this is a double search currently
-		int i=find_index(key);
+		int i=this->find_index(key);
 		if (i!=tree_node::NULL_NODE)
 		{
-			erase_index(i);
+			this->erase_index(i);
 			mValues.destruct(i);
 		}
 	}
@@ -1490,7 +1490,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////
 	iterator	find(const TKTValue &key)
 	{
-		return iterator(this,find_index(key));		
+		return iterator(this,this->find_index(key));		
 	}
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -1498,7 +1498,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////
 	iterator	begin()
 	{
-		return iterator(this, front());	
+		return iterator(this, this->front());	
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////
@@ -1506,7 +1506,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////
 	iterator	rbegin()
 	{
-		return iterator(this, back());
+		return iterator(this, this->back());
 	}
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -1522,7 +1522,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////
 	const_iterator	find(const TKTValue &key) const
 	{
-		return const_iterator(this, find_index(key));		
+		return const_iterator(this, this->find_index(key));		
 	}
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -1530,7 +1530,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////
 	const_iterator	begin() const
 	{
-		return const_iterator(this, front());	
+		return const_iterator(this, this->front());	
 	}
 
 	////////////////////////////////////////////////////////////////////////////////////
@@ -1538,7 +1538,7 @@ public:
     ////////////////////////////////////////////////////////////////////////////////////
 	const_iterator	rbegin() const
 	{
-		return const_iterator(this, back());
+		return const_iterator(this, this->back());
 	}
 
     ////////////////////////////////////////////////////////////////////////////////////
@@ -1554,7 +1554,7 @@ public:
 	void		erase(const iterator &it)
 	{
 		assert(it.mOwner==this && it.mLoc>=0&&it.mLoc<CAPACITY);
-		erase_index(it.mLoc);
+		this->erase_index(it.mLoc);
 		mValues.destruct(it.mLoc);
 	}
 private:
