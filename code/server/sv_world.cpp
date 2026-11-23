@@ -26,10 +26,6 @@ Ghoul2 Insert Start
 /*
 Ghoul2 Insert End
 */
-#if MEM_DEBUG
-#include "..\smartheap\heapagnt.h"
-#define SV_TRACE_PROFILE (0)
-#endif
 
 #if 0 //G2_SUPERSIZEDBBOX is not being used
 static const float superSizedAdd=64.0f;
@@ -431,13 +427,6 @@ int SV_AreaEntities( const vec3_t mins, const vec3_t maxs, gentity_t **elist, in
 	ap.maxcount = maxcount;
 
 #if SV_TRACE_PROFILE
-#if MEM_DEBUG
-	{
-		int old=dbgMemSetCheckpoint(2003);
-		malloc(1);
-		dbgMemSetCheckpoint(old);
-	}
-#endif
 #endif
 	SV_AreaEntities_r( sv_worldSectors, &ap );
 
@@ -838,13 +827,6 @@ Ghoul2 Insert End
 #endif// _DEBUG
 
 #if SV_TRACE_PROFILE
-#if MEM_DEBUG
-	{
-		int old=dbgMemSetCheckpoint(2002);
-		malloc(1);
-		dbgMemSetCheckpoint(old);
-	}
-#endif
 #endif
 
 	moveclip_t	clip;
@@ -964,15 +946,6 @@ int SV_PointContents( const vec3_t p, int passEntityNum ) {
 	clipHandle_t	clipHandle;
 	const float		*angles;
 
-#if MEM_DEBUG
-#if SV_TRACE_PROFILE
-	{
-		int old=dbgMemSetCheckpoint(2001);
-		malloc(1);
-		dbgMemSetCheckpoint(old);
-	}
-#endif
-#endif
 
 	/*
 	startMS = Sys_Milliseconds ();
