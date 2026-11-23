@@ -609,15 +609,15 @@ static qboolean S_LoadSound_FileLoadAndNameAdjuster(char *psFilename, byte **pDa
 		// account for foreign voices...
 		//		
 		extern cvar_t* s_language;
-		if (s_language && stricmp("DEUTSCH",s_language->string)==0)
+		if (s_language && Q_stricmp("DEUTSCH",s_language->string)==0)
 		{				
 			strncpy(psVoice,"chr_d",5);	// same number of letters as "chars"
 		}
-		else if (s_language && stricmp("FRANCAIS",s_language->string)==0)
+		else if (s_language && Q_stricmp("FRANCAIS",s_language->string)==0)
 		{				
 			strncpy(psVoice,"chr_f",5);	// same number of letters as "chars"
 		}
-		else if (s_language && stricmp("ESPANOL",s_language->string)==0)
+		else if (s_language && Q_stricmp("ESPANOL",s_language->string)==0)
 		{				
 			strncpy(psVoice,"chr_e",5);	// same number of letters as "chars"
 		}
@@ -693,7 +693,7 @@ static qboolean S_LoadSound_DirIsAllowedToKeepMP3s(const char *psFilename)
 	int i;
 	for (i=0; i< (sizeof(psAllowedDirs) / sizeof(psAllowedDirs[0])); i++)
 	{
-		if (strnicmp(psFilename, psAllowedDirs[i], strlen(psAllowedDirs[i]))==0)
+		if (Q_stricmpn(psFilename, psAllowedDirs[i], strlen(psAllowedDirs[i]))==0)
 			return qtrue;	// found a dir that's allowed to keep MP3s
 	}
 
@@ -734,7 +734,7 @@ static qboolean S_LoadSound_Actual( sfx_t *sfx )
 	// make up a local filename to try wav/mp3 substitutes...
 	//	
 	Q_strncpyz(sLoadName, sfx->sSoundName, sizeof(sLoadName));	
-	strlwr( sLoadName );
+	Q_strlwr( sLoadName );
 	//
 	// Ensure name has an extension (which it must have, but you never know), and get ptr to it...
 	//
@@ -754,7 +754,7 @@ static qboolean S_LoadSound_Actual( sfx_t *sfx )
 
 	SND_TouchSFX(sfx);
 //=========
-	if (strnicmp(psExt,".mp3",4)==0)
+	if (Q_stricmpn(psExt,".mp3",4)==0)
 	{
 		// load MP3 file instead...
 		//		

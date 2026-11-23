@@ -824,7 +824,7 @@ int Q_isupper( int c );
 int Q_isalpha( int c );
 
 // portable case insensitive compare
-// These stand in for stricmp, strnicmp, strlwr and strupr, which are not part of the
+// These stand in for Q_stricmp, Q_stricmpn, Q_strlwr and Q_strupr, which are not part of the
 // standard library, and order strings the way those did.
 int		Q_stricmp (const char *s1, const char *s2);
 int		Q_stricmpn (const char *s1, const char *s2, int n);

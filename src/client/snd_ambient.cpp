@@ -201,7 +201,7 @@ static int AS_GetSetNameIDForString( const char *name )
 
 	for ( int i = 0; i < NUM_AS_SETS; i++ )
 	{
-		if ( stricmp( name, setNames[i] ) == 0 )
+		if ( Q_stricmp( name, setNames[i] ) == 0 )
 			return i;
 	}
 
@@ -222,7 +222,7 @@ static int AS_GetKeywordIDForString( const char *name )
 
 	for ( int i = 0; i < NUM_AS_KEYWORDS; i++ )
 	{
-		if ( stricmp( name, keywordNames[i] ) == 0 )
+		if ( Q_stricmp( name, keywordNames[i] ) == 0 )
 			return i;
 	}
 
@@ -680,7 +680,7 @@ static void AS_ParseHeader( void )
 		case SET_KEYWORD_TYPE:
 			sscanf( parseBuffer+parsePos, "%s %s", &tempBuffer, &typeBuffer );
 
-			if ( !stricmp( (const char *) typeBuffer, "ambientSet" ) )
+			if ( !Q_stricmp( (const char *) typeBuffer, "ambientSet" ) )
 			{
 				return;
 			}
@@ -785,7 +785,7 @@ void AS_AddPrecacheEntry( const char *name )
 	{
 		return;
 	}
-	if (!stricmp(name,"#clear"))
+	if (!Q_stricmp(name,"#clear"))
 	{
 		pMap->clear();
 		currentSet	= -1;

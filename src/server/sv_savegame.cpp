@@ -346,7 +346,7 @@ void SV_WipeGame_f(void)
 		Com_Printf (S_COLOR_RED "USAGE: wipe <name>\n");
 		return;
 	}
-	if (!stricmp (Cmd_Argv(1), "Checkpoint") )
+	if (!Q_stricmp (Cmd_Argv(1), "Checkpoint") )
 	{
 		Com_Printf (S_COLOR_RED "Can't wipe 'Checkpoint'\n");
 		return;
@@ -436,7 +436,7 @@ void SV_LoadGame_f(void)
 	//
 	
 
-	if (!stricmp(psFilename, "*respawn"))
+	if (!Q_stricmp(psFilename, "*respawn"))
 	{
 		psFilename = "Checkpoint";	// default to standard respawn behaviour
 		
@@ -564,7 +564,7 @@ void SV_SaveGame_f(void)
 	char *psFilename = Cmd_Argv(1);
 
 
-//	if (!stricmp (psFilename, "current"))
+//	if (!Q_stricmp (psFilename, "current"))
 //	{
 //		Com_Printf (S_COLOR_RED "Can't save to 'current'\n");
 //		return;
@@ -579,7 +579,7 @@ void SV_SaveGame_f(void)
 	if (!SG_GameAllowedToSaveHere(qfalse))	//full check
 		return;	// this prevents people saving via quick-save now during cinematics.
 
-	if ( !stricmp (psFilename, "Checkpoint") || !stricmp (psFilename, "auto"))
+	if ( !Q_stricmp (psFilename, "Checkpoint") || !Q_stricmp (psFilename, "auto"))
 	{
 		
 		SG_StoreSaveGameComment("");	// clear previous comment/description, which will force time/date comment.
