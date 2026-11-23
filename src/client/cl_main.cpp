@@ -8,10 +8,7 @@
 #include "client.h"
 #include "client_ui.h"
 #include <limits.h>
-#include "fffx.h"
 #include "../ghoul2/G2.h"
-
-#include "../qcommon/xb_settings.h"
 
 #include "../rmg/RM_Headers.h"
 

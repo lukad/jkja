@@ -9,13 +9,6 @@
 
 #include "../game/anims.h"
 
-/////////////////////  this is a bit kludgy, but it only gives access to one
-//							enum table because of the #define. May get changed.
-#define CGAME_ONLY
-#include "../client/fffx.h"
-//
-/////////////////////
-
 
 
 extern void CG_LightningBolt( centity_t *cent, vec3_t origin );
@@ -2493,8 +2486,6 @@ void CG_OutOfAmmoChange( void ) {
 	int		i;
 	int		original;
 
-	cgi_FF_StartFX( fffx_OutOfAmmo );
-
 	if ( cg.weaponSelectTime + 200 > cg.time )
 		return;
 
@@ -2609,64 +2600,6 @@ void CG_FireWeapon( centity_t *cent, qboolean alt_fire )
 		}
 	}
 	
-	// force feedback...
-	//
-	if ( cent->gent->s.number == 0 )
-	switch (ent->weapon)
-	{
-		// FIXME: I can NOT get this !@#$% iFeel USB mouse to work, it completely fails to register even with their
-		//		latest drivers, and I haven't got time to get it working now so close to release, so here's a complete 
-		//		guess as to which FX forces go with which weapon. Sorry if they're crap...
-		//
-		case WP_SABER:				
-			//cgi_FF_StartFX( fffx_SwitchClick );	// repeat-fire handled above, but this just give an initial jolt
-			break;
-
-		case WP_DISRUPTOR:
-		case WP_BRYAR_PISTOL:	
-		case WP_BLASTER_PISTOL:	
-		case WP_JAWA:	
-		case WP_THERMAL:
-			cgi_FF_StartFX( alt_fire ? fffx_Shotgun : fffx_Pistol);	
-			break;
-		case WP_DET_PACK:
-			
-			break;
-
-		case WP_FLECHETTE:	
-			cgi_FF_StartFX( alt_fire ? fffx_Shotgun : fffx_ShortPlasma);
-			break;			
-			
-		case WP_REPEATER:
-			cgi_FF_StartFX( alt_fire ? fffx_MachineGun : fffx_GatlingGun);
-			break;
-
-		case WP_BLASTER:
-			cgi_FF_StartFX( alt_fire ? fffx_Shotgun : fffx_Pistol);	
-			break;
- 
-		case WP_ROCKET_LAUNCHER:
-		case WP_CONCUSSION:
-			cgi_FF_StartFX( fffx_RocketLaunch );
-			break;
-
-		case WP_BOWCASTER:
-			cgi_FF_StartFX( alt_fire ? fffx_Land : fffx_Jump);	
-			break;
-
-		case WP_DEMP2:
-			cgi_FF_StartFX( alt_fire ? fffx_Shotgun : fffx_Pistol);	
-			break;
-
-		case WP_STUN_BATON:
-			cgi_FF_StartFX( fffx_Laser1 );
-			break;
-
-		case WP_TRIP_MINE:
-			cgi_FF_StartFX( fffx_OutOfAmmo );
-			break;
-	}
-
 	// Do overcharge sound that get's added to the top
 /*	if (( ent->powerups & ( 1<<PW_WEAPON_OVERCHARGE )))
 	{

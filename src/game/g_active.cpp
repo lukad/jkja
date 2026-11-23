@@ -5544,15 +5544,6 @@ extern cvar_t	*g_skippingcin;
 	ClientEndPowerUps( ent );
 	//try some idle anims on ent if getting no input and not moving for some time
 	G_CheckClientIdle( ent, ucmd );
-
-	extern void FF_XboxSaberRumble( void );
-	if(ent->s.number == 0)	// player
-	{
-		if(ent->client->ps.saberLockTime > level.time)
-		{
-			FF_XboxSaberRumble();
-		}
-	}	
 }
 
 /*

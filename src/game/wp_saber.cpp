@@ -10,7 +10,6 @@
 #include "g_functions.h"
 #include "wp_saber.h"
 #include "g_vehicles.h"
-#include "../client/fffx.h"
 #define JK2_RAGDOLL_GRIPNOHEALTH
 
 #define MAX_SABER_VICTIMS 16
@@ -636,8 +635,6 @@ void WP_SaberHitSound( gentity_t *ent, int saberNum )
 		G_Sound( ent, G_SoundIndex( va( "sound/weapons/saber/saberhit%d.wav", Q_irand( 1, 3 ) ) ) );
 	}
 
-	if(ent->client && ent->client->ps.clientNum == 0)
-		FF_Play(fffx_Laser1);
 }
 
 int WP_SaberInitBladeData( gentity_t *ent )
@@ -1724,8 +1721,6 @@ qboolean WP_SabersIntersection( gentity_t *ent1, gentity_t *ent2, vec3_t interse
 		}
 	}
 
-	if(ent1->client && ent1->client->ps.clientNum == 0)
-		FF_Play(fffx_Laser1);
 	return qtrue;
 }
 
@@ -1869,8 +1864,6 @@ qboolean WP_SaberDamageEffects( trace_t *tr, const vec3_t start, float length, f
 				if ( hitEffect != NULL )
 				{
 					G_PlayEffect( hitEffect, coll.mCollisionPosition, coll.mCollisionNormal );
-//					if(ent->client && ent->client->ps.clientNum == 0)
-//						FF_Play(fffx_Laser1);
 				}
 				/*
 				if ( hitEnt && hitEnt->client )
@@ -2403,8 +2396,6 @@ qboolean WP_SaberDamageForTrace( int ignore, vec3_t start, vec3_t end, float dmg
 					if ( !g_saberNoEffects && hitEffect != NULL )
 					{
 						G_PlayEffect( hitEffect, tr.endpos, dir );//"saber_cut"
-//						if(ent->client && ent->client->ps.clientNum == 0)
-//							FF_Play(fffx_Laser1);
 					}
 				}
 				else
@@ -3939,8 +3930,6 @@ void WP_SaberDamageTrace( gentity_t *ent, int saberNum, int bladeNum )
 			vec3_t	end; /*normal = {0,0,1};//FIXME: opposite of rain angles?*/
 			VectorMA( ent->client->ps.saber[saberNum].blade[bladeNum].muzzlePoint, ent->client->ps.saber[saberNum].blade[bladeNum].length*Q_flrand(0, 1), ent->client->ps.saber[saberNum].blade[bladeNum].muzzleDir, end );
 			G_PlayEffect( "saber/fizz", end );
-//			if(ent->client && ent->client->ps.clientNum == 0)
-//				FF_Play(fffx_Laser1);
 		}
 	}
 
@@ -4914,8 +4903,6 @@ void WP_SaberDamageTrace( gentity_t *ent, int saberNum, int bladeNum )
 				if ( !g_saberNoEffects )
 				{
 					G_PlayEffect( "saber/saber_block", saberHitLocation, saberHitNormal );
-					if(ent->client && ent->client->ps.clientNum == 0)
-						FF_Play(fffx_Laser1);
 				}
 			}
 			// Set the little screen flash - only when an attack is blocked
@@ -4954,8 +4941,6 @@ void WP_SaberDamageTrace( gentity_t *ent, int saberNum, int bladeNum )
 					if ( !g_saberNoEffects )
 					{
 						G_PlayEffect( "saber/saber_cut", saberHitLocation, saberHitNormal );
-						if(ent->client && ent->client->ps.clientNum == 0)
-							FF_Play(fffx_Laser1);
 					}
 					if ( hitEnt )
 					{
@@ -4995,8 +4980,6 @@ void WP_SaberDamageTrace( gentity_t *ent, int saberNum, int bladeNum )
 				if ( !g_saberNoEffects )
 				{
 					G_PlayEffect( "saber/saber_block", g_saberFlashPos, hitNorm );
-					if(ent->client && ent->client->ps.clientNum == 0)
-						FF_Play(fffx_Laser1);
 				}
 			}
 			else
@@ -5005,8 +4988,6 @@ void WP_SaberDamageTrace( gentity_t *ent, int saberNum, int bladeNum )
 				if ( !g_saberNoEffects )
 				{
 					G_PlayEffect( "saber/saber_cut", g_saberFlashPos, hitNorm );
-					if(ent->client && ent->client->ps.clientNum == 0)
-						FF_Play(fffx_Laser1);
 				}
 			}
 			G_Sound( ent, G_SoundIndex( va( "sound/weapons/saber/saberblock%d.wav", Q_irand(1, 9) ) ) );
@@ -5134,8 +5115,6 @@ void WP_SaberImpact( gentity_t *owner, gentity_t *saber, trace_t *trace )
 			}
 			G_Damage( other, saber, owner, dir, trace->endpos, dmg, 0, MOD_SABER );
 			G_PlayEffect( "saber/saber_cut", trace->endpos, dir );
-			if(owner->client && owner->client->ps.clientNum == 0)
-				FF_Play(fffx_Laser1);
 			if ( owner->s.number == 0 )
 			{
 				AddSoundEvent( owner, trace->endpos, 256, AEL_DISCOVERED );
@@ -5158,8 +5137,6 @@ void WP_SaberImpact( gentity_t *owner, gentity_t *saber, trace_t *trace )
 		//FIXME: STILL DOESNT WORK!!!
 		G_Sound( saber, G_SoundIndex( va( "sound/weapons/saber/saberblock%d.wav", Q_irand(1, 9) ) ) );
 		G_PlayEffect( "saber/saber_block", trace->endpos );
-		if(owner->client && owner->client->ps.clientNum == 0)
-			FF_Play(fffx_Laser1);
 		g_saberFlashTime = level.time-50;
 		VectorCopy( trace->endpos, g_saberFlashPos );
 	}
@@ -5290,8 +5267,6 @@ void WP_SaberImpact( gentity_t *owner, gentity_t *saber, trace_t *trace )
 		WP_SaberDrop( owner, saber );
 		G_Sound( saber, G_SoundIndex( va( "sound/weapons/saber/saberblock%d.wav", Q_irand(1, 9) ) ) );
 		G_PlayEffect( "saber/saber_block", trace->endpos );
-		if(owner->client && owner->client->ps.clientNum == 0)
-			FF_Play(fffx_Laser1);
 		g_saberFlashTime = level.time-50;
 		VectorCopy( trace->endpos, g_saberFlashPos );
 		//FIXME: make Luke/Desann/Tavion play an attack anim or some other special anim when this happens
@@ -5446,8 +5421,6 @@ void WP_SaberInFlightReflectCheck( gentity_t *self, usercmd_t *ucmd  )
 						WP_SaberReturn( missile_list[x]->owner, missile_list[x] );
 						VectorNormalize2( missile_list[x]->s.pos.trDelta, fx_dir );
 						G_PlayEffect( "saber/saber_block", missile_list[x]->currentOrigin, fx_dir );
-						if(ent->client && ent->client->ps.clientNum == 0)
-							FF_Play(fffx_Laser1);
 						if ( missile_list[x]->owner->client->ps.saberInFlight && self->client->ps.saberInFlight )
 						{
 							G_Sound( missile_list[x], G_SoundIndex( va( "sound/weapons/saber/saberblock%d.wav", Q_irand(1, 9) ) ) );
@@ -5475,8 +5448,6 @@ void WP_SaberInFlightReflectCheck( gentity_t *self, usercmd_t *ucmd  )
 					//do an effect
 					VectorNormalize2( missile_list[x]->s.pos.trDelta, fx_dir );
 					G_PlayEffect( "blaster/deflect", missile_list[x]->currentOrigin, fx_dir );
-					if(ent->client && ent->client->ps.clientNum == 0)
-						FF_Play(fffx_Laser2);
 				}
 			}
 		}

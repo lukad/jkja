@@ -14268,17 +14268,6 @@ void PM_AdjustAttackStates( pmove_t *pm )
 		// Clear 'em out
 		pm->ps->eFlags &= ~EF_FIRING;
 		pm->ps->eFlags &= ~EF_ALT_FIRING;
-
-		// if I don't check the flags before stopping FX then it switches them off too often, which tones down
-		//	the stronger FFFX so you can hardly feel them. However, if you only do iton these flags then the 
-		//	repeat-fire weapons like tetrion and dreadnought don't switch off quick enough. So...
-		//
-/* // Might need this for beam type weapons
-		if ( pm->ps->weapon == WP_DREADNOUGHT || (iFlags & (EF_FIRING|EF_ALT_FIRING) )
-		{
-			cgi_FF_StopAllFX();
-		}
-		*/
 	}
 
 	// disruptor should convert a main fire to an alt-fire if the gun is currently zoomed

@@ -9,7 +9,6 @@
 
 
 #include "../client/client.h"
-#include "../client/fffx.h"
 #include "win_local.h"
 
 typedef struct {
@@ -648,7 +647,6 @@ void IN_Shutdown( void ) {
 	IN_ShutdownDIMouse();
 	IN_ShutdownMIDI();
 	Cmd_RemoveCommand("midiinfo" );
-	FF_Shutdown();
 }
 
 
@@ -682,7 +680,6 @@ void IN_Init( void ) {
 	joy_ybutton			= Cvar_Get ("joy_ybutton",			"0",		CVAR_ARCHIVE);	// treat axis as a button
 
 	IN_Startup();
-	FF_Init();
 }
 
 

@@ -976,14 +976,6 @@ void	cgi_S_StartBackgroundTrack( const char *intro, const char *loop, qboolean b
 float	cgi_S_GetSampleLength( sfxHandle_t sfx);
 
 
-// I've made these into ints instead of original typedefs to cut down on rebuild time
-//	if I update the module they're in. No point in rebuilding all CGAME modules...
-//
-void	cgi_FF_StartFX( int iFX );
-void	cgi_FF_EnsureFX( int iFX );
-void	cgi_FF_StopFX( int iFX );
-void	cgi_FF_StopAllFX( void );
-
 
 
 
