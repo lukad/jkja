@@ -567,7 +567,8 @@ one map, `yavin1b`, for 120 frames.
       "Checkpoint" that nothing writes. The picture of a save is not such a leftover:
       the code that stores one is commented out in the release, the retail executable
       has no code that reads one, and the menus show the picture of the level instead
-- [ ] Gamepads
+- [ ] Gamepads, in SDL3's standard layout
+      ([ADR-0019](decisions/0019-gamepads-use-the-standard-layout.md))
 - [x] Decide and record: brightness without a gamma ramp (section 4.5)
 - [x] Brightness by a pass over the finished frame
       ([ADR-0018](decisions/0018-brightness-without-a-gamma-ramp.md))
