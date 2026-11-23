@@ -3482,11 +3482,6 @@ qboolean R_LoadMDXM( model_t *mod, void *buffer, const char *mod_name, qboolean 
 	shader_t			*sh;
 	mdxmSurfHierarchy_t	*surfInfo;
 
-#ifndef _M_IX86
-//	mdxmTag_t			*tag;
-	mdxmTriangle_t		*tri;
-	int					*boneRef;
-#endif
 
 	pinmodel= (mdxmHeader_t *)buffer;
 	//
@@ -3673,28 +3668,6 @@ qboolean R_LoadMDXM( model_t *mod, void *buffer, const char *mod_name, qboolean 
 			surf->ident = SF_MDX;
 
 			// register the shaders
-#ifndef _M_IX86
-//
-// optimisation, we don't bother doing this for standard intel case since our data's already in that format...
-//
-			// FIXME - is this correct? 
-			// do all the bone reference data
-			boneRef = (int *) ( (byte *)surf + surf->ofsBoneReferences );
-			for ( j = 0 ; j < surf->numBoneReferences ; j++ ) 
-			{
-					LL(boneRef[j]);
-			}
-
-			
-			// swap all the triangles
-			tri = (mdxmTriangle_t *) ( (byte *)surf + surf->ofsTriangles );
-			for ( j = 0 ; j < surf->numTriangles ; j++, tri++ ) 
-			{
-				LL(tri->indexes[0]);
-				LL(tri->indexes[1]);
-				LL(tri->indexes[2]);
-			}
-#endif
 
 			if (isAnOldModelFile)
 			{
@@ -3738,10 +3711,6 @@ qboolean R_LoadMDXA( model_t *mod, void *buffer, const char *mod_name, qboolean 
 	int					version;
 	int					size;
 
-#ifndef _M_IX86
-	int					k, i;
-	mdxaSkel_t			*boneInfo;
-#endif
 
  	pinmodel = (mdxaHeader_t *)buffer;
 	//
@@ -3805,28 +3774,6 @@ qboolean R_LoadMDXA( model_t *mod, void *buffer, const char *mod_name, qboolean 
 		return qtrue;	// All done, stop here, do not LittleLong() etc. Do not pass go...
 	}
 
-#ifndef _M_IX86
-
-	//
-	// optimisation, we don't bother doing this for standard intel case since our data's already in that format...
-	//
-
-	// swap all the skeletal info
-	boneInfo = (mdxaSkel_t *)( (byte *)mdxa + mdxa->ofsSkel);
-	for ( i = 0 ; i < mdxa->numBones ; i++) 
-	{
-		LL(boneInfo->numChildren);
-		LL(boneInfo->parent);
-		for (k=0; k<boneInfo->numChildren; k++)
-		{
-			LL(boneInfo->children[k]);
-		}
-
-		// get next bone
-		boneInfo += (int)( &((mdxaSkel_t *)0)->children[ boneInfo->numChildren ] );
-	}
-
-#endif
 	return qtrue;
 }
 

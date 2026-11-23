@@ -31,34 +31,15 @@ ____________________________________________________________________________*/
 
 /*--- no kb function unless DOS ---*/
 
-#ifndef KB_OK
-#ifdef __MSDOS__
-#define KB_OK
-#endif
-#ifdef _CONSOLE
-#define KB_OK
-#endif
-#endif
 
 /*-- no pcm conversion to wave required 
  if short = 16 bits and little endian ---*/
 
 /* mods 1/9/97 LITTLE_SHORT16 detect */
 
-#ifndef LITTLE_SHORT16
-  #ifdef __MSDOS__
-    #undef LITTLE_SHORT16
-    #define LITTLE_SHORT16
-  #endif
-  #ifdef WIN32
-    #undef LITTLE_SHORT16
-    #define LITTLE_SHORT16
-  #endif
-  #ifdef _M_IX86
-    #undef LITTLE_SHORT16
-    #define LITTLE_SHORT16
-  #endif
-#endif
+/* Every supported target has 16-bit little-endian shorts. */
+#undef LITTLE_SHORT16
+#define LITTLE_SHORT16
 
 
 // JDW //

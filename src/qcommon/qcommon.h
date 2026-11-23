@@ -78,9 +78,8 @@ void MSG_ReadDeltaPlayerstate( msg_t *msg, struct playerState_s *from, struct pl
 
 //============================================================================
 
-#ifdef _M_IX86
 //
-// optimised stuff for Intel, since most of our data is in that format anyway...
+// every supported target is little-endian, as most of our data is
 //
 extern	short	BigShort (short l);
 extern	int		BigLong (int l);
@@ -89,18 +88,6 @@ extern	float	BigFloat (float l);
 #define LittleLong(l) l
 #define LittleFloat(l) l
 //
-#else
-//
-// standard smart-swap code...
-//
-extern	short	BigShort (short l);
-extern	short	LittleShort (short l);
-extern	int		BigLong (int l);
-extern	int		LittleLong (int l);
-extern	float	BigFloat (float l);
-extern	float	LittleFloat (float l);
-//
-#endif
 
 
 /*

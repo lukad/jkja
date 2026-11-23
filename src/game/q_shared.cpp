@@ -99,9 +99,8 @@ static int		(*_LittleLong) (int l);
 static float	(*_BigFloat) (float l);
 static float	(*_LittleFloat) (float l);
 
-#ifdef _M_IX86
 //
-// optimised stuff for Intel, since most of our data is in that format anyway...
+// every supported target is little-endian, as most of our data is
 //
 short	BigShort(short l){return _BigShort(l);}
 int		BigLong (int l) {return _BigLong(l);}
@@ -110,18 +109,6 @@ float	BigFloat (float l) {return _BigFloat(l);}
 //int		LittleLong (int l) {return _LittleLong(l);}	//
 //float	LittleFloat (float l) {return _LittleFloat(l);}	//
 //
-#else
-//
-// standard smart-swap code...
-//
-short	BigShort(short l){return _BigShort(l);}
-short	LittleShort(short l) {return _LittleShort(l);}
-int		BigLong (int l) {return _BigLong(l);}
-int		LittleLong (int l) {return _LittleLong(l);}
-float	BigFloat (float l) {return _BigFloat(l);}
-float	LittleFloat (float l) {return _LittleFloat(l);}
-//
-#endif
 
 short   ShortSwap (short l)
 {

@@ -848,9 +848,8 @@ char *Q_CleanStr( char *string );
 
 //=============================================
 
-#ifdef _M_IX86
 //
-// optimised stuff for Intel, since most of our data is in that format anyway...
+// every supported target is little-endian, as most of our data is
 //
 short	BigShort(short l);
 int		BigLong (int l);
@@ -859,18 +858,6 @@ float	BigFloat (float l);
 #define LittleLong(l)  l
 #define LittleFloat(l) l
 //
-#else
-//
-// standard smart-swap code...
-//
-short	BigShort(short l);
-short	LittleShort(short l);
-int		BigLong (int l);
-int		LittleLong (int l);
-float	BigFloat (float l);
-float	LittleFloat (float l);
-//
-#endif
 
 
 void	Swap_Init (void);
