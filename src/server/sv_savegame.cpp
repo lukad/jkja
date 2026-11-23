@@ -352,7 +352,11 @@ void SV_WipeGame_f(void)
 */
 void SG_StoreSaveGameComment(const char *sComment)
 {	
-	memmove(saveGameComment,sComment,iSG_COMMENT_SIZE);
+	// the comment is a string, and mostly a shorter one than the buffer it is kept in
+	if ( sComment != saveGameComment )
+	{
+		Q_strncpyz(saveGameComment,sComment,sizeof(saveGameComment));
+	}
 }
 
 qboolean SV_TryLoadTransition( const char *mapname )
