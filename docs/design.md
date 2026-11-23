@@ -546,17 +546,19 @@ one map, `yavin1b`, for 120 frames.
 - [x] Decide and record: where the menus' mouse handling comes from. It is missing from
       both trees of the release: `Menu_HandleMouseMove` has only its console body, and
       mouse clicks on edit fields and slider bars are not handled
-- [ ] Menu mouse handling from the Jedi Outcast release
+- [x] Menu mouse handling from the Jedi Outcast release
       ([ADR-0016](decisions/0016-menu-mouse-handling.md))
 - [x] SDL3 window, input and events
-- [ ] System console input and the clipboard
+- [x] System console input and the clipboard
 - [x] Legacy renderer running in an SDL3 OpenGL context
-- [ ] Sound and music
+- [x] Sound and music
 - [x] Cinematics
 - [x] Per-user write directory; read-only game data
 - [x] Savegames, new format ([ADR-0015](decisions/0015-savegame-format.md))
-- [ ] Savegame leftovers of the console version: the picture stored with a save is
-      commented out, and respawning loads a save named "Checkpoint" that nothing writes
+- [x] Savegame leftover of the console version: respawning loads a save named
+      "Checkpoint" that nothing writes. The picture of a save is not such a leftover:
+      the code that stores one is commented out in the release, the retail executable
+      has no code that reads one, and the menus show the picture of the level instead
 - [ ] Gamepads
 - [ ] Decide and record: brightness without a gamma ramp (section 4.5)
 - [ ] Remove `src/win32` once nothing more has to be restored from it
@@ -581,6 +583,8 @@ test found, and what became of it:
 | Garbage text on the console when a cutscene is skipped | A format without its argument | fixed |
 | "glGetError() = 0x501" at level changes | Cloud layers drawn for skies that have none | fixed |
 | In the release preset the companion does nothing after a change of level | Level-load frames shorter than the engine's 200 ms clamp let the player into the level before the characters its start script addresses are spawned (section 4.8) | fixed |
+| The console is never seen | The call that draws it was commented out, as on the console version | fixed, line restored |
+| The release preset prints nothing, and the console's input line is invisible there | `Com_Printf` was empty in final builds, as on the console version; the retail PC game is a final build that prints | fixed |
 | Loading bar is a blank upright box | `CG_LoadBar` is the console version; the PC one is not in the release | fixed, taken from the Jedi Outcast release ([ADR-0017](decisions/0017-missing-pc-code-from-jedi-outcast.md)) |
 | Debug build aborts when a droid loses a limb | An assertion of the release that the game's own data trips; the retail build has assertions off | kept; play tests use the `linux-release` preset |
 | Sound drops out while models load in the menus | The release empties the sound buffer before every file read (section 4.7) | kept; listed under "Not scheduled" |
@@ -591,9 +595,18 @@ render in a real OpenGL context, the first level changes to the second, videos p
 save made on a level with NPCs loads again in the same and in a new process, damaged
 saves are refused, and dying and "load *respawn" restarts from the automatic save.
 
+Checked without a person in the `linux-release` preset, with scripted input and
+screenshots: a slider follows a click and a drag, a list box selects the row that is
+clicked and scrolls by its bar and its arrows, an edit field takes typed characters, a
+save is written from the save menu and loaded from the load menu, the console opens
+with shift and the console key and takes typed and pasted text, and the playback speed
+of the run animation is limited by the restored value, twice the console version's.
+Music was checked by writing the sound output to a file: with only the music volume up
+there is sound in the menus and on a level, and with it down there is none.
+
 Still open before the exit criteria can hold: the opening level has not been played to
-its end by a person since these fixes; music, the clipboard, edit fields, sliders and
-list boxes of the menus have not been confirmed; and the unticked items above.
+its end by a person since these fixes; the clipboard of a real desktop has not been
+tried, only the one SDL keeps for a window nobody sees; and the unticked items above.
 
 ### M3. Runs on Windows and macOS
 
