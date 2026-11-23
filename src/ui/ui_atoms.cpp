@@ -43,14 +43,8 @@ UI_SetActiveMenu -
  
 =================
 */
-extern void S_StopAllSoundsExceptMusic( void );
 void UI_SetActiveMenu( const char* menuname,const char *menuID ) 
 {
-	// Sooper-hack. After we play the ja08 cutscene, the game renders for a couple frames.
-	// So the cinematic code turns off Present(), and we have to turn it back on here:
-	extern bool connectSwapOverride;
-	connectSwapOverride = false;
-
 	// this should be the ONLY way the menu system is brought up (besides the UI_ConsoleCommand below)
 
 	if (cls.state != CA_DISCONNECTED && !ui.SG_GameAllowedToSaveHere(qtrue))	//don't check full sytem, only if incamera
@@ -81,14 +75,6 @@ void UI_SetActiveMenu( const char* menuname,const char *menuID )
 	{
 		ui.Cvar_Set( "cl_paused", "1" );
 	//	S_StopAllSounds();
-
-		//NOT USED
-		//JLF usually called with menuID == NULL but if 'noController' is the menuID
-		// this forces the pause menu open first and then opens the 'noController' menu
-		//basically forces the 'ingameMainMenu' open first
-	//	if (menuID)
-	//		UI_InGameMenu(NULL);
-		//END NOT USED
 		UI_InGameMenu(menuID);
 		return;
 	}
@@ -96,7 +82,6 @@ void UI_SetActiveMenu( const char* menuname,const char *menuID )
 	if ( Q_stricmp (menuname, "datapad") == 0 ) 
 	{
 		ui.Cvar_Set( "cl_paused", "1" );
-		S_StopAllSoundsExceptMusic();
 		UI_DataPadMenu();
 		return;
 	}
@@ -108,16 +93,6 @@ void UI_SetActiveMenu( const char* menuname,const char *menuID )
 		ui.Key_SetCatcher( KEYCATCH_UI );
 		return;
 	}
-//allows the 'noController' menu and similar menus to 'popup' over existing menu
-	if ( Q_stricmp (menuname, "ui_popup") == 0 ) 
-	{
-		
-		Menus_ActivateByName(menuID);	
-		return;
-	}
-	
-//JLF SPLASHMAIN MPSKIPPED
-
 }
 
 

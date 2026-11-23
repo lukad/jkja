@@ -27,76 +27,12 @@ extern stringID_table_t animTable [MAX_ANIMATIONS+1];
 #include "../qcommon/stv_version.h"
 
 
-#include "../qcommon/xb_settings.h"
-
-//JLF 
-int gScrollAccum = 0;
-int gScrollDelta = 0;
-
-#define TEXTSCROLLDESCRETESTEP 50
-#define SCROLL_SENSITIVITY 2
-
-#define ARROW_SPACE 8
-
-
 extern qboolean ItemParse_model_g2anim_go( itemDef_t *item, const char *animName );
 extern qboolean ItemParse_asset_model_go( itemDef_t *item, const char *name );
 extern qboolean ItemParse_model_g2skin_go( itemDef_t *item, const char *skinName );
 extern qboolean UI_SaberModelForSaber( const char *saberName, char *saberModel );
 extern qboolean UI_SaberSkinForSaber( const char *saberName, char *saberSkin );
 extern void UI_SaberAttachToChar( itemDef_t *item );
-
-extern unsigned long SG_SaveGameSize();
-
-
-// VIRTUAL KEYBOARD DEFINES ETC
-//
-// Warning: These next values must work out so that there are at least 2 columns and/or
-// 2 rows. Otherwise you will not be able to compile because of divide by zero errors.
-// Not to mention the ugly keyboard you'd be designing
-
-#define SKB_NUM_LETTERS  (36)
-#define SKB_NUM_COLS  (10) // must be > 1 and < SKB_NUM_LETTERS-1
-#define SKB_NUM_ROWS  ((SKB_NUM_LETTERS%SKB_NUM_COLS)?(SKB_NUM_LETTERS/SKB_NUM_COLS+1):(SKB_NUM_LETTERS/SKB_NUM_COLS))
-#define SKB_TOP  (225)
-#define SKB_BOT  (350)
-#define SKB_LEFT (100)
-#define SKB_RIGHT  (540)
-#define SKB_STRING_LENGTH (10)
-#define SKB_STRING_TOP (150)
-#define SKB_STRING_LEFT (200)
-#define SKB_SPACE_H ((SKB_RIGHT-SKB_LEFT)/(SKB_NUM_COLS-1))
-#define SKB_SPACE_V ((SKB_BOT-SKB_TOP)/(SKB_NUM_ROWS-1))
-#define SKB_ACCEPT_NAME ("skb_accept")
-#define SKB_DELETE_NAME ("skb_delete")
-#define SKB_KEYBOARD_NAME ("skb_keyboard")
-#define SKB_OK_X (390)
-#define SKB_OK_Y (400)
-#define SKB_BACKSPACE_X (250)
-#define SKB_BACKSPACE_Y (400)
-
-
-char *letters[SKB_NUM_LETTERS] = {
-			"0", "1", "2", "3",
-			"4", "5", "6", "7",
-			"8", "9",		
-			"A", "B", "C", "D",
-			"E", "F", "G", "H",
-			"I", "J", "K", "L",
-			"M", "N", "O", "P",
-			"Q", "R", "S", "T",
-			"U", "V", "W", "X",
-			"Y", "Z",	};
-
-typedef struct
-{
-	short activeKey;
-	short curStringPos;
-	short curCol;
-	short curRow;
-} softkeyboardDef_t;
-
-softkeyboardDef_t skb;
 
 
 extern qboolean PC_Script_Parse(const char **out);
@@ -133,28 +69,9 @@ typedef struct
 	char currentSaveFileDateTimeString[iSG_COMMENT_SIZE];	// file time and date
 	time_t currentSaveFileDateTime;
 	char currentSaveFileMap[MAX_TOKEN_CHARS];			// map save game is from
-	char corrupt;
-	char screenshotNotify;
 } savedata_t;
 
 static savedata_t s_savedata[MAX_SAVELOADFILES];
-
-//JLF
-char  g_loadsaveGameName[MAX_SAVELOADNAME];
-qboolean  g_loadsaveGameNameInitialized = qfalse;
-
-extern unsigned long SG_BlocksLeft();
-
-//JLF used to tell if delete button should be shown
-static qboolean	ui_ShowDeleteActive =0	;
-
-void storeSGDataDatetoCvar();
-void storeSGDataTimetoCvar();
-void storeSGDataDiffLeveltoCvar();
-
-
-
-//JLF MPMOVED
 
 
 void UI_SetActiveMenu( const char* menuname,const char *menuID );
@@ -228,63 +145,6 @@ static void		UI_FeederSelection(float feederID, int index, itemDef_t *item);
 
 void			Menus_CloseByName(const char *p);
 
-static qboolean	UI_SoftKeyboard_HandleKey(int flags, float *special, int key);
-static qboolean	UI_SoftKeyboardDelete_HandleKey(int flags, float *special, int key);
-static qboolean	UI_SoftKeyboardAccept_HandleKey(int flags, float *special, int key);
-static void		UI_SoftKeyboardInit();
-static void		UI_SoftKeyboardDelete();
-static void		UI_SoftKeyboardAccept();
-static void		UI_SoftKeyboard_Draw();
-static void		UI_SoftKeyboardDelete_Draw();
-static void		UI_SoftKeyboardAccept_Draw();
-
-// Level select screen data
-struct levelSelect_t
-{
-	char	mapname[MAX_QPATH];	// Map name to use when loading
-	char	displayName[32];	// Text to show in the listbox
-	int		forceLevel;			// Level of neutral force powers
-};
-
-const levelSelect_t levelSelectData[] = {
-	{ "yavin1b",		"@MENUS_YAVIN1B",		0 },
-	{ "yavin2",			"@MENUS_YAVIN2",		1 },
-
-	{ "t1_danger",		"@MENUS_T1_DANGER",		1 },
-	{ "t1_fatal",		"@MENUS_T1_FATAL",		1 },
-	{ "t1_rail",		"@MENUS_T1_RAIL",		1 },
-	{ "t1_sour",		"@MENUS_T1_SOUR",		1 },
-	{ "t1_surprise",	"@MENUS_T1_SURPRISE",	1 },
-
-	{ "hoth2",			"@MENUS_HOTH2",			1 },
-	{ "hoth3",			"@MENUS_HOTH3",			1 },
-
-	{ "t2_dpred",		"@MENUS_T2_DPRED",		2 },
-	{ "t2_rancor",		"@MENUS_T2_RANCOR",		2 },
-	{ "t2_rogue",		"@MENUS_T2_ROGUE",		2 },
-	{ "t2_trip",		"@MENUS_T2_TRIP",		2 },
-	{ "t2_wedge",		"@MENUS_T2_WEDGE",		2 },
-
-	{ "vjun1",			"@MENUS_VJUN1",			2 },
-	{ "vjun2",			"@MENUS_VJUN2",			2 },
-	{ "vjun3",			"@MENUS_VJUN3",			2 },
-
-	{ "t3_bounty",		"@MENUS_T3_BOUNTY",		3 },
-	{ "t3_byss",		"@MENUS_T3_BYSS",		3 },
-	{ "t3_hevil",		"@MENUS_T3_HEVIL",		3 },
-	{ "t3_rift",		"@MENUS_T3_RIFT",		3 },
-	{ "t3_stamp",		"@MENUS_T3_STAMP",		3 },
-
-	{ "taspir1",		"@MENUS_TASPIR1",		3 },
-	{ "taspir2",		"@MENUS_TASPIR2",		3 },
-	{ "kor1",			"@MENUS_KOR1",			3 },
-	{ "kor2",			"@MENUS_KOR2",			3 },
-};
-
-const int levelSelectSize = sizeof(levelSelectData) / sizeof(levelSelectData[0]);
-
-// Currently selected map in level select cheat screen
-int levelSelectChoice = 0;
 
 // Movedata Sounds
 typedef enum
@@ -485,137 +345,6 @@ vmCvar_t	ui_char_color_green;
 vmCvar_t	ui_char_color_blue;
 vmCvar_t	ui_PrecacheModels;
 
-//JLFCALLOUT MPMOVED
-vmCvar_t	ui_hideAcallout;
-vmCvar_t	ui_hideBcallout;
-vmCvar_t	ui_hideXcallout;
-
-//END JLFCALLOUT
-vmCvar_t    saveGameCount;
-vmCvar_t    overwriteAvailable;
-vmCvar_t    ui_newGameActive;
-vmCvar_t    noNewSaveGameAvailable;
-vmCvar_t	ui_BlocksAvailable;
-vmCvar_t	ui_BlocksNeeded;
-
-vmCvar_t	ui_ShowDelete	;
-vmCvar_t	ui_cancelYScript	;
-
-//controller menu
-vmCvar_t	ControllerOutNum	;
-
-
-
-// Version of startup state machine function used when we came from MP XBE:
-void XB_FastStartup( XBStartupState startupState )
-{
-	if( startupState <= STARTUP_LOAD_SETTINGS )
-	{
-		bool bSuccess = Settings.Load();
-		if( !bSuccess )
-		{
-			// Odd. If saving was disabled, then Load will appear to work.
-			UI_xboxErrorPopup( XB_POPUP_CORRUPT_SETTINGS );
-			return;
-		}
-	}
-
-	if( startupState <= STARTUP_FINISH )
-	{
-		// Restore settings from stored (or default) settings:
-		Settings.SetAll();
-		// Save them out, in case user just deleted (and is now restoring) them:
-		Settings.Save();
-
-		// mainMenu has already been opened
-	}
-}
-
-/*
-	MASTER Startup function for saved games, invite checks, etc...
-	Modeled after XBL_Login
-*/
-int blocksNeeded = 0;	// 40/44 - Blocks free
-extern bool Sys_QuickStart( void );
-void XB_Startup( XBStartupState startupState )
-{
-	// If we came from MP - use the express version
-	if( Sys_QuickStart() && Cvar_Get("inSplashMenu", "0", 0)->integer == 0 )
-	{
-		XB_FastStartup( startupState );
-		return;
-	}
-
-	if( startupState <= STARTUP_LOAD_SETTINGS )
-	{
-		bool bSuccess = Settings.Load();
-		if( !bSuccess )
-		{
-			if( Settings.Corrupt() )
-			{
-				UI_xboxErrorPopup( XB_POPUP_CORRUPT_SETTINGS );
-				return;
-			}
-
-			// Otherwise, file doesn't exist - continue to space checking below
-		}
-		else
-		{
-			// Skip checking space for settings
-			startupState = STARTUP_GAME_SPACE_CHECK;
-		}
-	}
-
-	if( startupState <= STARTUP_COMBINED_SPACE_CHECK )
-	{
-		// Is there enough room for both settings and a savegame?
-		if ( SG_BlocksLeft() < SG_SaveGameSize() + SETTINGS_NUM_BLOCKS )
-		{
-			blocksNeeded = (SG_SaveGameSize() + SETTINGS_NUM_BLOCKS) - SG_BlocksLeft();
-			UI_xboxErrorPopup( XB_POPUP_DISKFULL_BOTH );
-			return;
-		}
-
-		// OK. There's enough room for settings - make a file:
-		Settings.Save();
-	}
-
-	if( startupState <= STARTUP_GAME_SPACE_CHECK )
-	{
-		// Is there enough room for another savegame?
-		if( SG_BlocksLeft() < SG_SaveGameSize() )
-		{
-			blocksNeeded = SG_SaveGameSize() - SG_BlocksLeft();
-			UI_xboxErrorPopup( XB_POPUP_DISKFULL );
-			return;
-		}
-	}
-
-	if( startupState <= STARTUP_INVITE_CHECK )
-	{
-		// Do we have a pending invitation? This can only return true ONCE!
-		extern bool Sys_InviteExists();
-		if( Sys_InviteExists() )
-		{
-			UI_xboxErrorPopup( XB_POPUP_CONFIRM_INVITE );
-			return;
-		}
-	}
-
-	if( startupState <= STARTUP_FINISH )
-	{
-		// Restore settings from stored (or default) settings:
-		Settings.SetAll();
-
-		// All done! Open the menu!
-		Menus_CloseAll();
-		Menus_ActivateByName( Cvar_VariableString( "returnMenu" ) );
-	}
-}
-
-
-
-
 
 static cvarTable_t cvarTable[] = 
 {
@@ -640,26 +369,6 @@ static cvarTable_t cvarTable[] =
 	{ &ui_char_color_blue,		"ui_char_color_blue",	"", 0}, 
 
 	{ &ui_PrecacheModels,		"ui_PrecacheModels",	"1", CVAR_ARCHIVE}, 
-//JLFCALLOUT MPMOVED
-	{ &ui_hideAcallout,		"ui_hideAcallout",	"", 0}, 
-	{ &ui_hideBcallout,		"ui_hideBcallout",	"", 0}, 
-	{ &ui_hideXcallout,		"ui_hideXcallout",	"", 0}, 
-	
-//END JLFCALLOUT
-	{ &saveGameCount,		"saveGameCount",	"", 0}, 
-	{ &overwriteAvailable,	"overwriteAvailable",	"0", 0}, 
-	{ &ui_newGameActive,	"ui_newGameActive",	"", 0}, 
-	{ &noNewSaveGameAvailable,	"noNewSaveGameAvailable",	"", 0}, 
-	{ &ui_BlocksAvailable,	"ui_BlocksAvailable",	"0", 0}, 
-	{ &ui_BlocksNeeded,	"ui_BlocksNeeded",	"0", 0}, 
-	{ &ui_ShowDelete,	"ui_ShowDelete", "0", 0}, 
-	{ &ui_cancelYScript,	"ui_cancelYScript", "0", 0}, 
-	{ &ControllerOutNum,	"ControllerOutNum", "-1", 0}, 
-	
-
-
-
-
 };
 
 
@@ -840,8 +549,8 @@ void Text_PaintWithCursor(float x, float y, float scale, vec4_t color, const cha
 	// now print the cursor as well...
 	//
 	char sTemp[1024];
-	int iCopyCount = min(strlen(text), cursorPos);
-		iCopyCount = min(iCopyCount,sizeof(sTemp));
+	int iCopyCount = strlen(text) < (size_t)cursorPos ? (int)strlen(text) : cursorPos;
+		iCopyCount = (size_t)iCopyCount < sizeof(sTemp) ? iCopyCount : (int)sizeof(sTemp);
 
 	// copy text into temp buffer for pixel measure...
 	//
@@ -862,7 +571,7 @@ const char *UI_FeederItemText(float feederID, int index, int column, qhandle_t *
 	{
 		if (column==0)
 		{
-			return s_savedata[index].currentSaveFileName;//currentSaveFileComments;
+			return s_savedata[index].currentSaveFileComments;
 		}
 		else
 		{
@@ -934,11 +643,6 @@ const char *UI_FeederItemText(float feederID, int index, int column, qhandle_t *
 			}
 		}
 	} 
-	else if (feederID == FEEDER_LEVELSELECT)
-	{
-		if (index >= 0 && index < levelSelectSize)
-			return levelSelectData[index].displayName;
-	}
 
 	return "";
 }
@@ -994,13 +698,6 @@ qhandle_t UI_FeederItemImage(float feederID, int index)
 	return 0;
 }
 
-
-void setArrowX(itemDef_t * arrowcontrol, int xloc)
-{
-	
-	arrowcontrol->window.rect.x = xloc;
-
-}
 
 /*
 =================
@@ -1082,9 +779,7 @@ void ui_DeleteGame()
 #ifndef FINAL_BUILD
 				ui.Printf( va("%s\n","Attempting to delete game"));
 #endif
-				strcpy(g_loadsaveGameName,s_savedata[s_savegame.currentLine].currentSaveFileName);
-				g_loadsaveGameNameInitialized = qtrue;
-				ui.Cmd_ExecuteText( EXEC_NOW, va("wipe file\n"));//%s\n", s_savedata[s_savegame.currentLine].currentSaveFileName));
+				ui.Cmd_ExecuteText( EXEC_NOW, va("wipe %s\n", s_savedata[s_savegame.currentLine].currentSaveFileName));
 				
 				
 				if( (s_savegame.currentLine>0) && ((s_savegame.currentLine+1) == s_savegame.saveFileCnt) )
@@ -1108,7 +803,6 @@ void ui_SaveGame()
 			// Create a new save game
 //			if ( !s_savedata[s_savegame.currentLine].currentSaveFileName)	// No line was chosen
 			{
-//JLF MPNOTUSED
 			CreateNextSaveName(fileName);
 	
 			}
@@ -1128,41 +822,7 @@ void ui_SaveGame()
 			ui.SG_StoreSaveGameComment(description);
 
 			ui.Cmd_ExecuteText( EXEC_APPEND, va("save %s\n", fileName));
-		//	s_savegame.saveFileCnt = -1;	//force a refresh the next time around
-}
-
-
-void openDashBoardMemory()
-{
-// TCR C4-3 Cleanup Support
-    // Launch to the Dash memory area to clean up
-        // Reboot to Dash
-	LAUNCH_DATA ld;
-	memset(&ld, 0, sizeof(ld));
-	PLD_LAUNCH_DASHBOARD pDash	= (PLD_LAUNCH_DASHBOARD) &ld;
-	pDash->dwReason				= XLD_LAUNCH_DASHBOARD_MEMORY;
-	char * path					= NULL;
-	pDash->dwContext = 0;
-	pDash->dwParameter1 = 'U';
-	pDash->dwParameter2 = SG_SaveGameSize() + SETTINGS_NUM_BLOCKS;
-
-	S_Shutdown();
-	// Similarly, kill off the streaming thread
-	extern void Sys_StreamShutdown(void);
-	Sys_StreamShutdown();
-
-	XLaunchNewImage(path, &ld);
-
-
-//    LD_LAUNCH_DASHBOARD LaunchDash;
-//   LaunchDash.dwReason = XLD_LAUNCH_DASHBOARD_MEMORY;
-//    LaunchDash.dwContext = 0;
-//    LaunchDash.dwParameter1 = DWORD( 'U');
-//    LaunchDash.dwParameter2 = SG_SaveGameSize();
-
-//    XLaunchNewImage( NULL, (PLAUNCH_DATA)(&LaunchDash) );
-
-    // We never get here
+			s_savegame.saveFileCnt = -1;	//force a refresh the next time around
 }
 
 
@@ -1200,21 +860,15 @@ static qboolean UI_RunMenuScript ( const char **args )
 		} 
 		else if (Q_stricmp(name, "loadAuto") == 0) 
 		{
-//			Menus_CloseAll();
-			UI_xboxErrorPopup( XB_POPUP_TESTING_SAVE );
-			ui.Cmd_ExecuteText( EXEC_APPEND, "wait ; wait ; wait ; wait ; load auto\n");	//load game menu
+			Menus_CloseAll();
+			ui.Cmd_ExecuteText( EXEC_APPEND, "load auto\n");	//load game menu
 		}
 		else if (Q_stricmp(name, "loadgame") == 0) 
 		{
 			if (s_savedata[s_savegame.currentLine].currentSaveFileName)
 			{
-//				Menus_CloseAll();
-				UI_xboxErrorPopup( XB_POPUP_TESTING_SAVE );
-				// the 'load' call is broken for levelnames that have spaces
-				// the global variable 'g_loadGameName' will carry the level name through
-				ui.Cmd_ExecuteText( EXEC_APPEND, va("wait ; wait ; wait ; wait ; load level\n"));
-				strcpy(g_loadsaveGameName,s_savedata[s_savegame.currentLine].currentSaveFileName);
-				g_loadsaveGameNameInitialized = qtrue;
+				Menus_CloseAll();
+				ui.Cmd_ExecuteText( EXEC_APPEND, va("load %s\n", s_savedata[s_savegame.currentLine].currentSaveFileName));
 			}
 		}
 		else if (Q_stricmp(name, "deletegame") == 0) 
@@ -1225,58 +879,6 @@ static qboolean UI_RunMenuScript ( const char **args )
 		{
 			ui_SaveGame();
 		}
-		else if (Q_stricmp(name, "checkforoverwrite") == 0) 
-		{
-			if(s_savegame.saveFileCnt == MAX_SAVELOADFILES && !s_savegame.currentLine) // check to see if there are enough slots
-			{
-				// No free slots
-				Cvar_Set( "ui_overwriting", "3");
-			}
-			else
-			{
-				char fileName[MAX_SAVELOADNAME];
-				char description[64];
-				if (svs.clients[0].frames[svs.clients[0].netchan.outgoingSequence & PACKET_MASK].ps.stats[STAT_HEALTH] <= 0)
-				{
-					Cvar_Set( "ui_overwriting", "666");
-				}
-				else if ( s_savegame.currentLine || (1== Cvar_VariableIntegerValue("noNewSaveGameAvailable")&& s_savegame.saveFileCnt>0))	
-				{
-					// On an existing savegame
-					Cvar_Set( "ui_overwriting", "1");		 
-				}
-				else if ( SG_BlocksLeft() < SG_SaveGameSize())
-				{
-					// Insufficient space
-					blocksNeeded = SG_SaveGameSize() - SG_BlocksLeft();
-					Cvar_Set( "ui_overwriting", "2");
-				}
-				else
-				{
-					// Everything ok
-					Cvar_Set( "ui_overwriting", "0");
-				}
-			}
-		}
-		else if (Q_stricmp(name, "loadgameselect") == 0) 
-		{
-			if ( trap_Cvar_VariableValue("cl_paused")>0 )
-			{	//popup the confirmation
-				UI_xboxErrorPopup( XB_POPUP_LOAD_CONFIRM );
-			}
-			else
-			{
-				itemDef_t item;
-				item.parent = Menu_GetFocused();
-				item.window.flags = 0;
-				Item_RunScript(&item, "uiScript loadgame");
-			}
-		}
-
-
-
-
-		
 		else if (Q_stricmp(name, "LoadMods") == 0) 
 		{
 			UI_LoadMods();
@@ -1847,27 +1449,7 @@ static qboolean UI_RunMenuScript ( const char **args )
 		}
 		else if (Q_stricmp(name, "load_auto") == 0) 
 		{
-			if ( trap_Cvar_VariableValue("cl_paused")>0 )
-			{	//popup the confirmation
-				UI_xboxErrorPopup( XB_POPUP_LOAD_CONFIRM_CHECKPOINT );
-			}
-			else
-			{
-				ui.Cmd_ExecuteText(EXEC_APPEND,"load *respawn\n");	//death menu, might load a saved game instead if they just loaded on this map
-			}			
-		}
-		else if (Q_stricmp(name, "load_auto_failed") == 0) 
-		{
-			// Crazy case, we put up the Load Game screen here, then the popup over it.
-			Menus_CloseAll();
-
-			Cvar_Set( "returnmenu", "missionfailed_menu" );
-			Cvar_Set( "cl_paused", "1" );
-			Cvar_Set( "ui_missionfailed", "1" );
-			Cvar_Set( "ui_frontEnd", "1" );
-			Menus_ActivateByName( "loadMenu" );
-			UI_xboxErrorPopup( XB_POPUP_TESTING_SAVE );
-			ui.Cmd_ExecuteText(EXEC_APPEND,"wait ; wait ; wait ; wait ; load *respawn\n");	//death menu, might load a saved game instead if they just loaded on this map
+			ui.Cmd_ExecuteText(EXEC_APPEND,"load *respawn\n");	//death menu, might load a saved game instead if they just loaded on this map
 		}
 		else if (Q_stricmp(name, "decrementforcepowerlevel") == 0) 
 		{
@@ -2094,30 +1676,7 @@ static void UI_HandleLoadSelection()
 	Cvar_Set("ui_SelectionOK", va("%d",(s_savegame.currentLine < s_savegame.saveFileCnt)) );
 	if (s_savegame.currentLine >= s_savegame.saveFileCnt)
 		return;
-//	Cvar_Set("ui_gameDesc", s_savedata[s_savegame.currentLine].currentSaveFileComments );	// set comment 
-
-
-	bool R_UpdateSaveGameImage(const char *filename);
-	//create the correctfilename
-	unsigned short saveGameName[filepathlength];
-	char directoryInfo[filepathlength];
-	char psLocalFilename[filepathlength];
-
-	mbstowcs(saveGameName, s_savedata[s_savegame.currentLine].currentSaveFileName, filepathlength);
-
-	if (ERROR_SUCCESS ==XCreateSaveGame("U:\\", saveGameName, OPEN_EXISTING, 0,directoryInfo, filepathlength))
-	{
-		strcpy (psLocalFilename , directoryInfo);
-		strcat (psLocalFilename , "screenshot.xbx");
-		if( !R_UpdateSaveGameImage(psLocalFilename) &&
-			!s_savedata[s_savegame.currentLine].screenshotNotify )
-		{
-			s_savedata[s_savegame.currentLine].screenshotNotify = 1;
-			UI_xboxErrorPopup( XB_POPUP_CORRUPT_SCREENSHOT );
-		}
-	}
-	else
-		R_UpdateSaveGameImage( "z:\\screenshot.xbx" );
+	Cvar_Set("ui_gameDesc", s_savedata[s_savegame.currentLine].currentSaveFileComments );	// set comment 
 }
 
 /*
@@ -2130,7 +1689,6 @@ static int UI_FeederCount(float feederID)
 
 	if (feederID == FEEDER_SAVEGAMES ) 
 	{
-//JLF MPNOTNEEDED
 		if (s_savegame.saveFileCnt == -1)
 		{
 
@@ -2189,10 +1747,6 @@ static int UI_FeederCount(float feederID)
 	{
 		return uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].ColorCount;
 	}
-	else if (feederID == FEEDER_LEVELSELECT)
-	{
-		return levelSelectSize;
-	}
 
 	return 0;
 }
@@ -2210,36 +1764,6 @@ static void UI_FeederSelection(float feederID, int index, itemDef_t *item)
 	if (feederID == FEEDER_SAVEGAMES) 
 	{
 		s_savegame.currentLine = index;
-		if (s_savedata[s_savegame.saveFileCnt].corrupt = true)
-			Cvar_SetValue("ui_FileCorrupt", 1);
-		else
-			Cvar_SetValue("ui_FileCorrupt", 0);
-		if (index ==0 && noNewSaveGameAvailable.integer == 0)
-		{
-			if (!ui_ShowDeleteActive)
-			{
-				//there is a 'new save game' index that is highlighted
-
-				Cvar_SetValue("ui_ShowDelete",trap_Cvar_VariableValue("ui_showYdel"));
-				Cvar_SetValue("ui_showYdel",0);
-				ui_ShowDeleteActive = qtrue;
-				Cvar_SetValue( "ui_cancelYScript",1);
-				
-
-			}
-
-		}
-		else if (ui_ShowDeleteActive)
-		{
-			
-			Cvar_SetValue("ui_showYdel",trap_Cvar_VariableValue("ui_ShowDelete"));
-			ui_ShowDeleteActive = qfalse;
-			Cvar_SetValue("ui_cancelYScript",0);
-		}
-		storeSGDataDatetoCvar();
-		storeSGDataTimetoCvar();
-		storeSGDataDiffLeveltoCvar();
-
 		UI_HandleLoadSelection();
 	} 
 	else if (feederID == FEEDER_MOVES) 
@@ -2389,11 +1913,6 @@ extern void	Item_RunScript(itemDef_t *item, const char *s);		//from ui_shared;
 			Item_RunScript(item, uiInfo.playerSpecies[uiInfo.playerSpeciesIndex].ColorActionText[index]);
 		}
 	}
-	else if (feederID == FEEDER_LEVELSELECT)
-	{
-		if (index >= 0 && index < levelSelectSize)
-			levelSelectChoice = index;
-	}
 /*	else if (feederID == FEEDER_CINEMATICS) 
 	{
 		uiInfo.movieIndex = index;
@@ -2444,15 +1963,6 @@ static qboolean UI_OwnerDrawHandleKey(int ownerDraw, int flags, float *special, 
 		case UI_CROSSHAIR:
 			UI_Crosshair_HandleKey(flags, special, key);
 			break;
-		case UI_SOFT_KEYBOARD:
-			return UI_SoftKeyboard_HandleKey(flags, special, key);
-			break;
-		case UI_SOFT_KEYBOARD_DELETE:
-			return UI_SoftKeyboardDelete_HandleKey(flags, special, key);
-			break;
-		case UI_SOFT_KEYBOARD_ACCEPT:
-			return UI_SoftKeyboardAccept_HandleKey(flags, special, key);
-			break;
 		default:
 			break;
 	}
@@ -2462,13 +1972,6 @@ static qboolean UI_OwnerDrawHandleKey(int ownerDraw, int flags, float *special, 
 
 //unfortunately we cannot rely on any game/cgame module code to do our animation stuff,
 //because the ui can be loaded while the game/cgame are not loaded. So we're going to recreate what we need here.
-// On Xbox, we need all the RAM we can get, and this is huge. So we just borrow the one from level. I hope
-// this doesn't cause some apocalypse. Getting access to level in here is nigh impossible, as we'd have to
-// include g_local.h, and the consequences of that are bad. So: This pointer is initialized in a global constructor
-// in class UIAnimFileSetInitializer in g_main.cpp! Look there! Don't forget!
-//#ifdef _XBOX
-//animFileSet_t	*ui_knownAnimFileSets = NULL;
-//#else
 #undef MAX_ANIM_FILES
 #define MAX_ANIM_FILES 4
 typedef struct
@@ -2477,7 +1980,6 @@ typedef struct
 	animation_t		animations[MAX_ANIMATIONS];
 } animFileSet_t;
 static animFileSet_t	ui_knownAnimFileSets[MAX_ANIM_FILES];
-//#endif
 
 int				ui_numKnownAnimFileSets;
 
@@ -3846,8 +3348,8 @@ void AssetCache(void)
 	uiInfo.uiDC.Assets.scrollBarArrowRight = ui.R_RegisterShaderNoMip( ASSET_SCROLLBAR_ARROWRIGHT );
 	uiInfo.uiDC.Assets.scrollBarThumb = ui.R_RegisterShaderNoMip( ASSET_SCROLL_THUMB );
 
-	uiInfo.uiDC.Assets.sliderBar = ui.R_RegisterShaderNoMip( "gfx/menus/newFront/slider" );
-//	uiInfo.uiDC.Assets.sliderThumb = ui.R_RegisterShaderNoMip( "menu/new/sliderthumb");
+	uiInfo.uiDC.Assets.sliderBar = ui.R_RegisterShaderNoMip( "menu/new/slider" );
+	uiInfo.uiDC.Assets.sliderThumb = ui.R_RegisterShaderNoMip( "menu/new/sliderthumb");
 
 	
 	/*
@@ -4037,280 +3539,6 @@ static void UI_DrawCrosshair(rectDef_t *rect, float scale, vec4_t color) {
  	trap_R_SetColor( NULL );
 }
 
-/*
-=================
-UI_SoftKeyboard
-=================
-*/
-static void UI_SoftKeyboardInit()
-{
-	char strtmp[] = "";
-	DC->setCVar("keyboardinput", strtmp);
-
-	skb.activeKey=0;
-	skb.curCol=0;
-	skb.curRow=0;
-	skb.curStringPos=0;
-}
-
-static void UI_SoftKeyboardDelete()
-{
-	char strtmp[SKB_STRING_LENGTH+1];
-	DC->getCVarString("keyboardinput", strtmp, SKB_STRING_LENGTH+1);
-	if(skb.curStringPos > 0)
-	{
-		skb.curStringPos--;
-		strtmp[skb.curStringPos] = 0;
-	}
-	DC->setCVar("keyboardinput", strtmp);
-}
-
-static void UI_SoftKeyboardAccept()
-{
-	menuDef_t *menu = Menu_GetFocused();
-	itemDef_t *item	= Menu_FindItemByName(menu, SKB_ACCEPT_NAME);
-	if (menu->onAccept) 
-	{
-		Item_RunScript(item, menu->onAccept);
-	}
-}
-
-static qboolean UI_SoftKeyboardDelete_HandleKey(int flags, float *special, int key) 
-{
-	menuDef_t *menu = Menu_GetFocused();
-	itemDef_t *item;
-	switch(key)
-	{
-	case A_CURSOR_UP:
-		skb.curRow = SKB_NUM_ROWS - 1;
-		if((skb.curRow * SKB_NUM_COLS + skb.curCol) >= SKB_NUM_LETTERS)
-			skb.curRow--;
-		item = Menu_FindItemByName(menu, SKB_KEYBOARD_NAME);
-		Item_SetFocus(item, 0, 0);
-		break;
-	case A_CURSOR_DOWN:
-		skb.curRow = 0;
-		item = Menu_FindItemByName(menu, SKB_KEYBOARD_NAME);
-		Item_SetFocus(item, 0, 0);
-		break;
-	case A_CURSOR_LEFT:
-		skb.curCol = SKB_NUM_COLS/2;
-		item = Menu_FindItemByName(menu, SKB_ACCEPT_NAME);
-		Item_SetFocus(item, 0, 0);
-		break;
-	case A_CURSOR_RIGHT:
-		skb.curCol = SKB_NUM_COLS/2;
-		item = Menu_FindItemByName(menu, SKB_ACCEPT_NAME);
-		Item_SetFocus(item, 0, 0);
-		break;
-	case A_MOUSE1:
-		UI_SoftKeyboardDelete();
-		break;
-	default:
-		break;
-	}
-	skb.activeKey = skb.curRow * SKB_NUM_COLS + skb.curCol;
-	return qtrue;
-}
-
-static qboolean UI_SoftKeyboardAccept_HandleKey(int flags, float *special, int key) 
-{
-	menuDef_t *menu = Menu_GetFocused();
-	itemDef_t *item;
-	switch(key)
-	{
-	case A_CURSOR_UP:
-		skb.curRow = SKB_NUM_ROWS - 1;
-		if((skb.curRow * SKB_NUM_COLS + skb.curCol) >= SKB_NUM_LETTERS)
-			skb.curRow--;
-		item = Menu_FindItemByName(menu, SKB_KEYBOARD_NAME);
-		Item_SetFocus(item, 0, 0);
-		break;
-	case A_CURSOR_DOWN:
-		skb.curRow = 0;
-		item = Menu_FindItemByName(menu, SKB_KEYBOARD_NAME);
-		Item_SetFocus(item, 0, 0);
-		break;
-	case A_CURSOR_LEFT:
-		skb.curCol = SKB_NUM_COLS/2-1;
-		item = Menu_FindItemByName(menu, SKB_DELETE_NAME);
-		Item_SetFocus(item, 0, 0);
-		break;
-	case A_CURSOR_RIGHT:
-		skb.curCol = SKB_NUM_COLS/2-1;
-		item = Menu_FindItemByName(menu, SKB_DELETE_NAME);
-		Item_SetFocus(item, 0, 0);
-		break;
-	case A_MOUSE1:
-		UI_SoftKeyboardAccept();
-		break;
-	default:
-		break;
-	}
-	skb.activeKey = skb.curRow * SKB_NUM_COLS + skb.curCol;
-	return qtrue;
-}
-
-
-static qboolean UI_SoftKeyboard_HandleKey(int flags, float *special, int key) 
-{
-	char strtmp[SKB_STRING_LENGTH+1];
-	menuDef_t *menu = Menu_GetFocused();
-	itemDef_t *item;
-
-// If the user pressed A (mouse 1), just add a letter to our string and return
-	if(key == A_MOUSE1)
-	{
-		DC->getCVarString("keyboardinput", strtmp, SKB_STRING_LENGTH+1);
-		if(skb.curStringPos < SKB_STRING_LENGTH)
-		{
-			strtmp[skb.curStringPos] = letters[skb.activeKey][0];
-			skb.curStringPos++;
-		}
-		DC->setCVar("keyboardinput", strtmp);
-		return qtrue;
-	}
-
-// Assuming the user pressed the D-pad, adjust the current row and column,
-// and the associated active key position.
-	switch(key)
-	{
-	case A_CURSOR_UP:
-		skb.curRow-=1;
-		break;
-	case A_CURSOR_DOWN:
-		skb.curRow+=1;
-		break;
-	case A_CURSOR_LEFT:
-		skb.curCol-=1;
-		break;
-	case A_CURSOR_RIGHT:
-		skb.curCol+=1;
-		break;
-	default:
-		// We didn't handle this keypress.
-		return qfalse;
-		break;
-	}
-	skb.activeKey = skb.curRow * SKB_NUM_COLS + skb.curCol;
-
-// Now make sure that the new active key is actually on the keyboard
-// This means that the row and columns must be within bounds, and we
-// must be on a letter (not on an empty space)
-	if(skb.activeKey < 0 || skb.activeKey >=SKB_NUM_LETTERS || skb.curCol >= SKB_NUM_COLS || skb.curCol < 0)
-	{
-		switch(key)
-		{
-		case A_CURSOR_UP:
-			// Wrap to bottom of KB
-			skb.curRow = SKB_NUM_ROWS - 1;
-			if(skb.curCol < SKB_NUM_COLS/2)
-				item = Menu_FindItemByName(menu, SKB_DELETE_NAME);
-			else
-				item = Menu_FindItemByName(menu, SKB_ACCEPT_NAME);
-			Item_SetFocus(item, 0, 0);
-			break;
-
-		case A_CURSOR_DOWN:
-			// Move to the next item below this
-			skb.curRow--;
-			if(skb.curCol < SKB_NUM_COLS/2)
-				item = Menu_FindItemByName(menu, SKB_DELETE_NAME);
-			else
-				item = Menu_FindItemByName(menu, SKB_ACCEPT_NAME);
-			Item_SetFocus(item, 0, 0);
-			break;
-
-		case A_CURSOR_LEFT:
-			// Wrap to the right side of the KB
-			if(skb.curRow == SKB_NUM_ROWS-1)
-				skb.curCol = SKB_NUM_LETTERS % SKB_NUM_COLS - 1;
-			else
-				skb.curCol = SKB_NUM_COLS - 1;
-			break;
-
-		case A_CURSOR_RIGHT:
-			// Wrap to the left side of the KB
-			skb.curCol=0;
-			break;
-		default:
-			break;
-		}
-		skb.activeKey = skb.curRow * SKB_NUM_COLS + skb.curCol;
-	}
-
-	return qtrue;
-}
-
-
-
-vec4_t color_unfocus = {0.7f, 0.7f, 0.8f, 1.0f};
-vec4_t color_focus = {0.78f, 0.471f, 0.161f, 1.0f};
-
-static void UI_SoftKeyboardAccept_Draw()
-{
-	menuDef_t *menu = Menu_GetFocused();
-	itemDef_t *item = Menu_FindItemByName(menu, SKB_ACCEPT_NAME);
-	int x = SKB_OK_X;
-	int y = SKB_OK_Y;
-	x -= DC->textWidth("OK", 1.0f, 2) / 2;
-	y -= DC->textHeight("OK", 1.0f, 2) / 2;
-	if(item->window.flags & WINDOW_HASFOCUS)
-		DC->drawText(x, y, 1.0f, color_focus, "OK", 1000, 0, 2);
-	else
-		DC->drawText(x, y, 1.0f, color_unfocus, "OK", 1000, 0, 2);
-}
-
-static void UI_SoftKeyboardDelete_Draw()
-{
-	menuDef_t *menu = Menu_GetFocused();
-	itemDef_t *item = Menu_FindItemByName(menu, SKB_DELETE_NAME);
-	int x = SKB_BACKSPACE_X;
-	int y = SKB_BACKSPACE_Y;
-	x -= DC->textWidth("Backspace", 1.0f, 2) / 2;
-	y -= DC->textHeight("Backspace", 1.0f, 2) / 2;
-	if(item->window.flags & WINDOW_HASFOCUS)
-        DC->drawText(x, y, 1.0f, color_focus, "Backspace", 1000, 0, 2);
-	else
-        DC->drawText(x, y, 1.0f, color_unfocus, "Backspace", 1000, 0, 2);
-}
-
-static void UI_SoftKeyboard_Draw()
-{
-	menuDef_t *menu = Menu_GetFocused();
-	itemDef_t *item = Menu_FindItemByName(menu, SKB_KEYBOARD_NAME);
-
-//draw each letter on the screen at the appropriate coordinates
-	int x,y;
-	float size;
-	vec4_t *color;
-	for(int cl=0; cl<SKB_NUM_LETTERS; cl++)
-	{
-		if(skb.activeKey == cl && (item->window.flags & WINDOW_HASFOCUS))
-		{
-			color = &color_focus;
-			size = 3.0f;
-		}
-		else
-		{
-			color = &color_unfocus;
-			size = 1.0f;
-		}
-
-		x = (cl%SKB_NUM_COLS) * SKB_SPACE_H + SKB_LEFT;
-		x -= (DC->textWidth(letters[cl], size, 2)) / 2;
-		y = (cl/SKB_NUM_COLS) * SKB_SPACE_V + SKB_TOP;
-		y -= ((DC->textHeight(letters[cl], size, 2)) / 2) * 1.5;
-
-		DC->drawText(x, y, size, *color, letters[cl], 1000, 0, 2);
-	}
-
-	char *strtmp = new char[SKB_STRING_LENGTH];
-	DC->getCVarString("keyboardinput", strtmp, SKB_STRING_LENGTH+1);
-	DC->drawText(SKB_STRING_LEFT, SKB_STRING_TOP, 1.5f, color_unfocus, strtmp, 1000, 0, 2);
-}
-
-
 
 /*
 =================
@@ -4328,15 +3556,6 @@ static void UI_OwnerDraw(float x, float y, float w, float h, float text_x, float
 
 	switch (ownerDraw) 
 	{
-		case UI_SOFT_KEYBOARD:
-			UI_SoftKeyboard_Draw();
-			break;
-		case UI_SOFT_KEYBOARD_ACCEPT:
-			UI_SoftKeyboardAccept_Draw();
-			break;
-		case UI_SOFT_KEYBOARD_DELETE:
-			UI_SoftKeyboardDelete_Draw();
-			break;
 		case UI_EFFECTS:
 			UI_DrawEffects(&rect, scale, color);
 			break;
@@ -4365,7 +3584,6 @@ static void UI_OwnerDraw(float x, float y, float w, float h, float text_x, float
 
 		case UI_ALLMAPS_SELECTION://saved game thumbnail
 
-//JLF MAPIMAGE MPNOTUSED
 			int levelshot;
 			levelshot = ui.R_RegisterShaderNoMip( va( "levelshots/%s", s_savedata[s_savegame.currentLine].currentSaveFileMap ) );
 			if (levelshot)
@@ -4376,7 +3594,6 @@ static void UI_OwnerDraw(float x, float y, float w, float h, float text_x, float
 			{
 				UI_DrawHandlePic(x, y, w, h, uis.menuBackShader);
 			}
-/*
 			ui.R_Font_DrawString(	x,		// int ox
 									y+h,	// int oy
 									s_savedata[s_savegame.currentLine].currentSaveFileMap,	// const char *text
@@ -4385,7 +3602,6 @@ static void UI_OwnerDraw(float x, float y, float w, float h, float text_x, float
 									w,//-1,		// iMaxPixelWidth (-1 = none)
 									scale	// const float scale = 1.0f
 									);
-*/
 			break;
 		case UI_PREVIEWCINEMATIC:
 			// FIXME BOB - make this work?
@@ -4511,7 +3727,6 @@ int Text_Height(const char *text, float scale, int iFontIndex)
 UI_MouseEvent
 =================
 */
-//JLFMOUSE  CALLED EACH FRAME IN UI
 void _UI_MouseEvent( int dx, int dy )
 {
 	// update mouse screen position
@@ -4535,21 +3750,6 @@ void _UI_MouseEvent( int dx, int dy )
 		uiInfo.uiDC.cursory = SCREEN_HEIGHT;
 	}
 
-	if ( dy > SCROLL_SENSITIVITY || dy < -SCROLL_SENSITIVITY)
-		gScrollAccum += dy;
-	gScrollDelta =0;
-
-	if (gScrollAccum > 	TEXTSCROLLDESCRETESTEP)
-	{
-		gScrollDelta =1;
-		gScrollAccum =0;
-	}
-	else if (gScrollAccum <0)
-	{
-		gScrollDelta = -1;
-		gScrollAccum = TEXTSCROLLDESCRETESTEP;
-	}
-	
 
 	if (Menu_Count() > 0) 
 	{
@@ -4645,15 +3845,10 @@ void UI_DataPadMenu(void)
 UI_InGameMenu
 =================
 */
-extern void S_StopAllSoundsExceptMusic(void);
 void UI_InGameMenu(const char*menuID)
 {
 	// don't allow this if you are dead
-	if( menuID && !strcmp(menuID, "noController"))
-	{
-		// do nothing
-	}
-	else if ( svs.clients[0].frames[svs.clients[0].netchan.outgoingSequence & PACKET_MASK].ps.stats[STAT_HEALTH] <= 0)
+	if ( svs.clients[0].frames[svs.clients[0].netchan.outgoingSequence & PACKET_MASK].ps.stats[STAT_HEALTH] <= 0)
 	{
 		ui.Cvar_Set( "cl_paused", "0" );
 		return;
@@ -4669,7 +3864,6 @@ void UI_InGameMenu(const char*menuID)
 	}
 	else
 	{
-		S_StopAllSoundsExceptMusic();
 		Menus_ActivateByName("ingameMainMenu");
 	}
 	ui.Key_SetCatcher( KEYCATCH_UI );
@@ -5183,13 +4377,6 @@ static void UI_ForcePowerWeaponsButton(qboolean activeFlag)
 			item->window.flags &= ~WINDOW_VISIBLE;
 		}
 	}
-
-	//UI_SetVis(menu, "tab_Force", !activeFlag);
-
-	if(activeFlag)
-		DC->setCVar("ui_hideAcallout", "0");
-	else
-		DC->setCVar("ui_hideAcallout", "1");	
 }
 
 void UI_SetItemColor(itemDef_t *item,const char *itemname,const char *name,vec4_t color);
@@ -6688,172 +5875,6 @@ void UI_AdjustSaveGameListBox( int currentLine )
 }
 
 
-void setBlockDisplayCvar()
-{
-	unsigned long blocks;
-	blocks = SG_BlocksLeft();
-	if (blocks > 50000)
-		Cvar_Set("ui_BlocksAvailable","50000+");
-	else 
-		Cvar_SetValue("ui_BlocksAvailable",(int)blocks);
-	
-	Cvar_SetValue("ui_BlocksNeeded", SG_SaveGameSize());
-
-}
-
-				
-
-void storeSGDataDatetoCvar()
-{
-	char timeBuffer[128];
-	char * timeBufferPtr;
-	char  filetime[64],*tokentimeptr;
-	
-	strcpy (filetime,s_savedata[s_savegame.currentLine].currentSaveFileDateTimeString);
-	if(!filetime[0])
-	{
-		Cvar_Set("ui_DateString", "");
-		return;
-	}
-	timeBuffer[0] = 0;
-	timeBufferPtr = &(timeBuffer[0]);
-
-	//Wed
-	tokentimeptr = strtok(filetime," ");
-
-	//Jan
-	tokentimeptr = strtok(NULL," ");
-	strcpy(timeBufferPtr,tokentimeptr);
-	timeBufferPtr+=strlen(tokentimeptr);
-
-	*timeBufferPtr = ' ';
-	timeBufferPtr ++;
-
-	//02
-	tokentimeptr = strtok(NULL," ");
-	strcpy(timeBufferPtr,tokentimeptr);
-	timeBufferPtr+=strlen(tokentimeptr);
-
-	*timeBufferPtr = ' ';
-	timeBufferPtr ++;
-
-	//02:
-	tokentimeptr = strtok(NULL,":");
-	//strcpy(timeBufferPtr,tokentimeptr);
-	//timeBufferPtr+=strlen(tokentimeptr);
-
-	//*timeBufferPtr = ':';
-	//timeBufferPtr ++;
-	
-	//03:
-	tokentimeptr = strtok(NULL,":");
-	//strcpy(timeBufferPtr,tokentimeptr);
-	//timeBufferPtr+=strlen(tokentimeptr);
-
-	//*timeBufferPtr = ' ';
-	//timeBufferPtr ++;
-
-	//55
-	tokentimeptr = strtok(NULL," ");
-	//strcpy(timeBufferPtr,tokentimeptr);
-	//timeBufferPtr+=strlen(tokentimeptr);
-
-	//*timeBufferPtr = '_';
-	//timeBufferPtr ++;
-
-	//1980
-	tokentimeptr = strtok(NULL,"\n");
-	strcpy(timeBufferPtr,tokentimeptr);
-	timeBufferPtr+=strlen(tokentimeptr);
-
-	*timeBufferPtr = 0;
-	Cvar_Set("ui_DateString", timeBuffer);
-				
-
-}
-
-void storeSGDataTimetoCvar()
-{
-	char timeBuffer[128];
-	char * timeBufferPtr;
-	char  filetime[64],*tokentimeptr;
-	
-	strcpy (filetime,s_savedata[s_savegame.currentLine].currentSaveFileDateTimeString);
-	if(!filetime[0])
-	{
-		Cvar_Set("ui_TimeString", "");
-		return;
-	}
-
-
-	timeBuffer[0] = 0;
-	timeBufferPtr = &(timeBuffer[0]);
-
-	//Wed
-	tokentimeptr = strtok(filetime," ");
-
-	//Jan
-	tokentimeptr = strtok(NULL," ");
-	
-	//02
-	tokentimeptr = strtok(NULL," ");
-	
-	//02:
-	tokentimeptr = strtok(NULL,":");
-	strcpy(timeBufferPtr,tokentimeptr);
-	timeBufferPtr+=strlen(tokentimeptr);
-
-	*timeBufferPtr = ':';
-	timeBufferPtr ++;
-	
-	//03:
-	tokentimeptr = strtok(NULL,":");
-	strcpy(timeBufferPtr,tokentimeptr);
-	timeBufferPtr+=strlen(tokentimeptr);
-
-	*timeBufferPtr = ':';
-	timeBufferPtr ++;
-
-	//55
-	tokentimeptr = strtok(NULL," ");
-	strcpy(timeBufferPtr,tokentimeptr);
-	timeBufferPtr+=strlen(tokentimeptr);
-
-	//*timeBufferPtr = '_';
-	//timeBufferPtr ++;
-
-	//1980
-	tokentimeptr = strtok(NULL,"\n");
-	//strcpy(timeBufferPtr,tokentimeptr);
-	//timeBufferPtr+=strlen(tokentimeptr);
-
-	*timeBufferPtr = 0;
-	Cvar_Set("ui_TimeString", timeBuffer);
-				
-
-	
-	
-}
-
-void storeSGDataDiffLeveltoCvar()
-{
-	char * difflevel;
-	difflevel = s_savedata[s_savegame.currentLine].currentSaveFileComments;
-	if (!difflevel[0])
-	{
-		Cvar_Set("ui_DiffLevel", "");
-		return;
-	}
-	if ( difflevel[0] == '@')
-        Cvar_Set("ui_DiffLevel", SE_GetString(&difflevel[1]));
-	else
-		Cvar_Set("ui_DiffLevel", "");
-	
-
-}
-
-
-
 void ui_resetSaveGameList()
 {
 	s_savegame.saveFileCnt = -1;
@@ -6863,20 +5884,12 @@ void ui_resetSaveGameList()
 ReadSaveDirectory
 =================
 */
-//for the xbox reading the save directory will consist of 
-//iterating through the save game folders
-
 void ReadSaveDirectory (void)
 {
-
+	int		i;
 	char	*holdChar;
-	char	*filetime,*tokentimeptr;
-	const char * newgame;
-	qboolean newGameActive,newGameAvailable;
-	char saveGameName[filepathlength];
-	//char timeBuffer[128];
-	//char * timeBufferPtr;
-	
+	int		len;
+	int		fileCnt;
 
 	// Clear out save data
 	memset(s_savedata,0,sizeof(s_savedata));
@@ -6884,618 +5897,47 @@ void ReadSaveDirectory (void)
 	Cvar_Set("ui_gameDesc", "" );	// Blank out comment 
 	Cvar_Set("ui_SelectionOK", "0" );
 
-
-	//memset( screenShotBuf,0,(SG_SCR_WIDTH * SG_SCR_HEIGHT * 4)); //blank out sshot
-
 	// Get everything in saves directory
-//	fileCnt = ui.FS_GetFileList("saves", ".sav", s_savegame.listBuf, LISTBUFSIZE );
+	fileCnt = ui.FS_GetFileList("saves", ".sav", s_savegame.listBuf, LISTBUFSIZE );
 
 	Cvar_Set("ui_ResumeOK", "0" );
 	holdChar = s_savegame.listBuf;
-	XGAME_FIND_DATA SaveGameData;
-	HANDLE searchhandle;
-	BOOL retval;
-
-	newGameActive =	(Cvar_VariableIntegerValue( "ui_newGameActive" )) ? qtrue : qfalse;
-	newGameAvailable = qfalse;
-	extern unsigned long SG_BlocksLeft();
-	if (newGameActive)
+	for ( i = 0; i < fileCnt; i++ ) 
 	{
-//		if (SG_BlocksLeft() < SG_SaveGameSize())
-//		{
-//			Cvar_SetValue("noNewSaveGameAvailable", 1);
-//			newGameAvailable = qfalse;	
-//		}
-//		else
-//		{
-			Cvar_SetValue("noNewSaveGameAvailable", 0);
-			newGameAvailable = qtrue;	
-//		}
-	}
-	else
-		Cvar_SetValue("noNewSaveGameAvailable", 1);
+		// strip extension
+		len = strlen( holdChar );
+		holdChar[len-4] = '\0';
 
-	if ( newGameAvailable)
-	{
-		strcpy(s_savedata[s_savegame.saveFileCnt].currentSaveFileComments,"New Game");
-		strcpy(s_savedata[s_savegame.saveFileCnt].currentSaveFileMap, "New Game");
-		newgame = SE_GetString( "MENUS", "newSaveGame" );
-	//JLF debug code
-		if ( !newgame)
-			newgame = "New Game";
-	//END JLF
-		strcpy (holdChar, newgame);
-		s_savedata[s_savegame.saveFileCnt].currentSaveFileName = holdChar;
-		holdChar += strlen(holdChar)+1;
-		s_savedata[s_savegame.saveFileCnt].currentSaveFileDateTime = 0;
-		s_savedata[s_savegame.saveFileCnt].currentSaveFileDateTimeString[0] = 0;
-
-		s_savegame.saveFileCnt++;
-	}
-
-    // Any saves?
-	searchhandle = XFindFirstSaveGame( "U:\\", &SaveGameData );
-	if ( searchhandle != INVALID_HANDLE_VALUE )
-	{
-		do
+		if	( Q_stricmp("current",holdChar)!=0 )
 		{
-			// At least one; count up the rest
-			DWORD dwCount = 1;
-			//get the name of the file
-			
-			wcstombs(saveGameName, SaveGameData.szSaveGameName, filepathlength);
-
-			// Skip over Settings
-			if( Q_stricmp( saveGameName, "Settings" ) == 0 )
-			{
-				retval = XFindNextSaveGame( searchhandle, &SaveGameData );
-				continue;
-			}
-
-			strcpy( holdChar, saveGameName);
-			
-
-			// Is this a valid file??? & Get comment of file
-					//create full path name
 			time_t result;
-			result = ui.SG_GetSaveGameComment(saveGameName, s_savedata[s_savegame.saveFileCnt].currentSaveFileComments, s_savedata[s_savegame.saveFileCnt].currentSaveFileMap);
-			if (result != 0) // ignore Bad save game 
+			if (Q_stricmp("auto",holdChar)==0)
 			{
-				s_savedata[s_savegame.saveFileCnt].corrupt = false;
+				Cvar_Set("ui_ResumeOK", "1" );
 			}
-			else
-			{
-				s_savedata[s_savegame.saveFileCnt].corrupt = true;
-			}
-			{
-				s_savedata[s_savegame.saveFileCnt].currentSaveFileName = holdChar;
-				s_savedata[s_savegame.saveFileCnt].currentSaveFileDateTime = result;
-				holdChar += strlen(holdChar)+1;
-				
-				struct tm *localTime;
-				localTime = localtime( &result );
-
-				// Wed Jan 02 02:03:55 1980\n\0
-				filetime = asctime (localTime);
-				
-				
-				
-				strcpy(s_savedata[s_savegame.saveFileCnt].currentSaveFileDateTimeString, filetime );
-				s_savegame.saveFileCnt++;
-				if (s_savegame.saveFileCnt == MAX_SAVELOADFILES)
+			else 
+			{	// Is this a valid file??? & Get comment of file
+				result = ui.SG_GetSaveGameComment(holdChar, s_savedata[s_savegame.saveFileCnt].currentSaveFileComments, s_savedata[s_savegame.saveFileCnt].currentSaveFileMap);
+				if (result != 0) // ignore Bad save game 
 				{
-					break;
-				}
-
-			}
-			
-			retval =XFindNextSaveGame( searchhandle, &SaveGameData );
-		}while(retval);
-	}
-
-	if ( newGameAvailable)
-		qsort( &(s_savedata[1]), s_savegame.saveFileCnt-1, sizeof(savedata_t), UI_SortSaveGames );
-	else
-		qsort( s_savedata, s_savegame.saveFileCnt, sizeof(savedata_t), UI_SortSaveGames );
-
-	Cvar_SetValue("saveGameCount", s_savegame.saveFileCnt);
-	
-
-	if ((s_savegame.saveFileCnt>1 && newGameAvailable) ||
-			(s_savegame.saveFileCnt>0 && !newGameAvailable))
-		Cvar_SetValue("overwriteAvailable", 1);
-	else
-		Cvar_SetValue("overwriteAvailable", 0);
-
-	setBlockDisplayCvar();
-
-	if (s_savegame.currentLine == 0)
-	{
-		if (ui_ShowDeleteActive)
-		{
-			Cvar_SetValue("ui_showYdel",trap_Cvar_VariableValue("ui_ShowDelete"));
-			ui_ShowDeleteActive = qfalse;
-			Cvar_SetValue( "ui_cancelYScript",0);
-		}
-		if ( newGameAvailable)
-		{
-			//there is a 'new save game' index that is highlighted
-			Cvar_SetValue("ui_ShowDelete",trap_Cvar_VariableValue("ui_showYdel"));
-			Cvar_SetValue("ui_showYdel",0);
-			Cvar_SetValue( "ui_cancelYScript",1);
-			ui_ShowDeleteActive =qtrue;
-
-		}
-	}	
-	storeSGDataDatetoCvar();
-	storeSGDataTimetoCvar();
-	storeSGDataDiffLeveltoCvar();
-}
-
-
-
-
-//JLF error popup
-// What popup is active at the moment?
-static xbErrorPopupType sPopup = XB_POPUP_NONE;
-
-// Creates the requested popup, then displays it.
-// Establishes context so proper action will be taken on a selection.
-void UI_xboxErrorPopup(xbErrorPopupType popup)
-{
-	// Set our context
-
-	//store all these values
-/*
-	DC->setCVar("ui_showWbtsel", "0");
-	DC->setCVar("ui_showWmove", "0");
-	DC->setCVar("ui_showXadv", "0");
-	DC->setCVar("ui_showXNew", "0");
-	DC->setCVar("ui_showXchk", "0");
-	DC->setCVar("ui_showXforce", "0");
-	DC->setCVar("ui_showXcstm", "0");
-	DC->setCVar("ui_showYref", "0");
-	DC->setCVar("ui_showYdel", "0");
-	DC->setCVar("ui_showYbtrule", "0");
-	DC->setCVar("ui_showYsaber", "0");
-	DC->setCVar("ui_showYwpn", "0");
-	DC->setCVar("ui_showAcallout", "0");
-	DC->setCVar("ui_showBcallout", "0");
-
-	
-*/
-	sPopup = popup;
-	Cvar_Set( "xb_errMessage", "" );
-	Cvar_Set( "xb_PopupTitle", "" );
-//	Cvar_Set( "xb_PopupStringX", "" );
-
-	// Set the menu cvars
-	switch( popup )
-	{
-		case XB_POPUP_DELETE_CONFIRM:
-			Cvar_Set( "xb_errMessage", "@MENUS_DELETE_SAVE_PROMPT" );
-			Cvar_Set( "xb_PopupTitle", "" );
-			break;
-	
-		case XB_POPUP_DISKFULL:
-			Cvar_Set( "xb_errMessage", va( SE_GetString("MENUS_NO_SPACE_PLEASE_FREE"), blocksNeeded ) );
-			break;
-
-		case XB_POPUP_DISKFULL_DURING_SAVE:
-			Cvar_Set( "xb_errMessage", "@MENUS_NO_SPACE" );
-			break;
-
-		case XB_POPUP_YOU_ARE_DEAD:
-			Cvar_Set( "xb_errMessage", "@MENUS_SAVE_WHEN_DEAD");
-			break;
-
-		case XB_POPUP_SAVE_COMPLETE:
-			Cvar_Set( "xb_errMessage", "@MENUS_SAVE_GAME_COMPLETE" );
-			Cvar_Set( "xb_PopupTitle", "" );
-			break;
-
-		case XB_POPUP_OVERWRITE_CONFIRM:
-			Cvar_Set( "xb_errMessage", "@MENUS_OVERWRITE_PROMPT" );
-			Cvar_Set( "xb_PopupTitle", "" );
-			break;
-
-		case XB_POPUP_LOAD_FAILED:
-			{  	
-				Cvar_Set( "xb_errMessage", "@MENUS_DAMAGED_SAVE" );	
-			}
-			break;
-
-		case XB_POPUP_LOAD_CHECKPOINT_FAILED:
-			{  char messagebuffer[128];
-				
-				strcpy (messagebuffer,SE_GetString("MENUS_NO_LOAD_1"));
-				strcat (messagebuffer, " ");
-				strcat (messagebuffer, SE_GetString("MENUS_CHECKPOINT_LOWER"));
-				strcat (messagebuffer, " ");
-				strcat (messagebuffer,SE_GetString("MENUS_NO_LOAD_2"));
-				Cvar_Set( "xb_errMessage", messagebuffer );
-				Cvar_Set( "xb_PopupTitle", "" );
-			}
-			break;
-		case XB_POPUP_QUIT_CONFIRM:
-			{  
-				Cvar_Set( "xb_errMessage", "@MENUS_QUIT_CURRENT_GAME_AND");
-				Cvar_Set( "xb_PopupTitle",  "@MENUS_QUIT" );
-			}
-			break;
-
-		case XB_POPUP_SAVING:
-			{  
-				Cvar_Set( "xb_errMessage", "@MENUS_SAVING");
-			}
-			break;
-
-
-		case XB_POPUP_LOAD_CONFIRM:
-			{
-				if ( svs.clients[0].frames[svs.clients[0].netchan.outgoingSequence & PACKET_MASK].ps.stats[STAT_HEALTH] <= 0)
-				{
-					// player dead
-					Cvar_Set( "xb_errMessage", "@MENUS_LOAD_CONFIRM2");
-				}
-				else
-				{
-					Cvar_Set( "xb_errMessage", "@MENUS_LOAD_CONFIRM");
-				}
-			}
-			break;
-		case XB_POPUP_LOAD_CONFIRM_CHECKPOINT:
-			{
-				if ( svs.clients[0].frames[svs.clients[0].netchan.outgoingSequence & PACKET_MASK].ps.stats[STAT_HEALTH] <= 0)
-				{
-					// player dead
-					Cvar_Set( "xb_errMessage", "@MENUS_LOAD_CONFIRM2");
-				}
-				else
-				{
-					Cvar_Set( "xb_errMessage", "@MENUS_LOAD_CONFIRM");
-				}
-				break;
-			}
-		case XB_POPUP_TOO_MANY_SAVES:
-			{
-				Cvar_Set( "xb_errMessage", "@MENUS_TOO_MANY_SAVES");
-			}
-			break;
-		case XB_POPUP_CONFIRM_INVITE:
-			{
-				Cvar_Set( "xb_errMessage", "@MENUS_CONFIRM_JOIN" );
-				break;
-			}
-		case XB_POPUP_CORRUPT_SETTINGS:
-			{
-				Cvar_Set( "xb_errMessage", "@MENUS_CORRUPT_SETTINGS" );
-				break;
-			}
-		case XB_POPUP_DISKFULL_BOTH:
-			{
-				Cvar_Set( "xb_errMessage", va( SE_GetString("MENUS_NO_SPACE_PLEASE_FREE"), blocksNeeded ) );
-				break;
-			}
-
-		case XB_POPUP_TESTING_SAVE:
-			{
-				Cvar_Set( "xb_errMessage", "@MENUS_LOADING_SAVEGAME" );
-				break;
-			}
-
-		case XB_POPUP_CORRUPT_SCREENSHOT:
-			{
-				Cvar_Set( "xb_errMessage", "@MENUS_CORRUPT_SCREENSHOT" );
-				break;
-			}
-
-		case XB_POPUP_CONFIRM_NEW_1:
-		case XB_POPUP_CONFIRM_NEW_2:
-		case XB_POPUP_CONFIRM_NEW_3:
-			{
-				Cvar_Set( "xb_errMessage", "@MENUS_CONFIRM_NEW_MISSION" );
-				break;
-			}
-
-		default:
-			Com_Error( ERR_FATAL, "ERROR: Invalid popup type %i\n", popup );
-	}
-
-	// Display the menu - but first make sure to close it, in case it's open.
-	// Fixes a bug where openMenuCount gets screwed up.
-	Menus_CloseByName( "xbox_error_popup" );
-	Menus_ActivateByName( "xbox_error_popup" );
-}
-
-extern unsigned long getGameBlocks(char * filename);
-// Accepts a response to the currently dislpayed popup.
-// Does whatever is necessary based on which popup was visible, and what the response was.
-void UI_xboxPopupResponse( void )
-{
-	if( sPopup == XB_POPUP_NONE )
-		Com_Error( ERR_FATAL, "ERROR: Got a popup response with no valid context\n" );
-
-	int response = Cvar_VariableIntegerValue( "xb_errResponse" );
-
-	if(response == 2)
-		return;
-
-
-	switch( sPopup )
-	{
-
-		case XB_POPUP_DELETE_CONFIRM:
-			if( response == 0 )			// A
-			{
-				Menus_CloseByName( "xbox_error_popup" );
-				ui_DeleteGame();
-			}
-			else if( response == 1 )	// B
-			{
-				Menus_CloseByName( "xbox_error_popup" );
-			}
-			break;
-
-		case XB_POPUP_DISKFULL:
-			if( response == 0 )			// A continue
-			{
-				// Continue without saving
-				Menus_CloseByName( "xbox_error_popup" );
-				XB_Startup( STARTUP_INVITE_CHECK );
-				return;
-			}
-			else if( response == 1 )	// B 
-			{
-				openDashBoardMemory();
-			}
-			break;
-
-		case XB_POPUP_DISKFULL_DURING_SAVE:
-			if( response == 0 )			// A continue
-			{
-				// Continue (without saving)
-				Menus_CloseByName( "xbox_error_popup" );
-			}
-			else if( response == 1 )	// B 
-			{
-				return;
-			}
-			break;
-		case XB_POPUP_YOU_ARE_DEAD:
-			if( response == 0)
-			{
-				// Continue without saving
-				Menus_CloseByName( "xbox_error_popup" );
-			}
-			else
-			{
-				return;
-			}
-			break;
-		case XB_POPUP_SAVE_COMPLETE	:
-			if( response == 0 )			// A continue
-			{
-				Menus_CloseByName( "xbox_error_popup" );
-			}
-			else
-			{
-				return;
-			}
-			break;
-		case XB_POPUP_OVERWRITE_CONFIRM:
-			if( response == 0 )			// A
-			{
-				unsigned long blocks;
-				unsigned long gameblocks;
-				blocks = SG_BlocksLeft();
-				if ( blocks < SG_SaveGameSize())
-				{
-					//read the blocks out of the game?
-					//gameblocks = getGameBlocks(s_savedata[s_savegame.currentLine].currentSaveFileName);
-				//	if ( blocks + gameblocks >= SG_SaveGameSize())
+					s_savedata[s_savegame.saveFileCnt].currentSaveFileName = holdChar;
+					s_savedata[s_savegame.saveFileCnt].currentSaveFileDateTime = result;
+					
+					struct tm *localTime;
+					localTime = localtime( &result );
+					strcpy(s_savedata[s_savegame.saveFileCnt].currentSaveFileDateTimeString,asctime( localTime ) );
+					s_savegame.saveFileCnt++;
+					if (s_savegame.saveFileCnt == MAX_SAVELOADFILES)
 					{
-						itemDef_t item;
-						item.parent = Menu_GetFocused();
-						item.window.flags = 0;	//err, item is fake here, but we want a valid flag before calling runscript
-						Item_RunScript( &item, "uiscript genericpopup saving ; delay 1 ;  uiScript deletegame ; uiScript savegame ; defer always ; close xbox_error_popup ; uiScript genericpopup savecomplete" );
-						return;
-					//	UI_xboxErrorPopup(XB_POPUP_DISKFULL);
+						break;
 					}
-				//	else
-				//	{
-				//		Menus_CloseByName( "xbox_error_popup" );
-				//		UI_xboxErrorPopup(XB_POPUP_DISKFULL);
-				//		return;
-				//	}
 				}
-				else
-				{
-					itemDef_t item;
-					item.parent = Menu_GetFocused();
-					item.window.flags = 0;	//err, item is fake here, but we want a valid flag before calling runscript
-					Item_RunScript( &item, "uiscript genericpopup saving ; delay 1 ;  uiScript deletegame ; uiScript savegame ; defer always ; close xbox_error_popup ; uiScript genericpopup savecomplete" );
-					return;
-					//DELETE
-		//				ui_DeleteGame();
-						//SAVE
-		//				ui_SaveGame();
-		//				//call to show save success
-
-				}
-			//	Menus_CloseByName( "xbox_error_popup" );
-				
 			}
-			else if( response == 1 )	// B
-			{
-				Menus_CloseByName( "xbox_error_popup" );
-			}
-			break;
+		}
 		
-		case XB_POPUP_LOAD_FAILED:
-			if( response == 0 )			// A continue
-			{
-				Menus_CloseByName( "xbox_error_popup" );
-			}
-			else
-			{
-				return;
-			}
-			break;
-
-		case XB_POPUP_LOAD_CHECKPOINT_FAILED:
-			if( response == 0 )			// A continue
-			{
-				
-				if ( cls.state == CA_ACTIVE ) 
-				{
-					Menus_CloseAll();
-					UI_SetActiveMenu( "ingame",NULL );
-				}
-				else
-					Menus_CloseByName( "xbox_error_popup" );
-			
-			}
-			else
-			{
-				return;
-			}
-			break;
-		case XB_POPUP_QUIT_CONFIRM:
-			if( response == 0 )			// A continue
-			{		
-				Cbuf_ExecuteText( EXEC_APPEND, "disconnect\n" );
-				trap_Key_SetCatcher( KEYCATCH_UI );
-				Menus_CloseAll();
-			}
-			else
-			{
-				Menus_CloseByName( "xbox_error_popup" );
-			}
-			break;
-
-		case XB_POPUP_SAVING:
-			return;
-		case XB_POPUP_LOAD_CONFIRM:
-			if( response == 0 )			// A continue
-			{		
-				itemDef_t item;
-				item.parent = Menu_GetFocused();
-				item.window.flags = 0;	//err, item is fake here, but we want a valid flag before calling runscript
-				Item_RunScript( &item, "uiscript loadgame" );
-				return;
-			}
-			else
-			{
-				Menus_CloseByName( "xbox_error_popup" );
-			}
-			break;
-		case XB_POPUP_LOAD_CONFIRM_CHECKPOINT:
-			if( response == 0 )
-			{
-				// Hackery
-				Menus_CloseByName( "xbox_error_popup" );
-				UI_xboxErrorPopup( XB_POPUP_TESTING_SAVE );
-				ui.Cmd_ExecuteText(EXEC_APPEND,"wait ; wait ; wait ; wait ; load *respawn\n");
-				return;
-			}
-			else
-			{
-				Menus_CloseByName( "xbox_error_popup" );
-
-			}
-			break;
-		case XB_POPUP_TOO_MANY_SAVES:
-			if(response == 0)
-			{
-				Menus_CloseByName( "xbox_error_popup" );
-			}
-			else
-			{
-				return;
-			}
-			break;
-
-		case XB_POPUP_CONFIRM_INVITE:
-			if( response == 0 )		// A - join game
-			{
-				// Never returns
-				extern void Sys_JoinInvite( void );
-				Sys_JoinInvite();
-			}
-			else
-			{
-				Menus_CloseByName( "xbox_error_popup" );
-				XB_Startup( STARTUP_FINISH );
-				return;
-			}
-		
-		case XB_POPUP_CORRUPT_SETTINGS:
-			if( response == 0 )		// A - accept
-			{
-				Settings.Delete();
-				Menus_CloseByName( "xbox_error_popup" );
-				XB_Startup( STARTUP_COMBINED_SPACE_CHECK );
-				return;
-			}
-			else
-			{
-				return;
-			}
-
-		case XB_POPUP_DISKFULL_BOTH:
-			if( response == 0 )
-			{
-				// Continue without saving
-				Settings.Disable();
-				Menus_CloseByName( "xbox_error_popup" );
-				XB_Startup( STARTUP_INVITE_CHECK );
-				return;
-			}
-			else
-			{
-				// Go to dashboard to free up memory
-				openDashBoardMemory();
-			}
-
-		case XB_POPUP_TESTING_SAVE:
-			// No response is valid, this is just informational while the save is read/checked
-			return;
-
-		case XB_POPUP_CORRUPT_SCREENSHOT:
-			if( response == 0 )		// A - continue
-			{
-				Menus_CloseByName( "xbox_error_popup" );
-				break;
-			}
-			else
-			{
-				// Invalid response
-				return;
-			}
-
-		case XB_POPUP_CONFIRM_NEW_1:
-		case XB_POPUP_CONFIRM_NEW_2:
-		case XB_POPUP_CONFIRM_NEW_3:
-			if( response == 0 )		// A - continue
-			{
-				Cvar_SetValue( "cl_paused", 1 );
-				UI_DecrementForcePowerLevel();
-				Menus_CloseAll();
-				Menus_OpenByName( va("ingameMissionSelect%d", (sPopup - XB_POPUP_CONFIRM_NEW_1) + 1) );
-			}
-			else
-			{
-				Menus_CloseByName( "xbox_error_popup" );
-			}
-			break;
-
-		default:
-			Com_Error( ERR_FATAL, "ERROR: Invalid popup type %i\n", sPopup );
+		holdChar += len + 1;	//move to next item
 	}
 
-	// If we get here, the user gave a valid response to our popup. Clear the context:
-	sPopup = XB_POPUP_NONE;
+	qsort( s_savedata, s_savegame.saveFileCnt, sizeof(savedata_t), UI_SortSaveGames );
 }
-
 

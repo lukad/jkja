@@ -28,8 +28,7 @@ void UI_DrawConnect( const char *servername, const char *updateInfoString )
 	const char *s = Cvar_VariableString( "ui_mapname" );
 
 	// Special case for first map:
-	extern SavedGameJustLoaded_e g_eSavedGameJustLoaded;
-	if ( g_eSavedGameJustLoaded != eFULL && (!strcmp(s,"yavin1") || !strcmp(s,"demo")) )
+	if ( eSavedGameJustLoaded != eFULL && (!strcmp(s,"yavin1") || !strcmp(s,"demo")) )
 	{
 		ui.R_SetColor( colorTable[CT_BLACK] );
 		uis.whiteShader = ui.R_RegisterShaderNoMip( "*white" );

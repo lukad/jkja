@@ -63,10 +63,6 @@ typedef struct listBoxDef_s {
 	columnInfo_t columnInfo[MAX_LB_COLUMNS];
 	const char	*doubleClick;
 	qboolean	notselectable;
-//JLF MPMOVED
-	qboolean	scrollhidden;
-	qhandle_t	selectionShader;
-	
 } listBoxDef_t;
 
 
@@ -120,7 +116,7 @@ typedef struct {
 	qhandle_t	buttonInside;
 	qhandle_t	solidBox;
 	qhandle_t	sliderBar;
-//	qhandle_t	sliderThumb;
+	qhandle_t	sliderThumb;
 	sfxHandle_t menuEnterSound;
 	sfxHandle_t menuExitSound;
 	sfxHandle_t menuBuzzSound;
@@ -309,7 +305,7 @@ typedef struct {
 	vec4_t		foreColor;					// text color
 	vec4_t		backColor;					// border color
 	vec4_t		borderColor;				// border color
-//	vec4_t		outlineColor;				// border color
+	vec4_t		outlineColor;				// border color
 	qhandle_t	background;					// background asset  
 } windowDef_t;
 
@@ -353,28 +349,22 @@ typedef struct itemDef_s {
 	int			textalignment;				// ( optional ) alignment for text within rect based on text width
 	float		textalignx;					// ( optional ) text alignment x coord
 	float		textaligny;					// ( optional ) text alignment y coord
-//	float		text2alignx;				// ( optional ) text2 alignment x coord
-//	float		text2aligny;				// ( optional ) text2 alignment y coord
+	float		text2alignx;				// ( optional ) text2 alignment x coord
+	float		text2aligny;				// ( optional ) text2 alignment y coord
 	float		textscale;					// scale percentage from 72pts
 	int			textStyle;					// ( optional ) style, normal and shadowed are it for now
 	char		*text;						// display text
-//	char		*text2;						// display text2
-//	char		*descText;					//	Description text
+	char		*text2;						// display text2
+	char		*descText;					//	Description text
 	void		*parent;					// menu owner
 	qhandle_t	asset;						// handle to asset
 	CGhoul2Info_v ghoul2;					// ghoul2 instance if available instead of a model.
 	int			flags;						// flags like g2valid, character, saber, saber2, etc.
-//	const char	*mouseEnterText;			// mouse enter script
-//	const char	*mouseExitText;				// mouse exit script
-//	const char	*mouseEnter;				// mouse enter script
-//	const char	*mouseExit;					// mouse exit script 
+	const char	*mouseEnterText;			// mouse enter script
+	const char	*mouseExitText;				// mouse exit script
+	const char	*mouseEnter;				// mouse enter script
+	const char	*mouseExit;					// mouse exit script 
 	const char	*action;					// select script
-//JLFACCEPT MPMOVED
-//	const char  *accept;
-//JLFDPADSCRIPT MPMOVED
-	const char * selectionNext;
-	const char * selectionPrev;
-
 	const char	*onFocus;					// select script
 	const char	*leaveFocus;				// select script
 	const char	*cvar;						// associated cvar 
@@ -390,9 +380,6 @@ typedef struct itemDef_s {
 //	int			appearanceSlot;				// order of appearance
 	int			value;						// used by ITEM_TYPE_MULTI that aren't linked to a particular cvar.
 	int			font;						// FONT_SMALL,FONT_MEDIUM,FONT_LARGE
-//	int			invertYesNo;
-	int			xoffset;
-
 } itemDef_t;
 
 typedef struct {
@@ -407,13 +394,7 @@ typedef struct {
 	float		fadeAmount;					//
 	const char	*onOpen;					// run when the menu is first opened
 	const char	*onClose;					// run when the menu is closed
-//JLFACCEPT MPMOVED
-	const char  *onAccept;					// run when menu is closed with acceptance
-
 	const char	*onESC;						// run when the menu is closed
-	const char	*xScript;					// run when X button is pressed
-	const char	*yScript;					// run when Y button is pressed
-	const char	*whiteScript;				// run when White button is pressed
 	const char	*soundName;					// background loop sound for menu
 
 	vec4_t		focusColor;					// focus color for items
