@@ -45,3 +45,9 @@ message("${output}")
 if(NOT result EQUAL 0)
   message(FATAL_ERROR "the engine ended with status ${result}")
 endif()
+
+# An error that drops the map returns the engine to its menu, and the run then still ends
+# with status 0.
+if(output MATCHES "(^|\n)DROPPED\n")
+  message(FATAL_ERROR "the engine dropped the map")
+endif()
