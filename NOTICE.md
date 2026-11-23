@@ -16,14 +16,19 @@ of the SourceForge release, states that the code is copyright Activision 2003 an
 the source is released under GNU GPLv2. No "or any later version" wording is attached to
 that statement, so the code is treated as GPL version 2 only.
 
-Five pieces of the menu code that the Jedi Academy release lacks come from the source
-release of *Star Wars Jedi Knight II: Jedi Outcast*, published by Raven Software and
-Activision together with the Jedi Academy release: `Item_CorrectedTextRect`,
-`Menu_HandleMouseMove`, `Menus_HandleOOBClick`, `Item_Slider_HandleKey` and the mouse
-and edit-field handling of `Menu_HandleKey` in `src/ui/ui_shared.cpp`
-([ADR-0016](docs/decisions/0016-menu-mouse-handling.md)). The readme of that release, as
-preserved by mirrors, states that the code is copyright Activision 2002 and released
-under GNU GPLv2.
+Code that the Jedi Academy release lacks for the PC comes from the source release of
+*Star Wars Jedi Knight II: Jedi Outcast*, published by Raven Software and Activision
+together with the Jedi Academy release
+([ADR-0017](docs/decisions/0017-missing-pc-code-from-jedi-outcast.md)). The readme of
+that release, as preserved by mirrors, states that the code is copyright Activision 2002
+and released under GNU GPLv2. Taken from it:
+
+- in `src/ui/ui_shared.cpp`, the menus' mouse handling: `Item_CorrectedTextRect`,
+  `Menu_HandleMouseMove`, `Menus_HandleOOBClick`, `Item_Slider_HandleKey` and the mouse
+  and edit-field handling of `Menu_HandleKey`
+  ([ADR-0016](docs/decisions/0016-menu-mouse-handling.md));
+- in `src/cgame/cg_info.cpp` and `src/cgame/cg_main.cpp`, the loading bar: `CG_LoadBar`
+  and the registration of its three images.
 
 ## Game data
 

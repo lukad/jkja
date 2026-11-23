@@ -1846,7 +1846,7 @@ static void CG_GameStateReceived( void ) {
 	CG_ParseServerinfo();
 
 	// load the new map
-	cgs.media.levelLoad = cgi_R_RegisterShaderNoMip( "gfx/menus/newFront/SaberLoad" );
+	cgs.media.levelLoad = cgi_R_RegisterShaderNoMip( "gfx/hud/mp_levelload" );
 	CG_LoadingString( "collision map" );
 
 	cgi_CM_LoadMap( cgs.mapname, qfalse );
@@ -2076,8 +2076,8 @@ void CG_Init( int serverCommandSequence ) {
 	cgs.media.qhFontMedium= cgi_R_RegisterFont("ergoec");
 
 	cgs.media.whiteShader   = cgi_R_RegisterShader( "white" );
-	cgs.media.loadTick		= cgi_R_RegisterShaderNoMip( "gfx/menus/newFront/GlowLoad" );
-//	cgs.media.loadTickCap	= cgi_R_RegisterShaderNoMip( "gfx/hud/load_tick_cap" );
+	cgs.media.loadTick		= cgi_R_RegisterShaderNoMip( "gfx/hud/load_tick" );
+	cgs.media.loadTickCap	= cgi_R_RegisterShaderNoMip( "gfx/hud/load_tick_cap" );
 	
 	const char	*force_icon_files[NUM_FORCE_POWERS] = 
 	{//icons matching enums forcePowers_t

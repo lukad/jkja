@@ -107,7 +107,7 @@ typedef struct {
 //	qhandle_t	chunkyNumberShaders[11];
 
 	qhandle_t	loadTick;
-//	qhandle_t	loadTickCap;
+	qhandle_t	loadTickCap;
 
 	//			HUD artwork
 //	int			currentBackground;
