@@ -1,0 +1,175 @@
+#!/usr/bin/env python3
+"""Check the rules every commit in this repository has to keep.
+
+1. No forbidden files: binaries, IDE project files, version-control leftovers,
+   game data.
+2. No machine-specific paths in tracked files: home directories and game
+   library locations (docs/decisions/0007-game-data-location.md).
+3. Text files use LF line endings.
+4. Directories under src/ have lower-case names.
+5. Includes follow the convention that scripts/fix-includes establishes: a
+   header that lives in the repository is included in quotes, by its path
+   relative to the including file, with forward slashes and exact letter case.
+   A quoted include that names nothing in the repository is an error unless it
+   is listed in KNOWN_MISSING below.
+
+Exits with status 0 if everything holds, 1 otherwise.
+"""
+
+import os
+import re
+import subprocess
+import sys
+
+SOURCE_ROOT = "src"
+SOURCE_SUFFIXES = (".c", ".cpp", ".h", ".hpp")
+
+FORBIDDEN_SUFFIXES = (
+    # binaries
+    ".a", ".dll", ".dylib", ".exe", ".idb", ".lib", ".o", ".obj", ".pdb", ".so",
+    # IDE projects and per-user IDE state
+    ".dsp", ".dsw", ".ncb", ".opt", ".plg", ".sln", ".suo", ".vcproj", ".vcxproj",
+    # version-control leftovers
+    ".scc", ".vspscc",
+    # game data
+    ".pk3",
+)
+FORBIDDEN_DIRECTORIES = ("CVS", ".svn")
+BINARY_SUFFIXES = (".bmp", ".ico", ".png")
+
+# Paths that identify one person's machine. Written in pieces so that this file
+# does not match its own patterns.
+MACHINE_PATHS = [
+    re.compile(rb"/" + rb"home/[A-Za-z0-9._-]+/"),
+    re.compile(rb"/" + rb"Users/[A-Za-z0-9._-]+/"),
+    re.compile(rb"[A-Za-z]:[\\/]+" + rb"Users[\\/]", re.I),
+    re.compile(rb"steam" + rb"apps", re.I),
+    re.compile(rb"\.local/share/" + rb"Steam", re.I),
+]
+
+# Quoted includes that name a header which is not in the repository, with the
+# reason each one is tolerated. The check fails when an entry is no longer
+# needed, so the list can only shrink.
+KNOWN_MISSING = {
+    ("src/client/snd_local.h", "eax/eax.h"):
+        "proprietary EAX header; goes with the audio decision due before M2",
+    ("src/client/snd_local.h", "eax/eaxman.h"):
+        "proprietary EAX header; goes with the audio decision due before M2",
+    ("src/qcommon/stringed_interface.cpp", "generic.h"):
+        "only used when building Raven's StringEd tool (_STRINGED)",
+    ("src/mp3code/wavep.c", "wcvt.c"):
+        "third-party decoder; file was never part of the release",
+}
+
+INCLUDE = re.compile(r'^[ \t]*#[ \t]*include[ \t]*(["<])([^">]+)[">]')
+
+
+def git(*args):
+    return subprocess.run(["git", *args], capture_output=True, check=True).stdout
+
+
+def strip_comments(text):
+    """Blank out comments, keeping line structure and string literals."""
+    out = []
+    i, n = 0, len(text)
+    while i < n:
+        c = text[i]
+        if c == "/" and i + 1 < n and text[i + 1] == "/":
+            while i < n and text[i] != "\n":
+                i += 1
+        elif c == "/" and i + 1 < n and text[i + 1] == "*":
+            end = text.find("*/", i + 2)
+            end = n if end < 0 else end + 2
+            out.append("".join(ch if ch == "\n" else " " for ch in text[i:end]))
+            i = end
+        elif c in "\"'":
+            j = i + 1
+            while j < n and text[j] != c and text[j] != "\n":
+                j += 2 if text[j] == "\\" else 1
+            out.append(text[i:j + 1])
+            i = j + 1
+        else:
+            out.append(c)
+            i += 1
+    return "".join(out)
+
+
+def main():
+    os.chdir(git("rev-parse", "--show-toplevel").decode().strip())
+    tracked = [f for f in git("ls-files", "-z").decode().split("\0") if f]
+    tracked_set = set(tracked)
+    by_lower = {f.lower(): f for f in tracked}
+    problems = []
+
+    def problem(path, message, line=None):
+        where = path if line is None else f"{path}:{line}"
+        problems.append(f"{where}: {message}")
+
+    used_known_missing = set()
+
+    for f in tracked:
+        lower = f.lower()
+        parts = f.split("/")
+
+        if lower.endswith(FORBIDDEN_SUFFIXES):
+            problem(f, "forbidden file type")
+        if any(p in FORBIDDEN_DIRECTORIES for p in parts[:-1]):
+            problem(f, "version-control leftover")
+        if parts[0] == SOURCE_ROOT and any(p != p.lower() for p in parts[1:-1]):
+            problem(f, "directories under src/ must have lower-case names")
+        if lower.endswith(BINARY_SUFFIXES):
+            continue
+
+        with open(f, "rb") as handle:
+            data = handle.read()
+
+        if b"\r" in data:
+            problem(f, "contains CR characters; text files use LF line endings")
+        for pattern in MACHINE_PATHS:
+            m = pattern.search(data)
+            if m:
+                line = data.count(b"\n", 0, m.start()) + 1
+                problem(f, "contains a machine-specific path", line)
+                break
+
+        if parts[0] != SOURCE_ROOT or not lower.endswith(SOURCE_SUFFIXES):
+            continue
+
+        text = strip_comments(data.decode("latin-1"))
+        for number, line in enumerate(text.split("\n"), 1):
+            m = INCLUDE.match(line)
+            if not m:
+                continue
+            quoted, name = m.group(1) == '"', m.group(2)
+            if "\\" in name:
+                problem(f, f"include uses backslashes: {name}", number)
+                continue
+            target = os.path.normpath(os.path.join(os.path.dirname(f), name)).replace("\\", "/")
+            if target in tracked_set:
+                expected = os.path.relpath(target, os.path.dirname(f)).replace("\\", "/")
+                if not quoted:
+                    problem(f, f"header from this repository in angle brackets: {name}", number)
+                elif name != expected:
+                    problem(f, f'include should be written "{expected}": {name}', number)
+            elif target.lower() in by_lower:
+                problem(f, f"include has the wrong letter case: {name}", number)
+            elif quoted:
+                if (f, name) in KNOWN_MISSING:
+                    used_known_missing.add((f, name))
+                else:
+                    problem(f, f"quoted include names nothing in the repository: {name}", number)
+
+    for key in sorted(set(KNOWN_MISSING) - used_known_missing):
+        problem(key[0], f"KNOWN_MISSING entry is no longer needed: {key[1]}")
+
+    for line in problems:
+        print(line)
+    if problems:
+        print(f"{len(problems)} problem(s)", file=sys.stderr)
+        return 1
+    print(f"repository checks passed ({len(tracked)} files)")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

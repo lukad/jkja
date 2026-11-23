@@ -54,6 +54,9 @@ Measured on the import commit `44e8ea1`.
 | Platform code | `code/win32`, 35.9k lines, of which about 7k are an OpenGL-on-DirectX-8 shim for Xbox. |
 | Licence | No licence file in the tree. See [section 11](#11-legal). |
 
+After M0 the working tree is `src/`: 518 source files, about 445k lines. The paths below
+refer to the import commit.
+
 Things that matter for the port:
 
 - **cgame calls are untyped.** The engine and the cgame half of the game module talk
@@ -118,8 +121,9 @@ tests/
 
 The Quake 3 module names are kept because anyone who knows the engine family knows them.
 Directory names are lower case. `codemp/`, `tools/`, `bin/`, `base/`, `ui/` (top level)
-and all console, Mac Classic and bundled-library directories are removed from the working
-tree in milestone M0.
+and all console and Mac Classic directories are removed from the working tree in
+milestone M0. The bundled libraries stay until they are replaced in M1, and the Win32
+platform code stays in `src/win32` until `src/sys` replaces it in M2.
 
 ### 4.2 Binaries
 
@@ -152,7 +156,7 @@ Proposed, to be fixed by an ADR before M1:
 
 | Need | Today | Proposed |
 |---|---|---|
-| Window, input, timers, threads, library loading, audio device, GPU | `code/win32` | SDL3 ([ADR-0005](decisions/0005-platform-layer-sdl3.md)) |
+| Window, input, timers, threads, library loading, audio device, GPU | `src/win32` | SDL3 ([ADR-0005](decisions/0005-platform-layer-sdl3.md)) |
 | Inflate for `.pk3` | bundled zlib 1.1.3 + asm variant | current zlib or miniz |
 | JPEG, PNG, TGA decode; screenshot encode | bundled jpeg-6, libpng | stb_image / stb_image_write, or current libjpeg-turbo and libpng |
 | MP3 decode | bundled Xing decoder (portable C, GPL) | keep at first; replace only if it causes trouble |
@@ -164,7 +168,7 @@ No library source is copied into the tree except single-header libraries.
 
 ### 4.5 Platform layer
 
-`src/sys` replaces `code/win32`, `code/unix`, `code/mac` and `code/null`. The surface the
+`src/sys` replaces `src/win32`. The surface the
 engine needs, after console and proprietary functions are dropped, is small:
 
 | Group | Functions (today's names) | Backed by |
@@ -255,7 +259,7 @@ behavioural reference.
 
 ### 6.1 What exists
 
-The client talks to the renderer through `refexport_t` (`code/renderer/tr_public.h`),
+The client talks to the renderer through `refexport_t` (`src/renderer/tr_public.h`),
 about 50 function pointers. Inside, the renderer follows the Quake 3 design:
 
 ```
@@ -268,7 +272,7 @@ client -> re.* -> front end                       -> command list -> back end
 ```
 
 The front end decides *what* is visible and in which order. The back end draws it one
-shader stage at a time with fixed-function OpenGL: 2,011 `qgl*` call sites, immediate
+shader stage at a time with fixed-function OpenGL: about 840 `qgl*` call sites, immediate
 mode, the matrix stack, NV register combiners and ARB assembly programs for the glow
 effect.
 
@@ -290,19 +294,18 @@ Content it must handle:
 The interface exists but is not respected:
 
 - `tr_local.h`, the renderer's private header, is included by the precompiled header
-  `code/server/exe_headers.h` and therefore by the whole engine.
-- OpenGL is called directly from `ui/ui_splash.cpp`, `client/cl_cgame.cpp` and
-  `server/sv_init.cpp`.
+  `src/server/exe_headers.h` and therefore by the whole engine.
 - **Ghoul2 is split across the boundary the wrong way.** The skeleton, bone-cache and
   bolt code that game logic, collision and ragdoll depend on lives in
-  `renderer/tr_ghoul2.cpp` (4,906 lines) next to the drawing code, and `ghoul2/` reaches
+  `renderer/tr_ghoul2.cpp` (4,217 lines) next to the drawing code, and `ghoul2/` reaches
   back into renderer internals (`R_GetModelByHandle`, `model_t`, the `mdxm`/`mdxa`
   headers).
 
 M4 fixes this: `tr_public.h` and `tr_types.h` become the only headers the engine sees;
 Ghoul2 model data, skeleton evaluation and bolts move to `src/ghoul2` and the renderer
-keeps only skinned-surface drawing; stray GL calls go through the interface. The
-renderer becomes a library selected at start-up, and a null renderer is added for tests.
+keeps only skinned-surface drawing. The direct OpenGL calls the engine made outside the
+renderer were console code and went away in M0; the repository check keeps it that way
+from M4. The renderer becomes a library selected at start-up, and a null renderer is added for tests.
 
 ### 6.3 The new renderer
 
@@ -385,7 +388,7 @@ and is the main design problem of M6 and M7.
 
 | Layer | What | When |
 |---|---|---|
-| Repo checks | Every `#include` resolves with exact case and forward slashes; no tracked file contains a game data path; no binaries | every change |
+| Repo checks | Includes of repository headers are quoted, relative to the including file, with exact case and forward slashes; no tracked file contains a machine-specific path; no binaries or project files; LF line endings | every change |
 | Build | All presets the machine can build, warnings as configured | every change |
 | Sanitizers | AddressSanitizer and UBSan preset on Linux | every change from M1 |
 | Unit tests | New code with logic worth testing (serialisation, shader-script compiler, math replacements for assembly) | with the code |
@@ -411,13 +414,14 @@ Each milestone ends when its exit criteria hold. Boxes are ticked as work lands.
 
 - [x] Tag the import commit `raven-2013`
 - [x] Add licence text and third-party notices ([section 11](#11-legal))
-- [ ] Remove out-of-scope trees: `codemp/`, `tools/`, `bin/`, `base/`, top-level `ui/`
-- [ ] Remove binary blobs, CVS and SourceSafe metadata, project files, duplicate project copies
-- [ ] Remove console-only files and strip `_XBOX`, `_GAMECUBE`, `_IMMERSION`, `_FF` blocks mechanically
-- [ ] Remove `mac/`, `unix/`, `null/`, `ff/`, `smartheap/`, `SHDebug/`, `x_*`, `goblib/`, `bspthing/`
-- [ ] Convert line endings to LF; add `.gitattributes`, `.gitignore`, `.editorconfig`, `.clang-format`
-- [ ] Move `code/` to `src/` with lower-case directories; fix every `#include` to exact case and forward slashes
-- [ ] Add the repo check script
+- [x] Remove out-of-scope trees: `codemp/`, `tools/`, `bin/`, `base/`, top-level `ui/`
+- [x] Remove binary blobs, CVS and SourceSafe metadata, project files, duplicate project copies
+- [x] Strip conditional blocks mechanically: console (`_XBOX`, `_GAMECUBE`, `VV_LIGHTING`, `XBOX_DEMO`), force feedback (`_IMMERSION`, `_FF`), multiplayer (`_JK2`, `_JK2MP`), SmartHeap (`MEM_DEBUG`)
+- [x] Remove console-only files and every other source the PC single-player projects never built
+- [x] Remove `mac/`, `unix/`, `null/`, `ff/`, `smartheap/`, `SHDebug/`, `x_*`, `goblib/`, `bspthing/`
+- [x] Convert line endings to LF; add `.gitattributes`, `.gitignore`, `.editorconfig`, `.clang-format`
+- [x] Move `code/` to `src/` with lower-case directories; fix every `#include` to exact case and forward slashes
+- [x] Add the repo check script
 - [ ] CMake skeleton with presets
 
 Exit: the tree contains only in-scope single-player sources; the repo checks pass.

@@ -70,7 +70,9 @@ Every piece of work goes through these steps, in order.
   the compiler.
 - New code is C++20, formatted with the repository's `.clang-format`, and builds without
   warnings.
-- Includes use forward slashes and the exact letter case of the file on disk.
+- A header that lives in this repository is included in quotes, by its path relative to
+  the including file, with forward slashes and the exact letter case of the file on disk.
+  After moving or renaming sources, run `scripts/fix-includes --apply`.
 
 ### Commits
 
@@ -102,9 +104,9 @@ Checks come into existence milestone by milestone; run all that exist.
 | Play-test checklist | M2 | manual; listed in `docs/design.md`, section 7 |
 | Image comparison, new renderer against legacy | M4 | part of `ctest`, needs game data |
 
-Until M0 lands there is nothing to build: the tree is the 2013 release plus `docs/`.
-The script and preset names above are the ones M0 and M1 are to create; if they end up
-different, update this table in the same change.
+Nothing compiles before M1; until then the build only configures and runs the
+repository checks. If a script or preset name changes, update this table in the same
+change.
 
 "Verified" means the check was run and passed in this session. Anything else is
 reported as not verified.
