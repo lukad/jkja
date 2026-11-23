@@ -943,20 +943,15 @@ int Q_isupper( int c );
 int Q_isalpha( int c );
 
 // portable case insensitive compare
-//inline  int Q_stricmp (const char *s1, const char *s2) {return Q_stricmpn (s1, s2, 99999);}
-//int		Q_strncmp (const char *s1, const char *s2, int n);
-//int		Q_stricmpn (const char *s1, const char *s2, int n);
-//char	*Q_strlwr( char *s1 );
-//char	*Q_strupr( char *s1 );
-//char	*Q_strrchr( const char* string, int c );
+// These stand in for stricmp, strnicmp, strlwr and strupr, which are not part of the
+// standard library, and order strings the way those did.
+int		Q_stricmp (const char *s1, const char *s2);
+int		Q_stricmpn (const char *s1, const char *s2, int n);
+char	*Q_strlwr( char *s1 );
+char	*Q_strupr( char *s1 );
 
-// NON-portable (but faster) versions
-inline int	Q_stricmp (const char *s1, const char *s2) { return stricmp(s1, s2); }
 inline int	Q_strncmp (const char *s1, const char *s2, int n) { return strncmp(s1, s2, n); }
-inline int	Q_stricmpn (const char *s1, const char *s2, int n) { return strnicmp(s1, s2, n); }
-inline char	*Q_strlwr( char *s1 ) { return strlwr(s1); }
-inline char	*Q_strupr( char *s1 ) { return strupr(s1); }
-inline char	*Q_strrchr( const char* str, int c ) { return strrchr(str, c); }
+inline char	*Q_strrchr( const char* str, int c ) { return (char *)strrchr(str, c); }
 
 
 // buffer size safe library replacements

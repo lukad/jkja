@@ -657,61 +657,45 @@ void Q_strncpyz( char *dest, const char *src, int destsize, qboolean bBarfIfTooL
 	strncpy( dest, src, destsize-1 );
     dest[destsize-1] = 0;
 }
-/*                 
+// Lower case for the letters A to Z only, whatever the locale.
+static int Q_lowerForCompare( char c ) {
+	int	u = (unsigned char)c;
+
+	if (u >= 'A' && u <= 'Z') {
+		u += 'a' - 'A';
+	}
+	return u;
+}
+
 int Q_stricmpn (const char *s1, const char *s2, int n) {
 	int		c1, c2;
-	
-	do {
-		c1 = *s1++;
-		c2 = *s2++;
 
-		if (!n--) {
+	do {
+		if (n-- <= 0) {
 			return 0;		// strings are equal until end point
 		}
-		
+
+		c1 = Q_lowerForCompare(*s1++);
+		c2 = Q_lowerForCompare(*s2++);
+
 		if (c1 != c2) {
-			if (c1 >= 'a' && c1 <= 'z') {
-				c1 -= ('a' - 'A');
-			}
-			if (c2 >= 'a' && c2 <= 'z') {
-				c2 -= ('a' - 'A');
-			}
-			if (c1 != c2) {
-				return c1 < c2 ? -1 : 1;
-			}
+			return c1 - c2;
 		}
 	} while (c1);
-	
+
 	return 0;		// strings are equal
 }
 
-int Q_strncmp (const char *s1, const char *s2, int n) {
-	int		c1, c2;
-	
-	do {
-		c1 = *s1++;
-		c2 = *s2++;
-
-		if (!n--) {
-			return 0;		// strings are equal until end point
-		}
-		
-		if (c1 != c2) {
-			return c1 < c2 ? -1 : 1;
-		}
-	} while (c1);
-	
-	return 0;		// strings are equal
+int Q_stricmp (const char *s1, const char *s2) {
+	return Q_stricmpn (s1, s2, MAX_QINT);
 }
-
-
 
 char *Q_strlwr( char *s1 ) {
     char	*s;
 
     s = s1;
 	while ( *s ) {
-		*s = tolower(*s);
+		*s = tolower((unsigned char)*s);
 		s++;
 	}
     return s1;
@@ -722,12 +706,11 @@ char *Q_strupr( char *s1 ) {
 
     s = s1;
 	while ( *s ) {
-		*s = toupper(*s);
+		*s = toupper((unsigned char)*s);
 		s++;
 	}
     return s1;
 }
-*/
 
 // never goes past bounds or leaves without a terminating 0
 void Q_strcat( char *dest, int size, const char *src ) {
