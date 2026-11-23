@@ -58,8 +58,6 @@ public:
 		   storage = items + numItems;
 		   numItems++;
 		}
-		else
-			assert( 0 );
 
 		storage->data = newItem;
 		storage->key = key;

@@ -708,7 +708,7 @@ done:
 
 
 typedef std::map< int, image_t *, std::less< int > >	AllocatedImages_t;
-								AllocatedImages_t* AllocatedImages = NULL;
+								AllocatedImages_t AllocatedImages;
 								AllocatedImages_t::iterator itAllocatedImages;
 
 int giTextureBindNum = 1024;	// will be set to this anyway at runtime, but wtf?
@@ -718,19 +718,13 @@ int giTextureBindNum = 1024;	// will be set to this anyway at runtime, but wtf?
 //
 int R_Images_StartIteration(void)
 {
-	if(!AllocatedImages)
-		return 0;
-
-	itAllocatedImages = AllocatedImages->begin();
-	return AllocatedImages->size();
+	itAllocatedImages = AllocatedImages.begin();
+	return AllocatedImages.size();
 }
 
 image_t *R_Images_GetNextIteration(void)
 {
-	if(!AllocatedImages)
-		return NULL;
-
-	if (itAllocatedImages == AllocatedImages->end())
+	if (itAllocatedImages == AllocatedImages.end())
 		return NULL;
 
 	image_t *pImage = (*itAllocatedImages).second;
@@ -775,7 +769,7 @@ static void GL_ResetBinds(void)
 void R_Images_DeleteLightMaps(void)
 {
 	qboolean bEraseOccured = qfalse;
-	for (AllocatedImages_t::iterator itImage = AllocatedImages->begin(); itImage != AllocatedImages->end(); bEraseOccured?itImage:++itImage)
+	for (AllocatedImages_t::iterator itImage = AllocatedImages.begin(); itImage != AllocatedImages.end(); bEraseOccured?itImage:++itImage)
 	{			
 		bEraseOccured = qfalse;
 
@@ -785,7 +779,7 @@ void R_Images_DeleteLightMaps(void)
 		{
 			R_Images_DeleteImageContents(pImage);
 
-			AllocatedImages->erase(itImage++);
+			AllocatedImages.erase(itImage++);
 			bEraseOccured = qtrue;
 		}
 	}
@@ -800,11 +794,11 @@ void R_Images_DeleteImage(image_t *pImage)
 {		
 	// Even though we supply the image handle, we need to get the corresponding iterator entry...
 	//
-	AllocatedImages_t::iterator itImage = AllocatedImages->find(pImage->imgCode);
-	if (itImage != AllocatedImages->end())
+	AllocatedImages_t::iterator itImage = AllocatedImages.find(pImage->imgCode);
+	if (itImage != AllocatedImages.end())
 	{		
 		R_Images_DeleteImageContents(pImage);
-		AllocatedImages->erase(itImage);
+		AllocatedImages.erase(itImage);
 	}
 	else
 	{
@@ -825,12 +819,7 @@ void R_Images_Clear(void)
 		R_Images_DeleteImageContents(pImage);
 	}
 
-	if( AllocatedImages )
-	{
-		AllocatedImages->clear();
-		delete AllocatedImages;
-		AllocatedImages = NULL;
-	}
+	AllocatedImages.clear();
 
 	giTextureBindNum = 1024;
 }
@@ -852,7 +841,7 @@ void RE_RegisterImages_Info_f( void )
 qboolean RE_RegisterImages_LevelLoadEnd(void)
 {
 	qboolean bEraseOccured = qfalse;
-	for (AllocatedImages_t::iterator itImage = AllocatedImages->begin(); itImage != AllocatedImages->end(); bEraseOccured?itImage:++itImage)
+	for (AllocatedImages_t::iterator itImage = AllocatedImages.begin(); itImage != AllocatedImages.end(); bEraseOccured?itImage:++itImage)
 	{			
 		bEraseOccured = qfalse;
 
@@ -867,7 +856,7 @@ qboolean RE_RegisterImages_LevelLoadEnd(void)
 			{	// nope, so dump it...
 				//VID_Printf( PRINT_DEVELOPER, "Dumping image \"%s\"\n",pImage->imgName);
 				R_Images_DeleteImageContents(pImage);
-				itImage = AllocatedImages->erase(itImage);
+				itImage = AllocatedImages.erase(itImage);
 				bEraseOccured = qtrue;
 			}
 		}
@@ -896,8 +885,8 @@ static image_t *R_FindImageFile_NoLoad(const char *name, qboolean mipmap, qboole
 	// see if the image is already loaded
 	//
 	int code = mz_crc32(MZ_CRC32_INIT, (const unsigned char *)pName, strlen(pName));
-	AllocatedImages_t::iterator itAllocatedImage = AllocatedImages->find(code);
-	if (itAllocatedImage != AllocatedImages->end())
+	AllocatedImages_t::iterator itAllocatedImage = AllocatedImages.find(code);
+	if (itAllocatedImage != AllocatedImages.end())
 	{	
 		image_t *pImage = (*itAllocatedImage).second;
 
@@ -1002,7 +991,7 @@ image_t *R_CreateImage( const char *name, const byte *pic, int width, int height
 	const char* psNewName = GenerateImageMappingName(name);
 	image->imgCode = mz_crc32(MZ_CRC32_INIT, (const unsigned char *)psNewName, strlen(psNewName));
 
-	(*AllocatedImages)[ image->imgCode ] = image;
+	AllocatedImages[ image->imgCode ] = image;
 
 	return image;
 }
@@ -2147,11 +2136,6 @@ R_InitImages
 */
 void	R_InitImages( void ) {
 	//memset(hashTable, 0, sizeof(hashTable));	// DO NOT DO THIS NOW (because of image cacheing)	-ste.
-	if (!AllocatedImages)
-	{
-		AllocatedImages = new AllocatedImages_t;
-	}
-
 	// build brightness translation tables
 	R_SetColorMappings();
 
