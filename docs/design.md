@@ -1,6 +1,6 @@
 # Design
 
-Status: basis for work. Decisions 0000 to 0016 accepted on 2026-11-23.
+Status: basis for work. Decisions 0000 to 0017 accepted on 2026-11-23.
 This document is the basis for all work in this repository. It describes where the code
 starts, where it is going, and in what order. Decisions that shape it are recorded as ADRs
 in [decisions/](decisions/README.md); where this document and an accepted ADR disagree,
@@ -84,9 +84,15 @@ Things that matter for the port:
   therefore never built as they stand. Where the PC needs the overwritten behaviour, it
   is restored from the multiplayer tree of the import commit (`codemp/`, where the two
   variants are mostly still separated), or from commented-out PC lines next to the
-  console code; console-only features are removed. The menu code is the exception:
-  both trees hold the console version, and what is missing comes from Raven's Jedi
-  Outcast release ([ADR-0016](decisions/0016-menu-mouse-handling.md)). More such places may surface when the game
+  console code; console-only features are removed. Where both trees hold the console
+  version and the PC code is in neither, it comes from Raven's Jedi Outcast release
+  ([ADR-0017](decisions/0017-missing-pc-code-from-jedi-outcast.md)). Taken from there
+  so far:
+
+  | What | Where | Decision |
+  |---|---|---|
+  | The menus' mouse handling: `Item_CorrectedTextRect`, `Menu_HandleMouseMove`, `Menus_HandleOOBClick`, `Item_Slider_HandleKey`, the mouse and edit-field parts of `Menu_HandleKey` | `src/ui/ui_shared.cpp` | [ADR-0016](decisions/0016-menu-mouse-handling.md) |
+  | The loading bar: `CG_LoadBar` and the registration of its three images | `src/cgame/cg_info.cpp`, `src/cgame/cg_main.cpp` | ADR-0017 | More such places may surface when the game
   first runs with a window (M2).
 
 ## 3. Principles
@@ -573,7 +579,7 @@ test found, and what became of it:
 | Garbage text on the console when a cutscene is skipped | A format without its argument | fixed |
 | "glGetError() = 0x501" at level changes | Cloud layers drawn for skies that have none | fixed |
 | In the release preset the companion does nothing after a change of level | Level-load frames shorter than the engine's 200 ms clamp let the player into the level before the characters its start script addresses are spawned (section 4.8) | fixed |
-| Loading bar is a blank upright box | `CG_LoadBar` is the console version; the PC one is not in the release | waits for [ADR-0017](decisions/0017-missing-pc-code-from-jedi-outcast.md) |
+| Loading bar is a blank upright box | `CG_LoadBar` is the console version; the PC one is not in the release | fixed, taken from the Jedi Outcast release ([ADR-0017](decisions/0017-missing-pc-code-from-jedi-outcast.md)) |
 | Debug build aborts when a droid loses a limb | An assertion of the release that the game's own data trips; the retail build has assertions off | kept; play tests use the `linux-release` preset |
 | Sound drops out while models load in the menus | The release empties the sound buffer before every file read (section 4.7) | kept; listed under "Not scheduled" |
 | Resolutions of today missing from the menu | The list is game data (section 4.5) | listed under "Not scheduled" |
