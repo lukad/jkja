@@ -96,10 +96,10 @@ typedef struct {
 	unsigned int		roq_id;
 	int				screenDelta;
 
-	void ( *VQ0)(byte *status, void *qdata );
-	void ( *VQ1)(byte *status, void *qdata );
-	void ( *VQNormal)(byte *status, void *qdata );
-	void ( *VQBuffer)(byte *status, void *qdata );
+	void ( *VQ0)(byte **status, unsigned char *data );
+	void ( *VQ1)(byte **status, unsigned char *data );
+	void ( *VQNormal)(byte **status, unsigned char *data );
+	void ( *VQBuffer)(byte **status, unsigned char *data );
 
 	byte*				gray;
 	unsigned int		xsize, ysize, maxsize, minsize;
@@ -387,6 +387,20 @@ static long RllDecodeStereoToMono(unsigned char *from,short *to,unsigned int siz
 	return size;
 }
 */
+// The blocks of a frame are copied row by row. (They used to be copied as doubles, eight
+// bytes at a time, whatever the alignment of the rows.) A line is spl bytes long, rounded
+// down to a multiple of eight as the copying in doubles had it.
+static void copyRows( const byte *src, int srcStep, byte *dst, int spl, int rowBytes, int rows )
+{
+	const int dstStep = (spl>>3)<<3;
+
+	for ( int row = 0; row < rows; row++ ) {
+		memcpy( dst, src, rowBytes );
+		src += srcStep;
+		dst += dstStep;
+	}
+}
+
 /******************************************************************************
 *
 * Function:		
@@ -397,28 +411,7 @@ static long RllDecodeStereoToMono(unsigned char *from,short *to,unsigned int siz
 
 static void move8_32( byte *src, byte *dst, int spl )
 {
-	double *dsrc, *ddst;
-	int dspl;
-
-	dsrc = (double *)src;
-	ddst = (double *)dst;
-	dspl = spl>>3;
-
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1]; ddst[2] = dsrc[2]; ddst[3] = dsrc[3];
-	dsrc += dspl; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1]; ddst[2] = dsrc[2]; ddst[3] = dsrc[3];
-	dsrc += dspl; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1]; ddst[2] = dsrc[2]; ddst[3] = dsrc[3];
-	dsrc += dspl; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1]; ddst[2] = dsrc[2]; ddst[3] = dsrc[3];
-	dsrc += dspl; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1]; ddst[2] = dsrc[2]; ddst[3] = dsrc[3];
-	dsrc += dspl; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1]; ddst[2] = dsrc[2]; ddst[3] = dsrc[3];
-	dsrc += dspl; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1]; ddst[2] = dsrc[2]; ddst[3] = dsrc[3];
-	dsrc += dspl; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1]; ddst[2] = dsrc[2]; ddst[3] = dsrc[3];
+	copyRows( src, (spl>>3)<<3, dst, spl, 32, 8 );
 }
 
 /******************************************************************************
@@ -431,20 +424,7 @@ static void move8_32( byte *src, byte *dst, int spl )
 
 static void move4_32( byte *src, byte *dst, int spl  )
 {
-	double *dsrc, *ddst;
-	int dspl;
-
-	dsrc = (double *)src;
-	ddst = (double *)dst;
-	dspl = spl>>3;
-
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1];
-	dsrc += dspl; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1];
-	dsrc += dspl; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1];
-	dsrc += dspl; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1];
+	copyRows( src, (spl>>3)<<3, dst, spl, 16, 4 );
 }
 
 /******************************************************************************
@@ -457,28 +437,7 @@ static void move4_32( byte *src, byte *dst, int spl  )
 
 static void blit8_32( byte *src, byte *dst, int spl  )
 {
-	double *dsrc, *ddst;
-	int dspl;
-
-	dsrc = (double *)src;
-	ddst = (double *)dst;
-	dspl = spl>>3;
-
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1]; ddst[2] = dsrc[2]; ddst[3] = dsrc[3];
-	dsrc += 4; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1]; ddst[2] = dsrc[2]; ddst[3] = dsrc[3];
-	dsrc += 4; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1]; ddst[2] = dsrc[2]; ddst[3] = dsrc[3];
-	dsrc += 4; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1]; ddst[2] = dsrc[2]; ddst[3] = dsrc[3];
-	dsrc += 4; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1]; ddst[2] = dsrc[2]; ddst[3] = dsrc[3];
-	dsrc += 4; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1]; ddst[2] = dsrc[2]; ddst[3] = dsrc[3];
-	dsrc += 4; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1]; ddst[2] = dsrc[2]; ddst[3] = dsrc[3];
-	dsrc += 4; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1]; ddst[2] = dsrc[2]; ddst[3] = dsrc[3];
+	copyRows( src, 32, dst, spl, 32, 8 );
 }
 
 /******************************************************************************
@@ -491,20 +450,7 @@ static void blit8_32( byte *src, byte *dst, int spl  )
 
 static void blit4_32( byte *src, byte *dst, int spl  )
 {
-	double *dsrc, *ddst;
-	int dspl;
-
-	dsrc = (double *)src;
-	ddst = (double *)dst;
-	dspl = spl>>3;
-
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1];
-	dsrc += 2; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1];
-	dsrc += 2; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1];
-	dsrc += 2; ddst += dspl;
-	ddst[0] = dsrc[0]; ddst[1] = dsrc[1];
+	copyRows( src, 16, dst, spl, 16, 4 );
 }
 
 /******************************************************************************
@@ -517,15 +463,7 @@ static void blit4_32( byte *src, byte *dst, int spl  )
 
 static void blit2_32( byte *src, byte *dst, int spl  )
 {
-	double *dsrc, *ddst;
-	int dspl;
-
-	dsrc = (double *)src;
-	ddst = (double *)dst;
-	dspl = spl>>3;
-
-	ddst[0] = dsrc[0];
-	ddst[dspl] = dsrc[1];
+	copyRows( src, 8, dst, spl, 8, 2 );
 }
 
 /******************************************************************************
@@ -955,8 +893,8 @@ static void initRoQ()
 {
 	if (currentHandle < 0) return;
 
-	cinTable[currentHandle].VQNormal = (void (*)(byte *, void *))blitVQQuad32fs;
-	cinTable[currentHandle].VQBuffer = (void (*)(byte *, void *))blitVQQuad32fs;
+	cinTable[currentHandle].VQNormal = blitVQQuad32fs;
+	cinTable[currentHandle].VQBuffer = blitVQQuad32fs;
 	ROQ_GenYUVTables();
 	RllSetupTable();
 }
@@ -1040,12 +978,12 @@ redump:
 			if ((cinTable[currentHandle].numQuads&1)) {
 				cinTable[currentHandle].normalBuffer0 = cinTable[currentHandle].t[1];
 				RoQPrepMcomp( cinTable[currentHandle].roqF0, cinTable[currentHandle].roqF1 );
-				cinTable[currentHandle].VQ1( (byte *)cin.qStatus[1], framedata);
+				cinTable[currentHandle].VQ1( cin.qStatus[1], framedata);
 				cinTable[currentHandle].buf = 	cin.linbuf + cinTable[currentHandle].screenDelta;
 			} else {
 				cinTable[currentHandle].normalBuffer0 = cinTable[currentHandle].t[0];
 				RoQPrepMcomp( cinTable[currentHandle].roqF0, cinTable[currentHandle].roqF1 );
-				cinTable[currentHandle].VQ0( (byte *)cin.qStatus[0], framedata );
+				cinTable[currentHandle].VQ0( cin.qStatus[0], framedata );
 				cinTable[currentHandle].buf = 	cin.linbuf;
 			}
 			if (cinTable[currentHandle].numQuads == 0) {		// first frame
