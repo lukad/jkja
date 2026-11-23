@@ -306,3 +306,15 @@ set_target_properties(jagame PROPERTIES
   OUTPUT_NAME "jagame${JASP_ARCHITECTURE}"
 )
 jasp_legacy_target(jagame)
+
+# C++ in files named .c: the vehicle code, which the release shared with the
+# multiplayer game module.
+set_source_files_properties(
+  game/AnimalNPC.c
+  game/FighterNPC.c
+  game/SpeederNPC.c
+  game/WalkerNPC.c
+  game/bg_vehicleload.c
+  game/g_vehicles.c
+  PROPERTIES LANGUAGE CXX
+)

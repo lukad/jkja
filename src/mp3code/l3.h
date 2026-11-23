@@ -41,27 +41,9 @@ ____________________________________________________________________________*/
 /* #define GLOBAL_GAIN_SCALE 0 */
 
 
-#ifdef _M_IX86
+/* Every supported target is little-endian. */
+#undef LITTLE_ENDIAN
 #define LITTLE_ENDIAN 1
-#endif
-
-#ifdef _M_ALPHA
-#define LITTLE_ENDIAN 1
-#endif
-
-#ifdef sparc
-#define LITTLE_ENDIAN 0
-#endif
-
-#if defined(__POWERPC__)
-#define LITTLE_ENDIAN 0
-#elif defined(__INTEL__)
-#define LITTLE_ENDIAN 1
-#endif
-
-#ifndef LITTLE_ENDIAN
-#error Layer III LITTLE_ENDIAN must be defined 0 or 1
-#endif
 
 /*-----------------------------------------------------------*/
 /*---- huffman lookup tables ---*/
