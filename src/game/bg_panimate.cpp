@@ -4196,8 +4196,7 @@ void PM_SetAnimFinal(int *torsoAnim,int *legsAnim,
 
 		// Make Sure Not To Play Too Fast An Anim
 		//----------------------------------------
-//		float	maxPlaybackSpeed = (1.5f * timeScaleMod);
-		float	maxPlaybackSpeed = (1.5f * timeScaleMod) / 2.0f;
+		float	maxPlaybackSpeed = (1.5f * timeScaleMod);
 		if (animSpeed>maxPlaybackSpeed)
 		{
 			animSpeed = maxPlaybackSpeed;
