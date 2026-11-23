@@ -127,6 +127,13 @@ add_executable(jasp EXCLUDE_FROM_ALL
   server/sv_savegame.cpp
   server/sv_snapshot.cpp
   server/sv_world.cpp
+  sys/sys_files.cpp
+  sys/sys_main.cpp
+  sys/sys_module.cpp
+  sys/sys_null_input.cpp
+  sys/sys_null_sound.cpp
+  sys/sys_null_window.cpp
+  sys/sys_qgl.cpp
   ui/ui_atoms.cpp
   ui/ui_connect.cpp
   ui/ui_main.cpp
@@ -140,8 +147,26 @@ target_compile_definitions(jasp PRIVATE
   # ...) and would rename unrelated identifiers wherever its header is included.
   MINIZ_NO_ZLIB_COMPATIBLE_NAMES
 )
-target_link_libraries(jasp PRIVATE miniz SDL3::Headers)
+target_link_libraries(jasp PRIVATE miniz SDL3::SDL3)
 jasp_legacy_target(jasp)
+
+# The platform layer is new code and is held to the warnings of new code. They are not
+# errors here, because its files include headers of the legacy code.
+set(jasp_sys_sources
+  sys/sys_files.cpp
+  sys/sys_main.cpp
+  sys/sys_module.cpp
+  sys/sys_null_input.cpp
+  sys/sys_null_sound.cpp
+  sys/sys_null_window.cpp
+  sys/sys_qgl.cpp
+)
+if(MSVC)
+  set_source_files_properties(${jasp_sys_sources} PROPERTIES COMPILE_OPTIONS "/W4")
+else()
+  set_source_files_properties(${jasp_sys_sources} PROPERTIES
+    COMPILE_OPTIONS "-Wall;-Wextra;-Wpedantic;-Wshadow;-Wconversion")
+endif()
 
 # game, cgame and ICARUS. The file name states the architecture: jagamex86_64, jagamearm64.
 add_library(jagame MODULE EXCLUDE_FROM_ALL
@@ -313,6 +338,10 @@ include(GenerateExportHeader)
 generate_export_header(jagame)
 target_include_directories(jagame PRIVATE "${CMAKE_CURRENT_BINARY_DIR}")
 jasp_legacy_target(jagame)
+
+# The engine loads the module from its own directory, under the name it was built with.
+target_compile_definitions(jasp PRIVATE "JASP_GAME_MODULE_FILE=\"$<TARGET_FILE_NAME:jagame>\"")
+add_dependencies(jasp jagame)
 
 # C++ in files named .c: the vehicle code, which the release shared with the
 # multiplayer game module.
