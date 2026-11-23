@@ -10953,7 +10953,7 @@ qboolean Item_Slider_HandleKey(itemDef_t *item, int key, qboolean down)
 	//DC->Print("slider handle key\n");
 	if (item->window.flags & WINDOW_HASFOCUS && item->cvar && Rect_ContainsPoint(&item->window.rect, DC->cursorx, DC->cursory)) 
 	{
-		if (key == K_MOUSE1 || key == K_ENTER || key == K_MOUSE2 || key == K_MOUSE3) 
+		if (key == A_MOUSE1 || key == A_ENTER || key == A_MOUSE2 || key == A_MOUSE3) 
 		{
 			editFieldDef_t *editDef = (editFieldDef_s *) item->typeData;
 			if (editDef) 
@@ -11139,7 +11139,7 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down)
 	if (down && !(menu->window.flags & WINDOW_POPUP) && !Rect_ContainsPoint(&menu->window.rect, DC->cursorx, DC->cursory)) 
 	{
 		static qboolean inHandleKey = qfalse;
-		if (!inHandleKey && key == K_MOUSE1 || key == K_MOUSE2 || key == K_MOUSE3) 
+		if (!inHandleKey && key == A_MOUSE1 || key == A_MOUSE2 || key == A_MOUSE3) 
 		{
 			inHandleKey = qtrue;
 			Menus_HandleOOBClick(menu, key, down);
@@ -11159,13 +11159,8 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down)
 		}
 	}
 
-	if (!down) 
-	{
-		inHandler = qfalse;
-		return;
-	}
-
-
+	// Releases are passed on as well: Item_HandleKey ends the dragging of a scroll bar
+	// or slider thumb on the next event it sees, which has to be the button coming up.
 	if ( item !=NULL)
 	{
 		//Handlekey implies that this control was able to interpret and use this input
@@ -11176,6 +11171,13 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down)
 			return;
 		}
 	}
+
+	if (!down) 
+	{
+		inHandler = qfalse;
+		return;
+	}
+
 
 	// Special Data Pad key handling (gotta love the datapad)
 	if (!(key & K_CHAR_FLAG) ) 
@@ -11212,8 +11214,8 @@ void Menu_HandleKey(menuDef_t *menu, int key, qboolean down)
 		case A_CURSOR_DOWN:
 			Menu_SetNextCursorItem(menu);
 			break;
-		case K_MOUSE1:
-		case K_MOUSE2:
+		case A_MOUSE1:
+		case A_MOUSE2:
 			if (item) 
 			{
 				if (item->type == ITEM_TYPE_TEXT) 
