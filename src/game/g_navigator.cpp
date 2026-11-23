@@ -1160,7 +1160,7 @@ bool			NAV::LoadFromFile(const char *filename, int checksum)
 	memset(&mEntityAlertList, 0, sizeof(mEntityAlertList));
 
 #if !defined(FINAL_BUILD)
-	ratl::ratl_base::OutputPrint = stupid_print;
+	ratl::ratl_base::OutputPrint = (void *)stupid_print;
 #endif
 
 	mGraph.clear();

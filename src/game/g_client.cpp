@@ -639,6 +639,7 @@ void Player_CacheFromPrevLevel(void)
 	if (s[0])	// actually this would be safe anyway because of the way sscanf() works, but this is clearer
 	{
 		int iDummy, bits, ibits;
+		int i;
 
 		sscanf( s, "%i %i %i %i", 
 			&iDummy,//client->ps.stats[STAT_HEALTH],
@@ -647,7 +648,7 @@ void Player_CacheFromPrevLevel(void)
 			&ibits	//client->ps.stats[STAT_ITEMS]
 			);
 
-		for ( int i = 1 ; i < 16 ; i++ ) 
+		for ( i = 1 ; i < 16 ; i++ ) 
 		{
 			if ( bits & ( 1 << i ) ) 
 			{
@@ -686,12 +687,18 @@ void Player_RestoreFromPrevLevel(gentity_t *ent)
 		char	s[MAX_STRING_CHARS];
 		char	saber0Name[MAX_QPATH];
 		char	saber1Name[MAX_QPATH];
+		int		saberColor[MAX_SABERS][MAX_BLADES];
 		const char	*var;
 						
 		gi.Cvar_VariableStringBuffer( sCVARNAME_PLAYERSAVE, s, sizeof(s) );
 
 		if (strlen(s))	// actually this would be safe anyway because of the way sscanf() works, but this is clearer
 		{//				|general info				  |-force powers |-saber 1										   |-saber 2										  |-general saber
+			for ( int i = 0; i < MAX_BLADES; i++ )
+			{//the colors are read as ints
+				saberColor[0][i] = client->ps.saber[0].blade[i].color;
+				saberColor[1][i] = client->ps.saber[1].blade[i].color;
+			}
 			sscanf( s, "%i %i %i %i %i %i %i %f %f %f %i %i %i %i %i %s %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %s %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i %i", 
 								&client->ps.stats[STAT_HEALTH],
 								&client->ps.stats[STAT_ARMOR],
@@ -710,7 +717,7 @@ void Player_RestoreFromPrevLevel(gentity_t *ent)
 								&client->ps.forcePowerRegenRate,
 								&client->ps.forcePowerRegenAmount,
 								//saber 1 data
-								&saber0Name,
+								saber0Name,
 								&client->ps.saber[0].blade[0].active,
 								&client->ps.saber[0].blade[1].active,
 								&client->ps.saber[0].blade[2].active,
@@ -719,16 +726,16 @@ void Player_RestoreFromPrevLevel(gentity_t *ent)
 								&client->ps.saber[0].blade[5].active,
 								&client->ps.saber[0].blade[6].active,
 								&client->ps.saber[0].blade[7].active,
-								&client->ps.saber[0].blade[0].color,
-								&client->ps.saber[0].blade[1].color,
-								&client->ps.saber[0].blade[2].color,
-								&client->ps.saber[0].blade[3].color,
-								&client->ps.saber[0].blade[4].color,
-								&client->ps.saber[0].blade[5].color,
-								&client->ps.saber[0].blade[6].color,
-								&client->ps.saber[0].blade[7].color,
+								&saberColor[0][0],
+								&saberColor[0][1],
+								&saberColor[0][2],
+								&saberColor[0][3],
+								&saberColor[0][4],
+								&saberColor[0][5],
+								&saberColor[0][6],
+								&saberColor[0][7],
 								//saber 2 data
-								&saber1Name,
+								saber1Name,
 								&client->ps.saber[1].blade[0].active,
 								&client->ps.saber[1].blade[1].active,
 								&client->ps.saber[1].blade[2].active,
@@ -737,20 +744,25 @@ void Player_RestoreFromPrevLevel(gentity_t *ent)
 								&client->ps.saber[1].blade[5].active,
 								&client->ps.saber[1].blade[6].active,
 								&client->ps.saber[1].blade[7].active,
-								&client->ps.saber[1].blade[0].color,
-								&client->ps.saber[1].blade[1].color,
-								&client->ps.saber[1].blade[2].color,
-								&client->ps.saber[1].blade[3].color,
-								&client->ps.saber[1].blade[4].color,
-								&client->ps.saber[1].blade[5].color,
-								&client->ps.saber[1].blade[6].color,
-								&client->ps.saber[1].blade[7].color,
+								&saberColor[1][0],
+								&saberColor[1][1],
+								&saberColor[1][2],
+								&saberColor[1][3],
+								&saberColor[1][4],
+								&saberColor[1][5],
+								&saberColor[1][6],
+								&saberColor[1][7],
 								//general saber data
 								&client->ps.saberStylesKnown,
 								&client->ps.saberAnimLevel,
 								&client->ps.saberLockEnemy,
 								&client->ps.saberLockTime
 					);
+			for ( int i = 0; i < MAX_BLADES; i++ )
+			{
+				client->ps.saber[0].blade[i].color = (saber_colors_t)saberColor[0][i];
+				client->ps.saber[1].blade[i].color = (saber_colors_t)saberColor[1][i];
+			}
 			ent->health = client->ps.stats[STAT_HEALTH];
 
 			if(ent->client->ps.saber[0].name && gi.bIsFromZone(ent->client->ps.saber[0].name, TAG_G_ALLOC)) {
@@ -1190,14 +1202,14 @@ qboolean G_SetG2PlayerModelInfo( gentity_t *ent, const char *modelName, const ch
 				// Setup the Exhausts.
 				for ( int i = 0; i < MAX_VEHICLE_EXHAUSTS; i++ )
 				{
-					_snprintf( strTemp, 128, "*exhaust%d", i + 1 );
+					snprintf( strTemp, 128, "*exhaust%d", i + 1 );
 					ent->m_pVehicle->m_iExhaustTag[i] = gi.G2API_AddBolt( &ent->ghoul2[ent->playerModel], strTemp );
 				}
 
 				// Setup the Muzzles.
 				for ( int i = 0; i < MAX_VEHICLE_MUZZLES; i++ )
 				{
-					_snprintf( strTemp, 128, "*muzzle%d", i + 1 );
+					snprintf( strTemp, 128, "*muzzle%d", i + 1 );
 					ent->m_pVehicle->m_iMuzzleTag[i] = gi.G2API_AddBolt( &ent->ghoul2[ent->playerModel], strTemp );
 				}
 			}

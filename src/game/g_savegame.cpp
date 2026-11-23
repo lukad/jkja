@@ -706,8 +706,9 @@ static void ReadLevelLocals ()
 static void WriteGEntities(qboolean qbAutosave)
 {
 	int iCount = 0;
+	int i;
 
-	for (int i=0; i<(qbAutosave?1:globals.num_entities); i++)
+	for (i=0; i<(qbAutosave?1:globals.num_entities); i++)
 	{
 		gentity_t* ent = &g_entities[i];
 
@@ -800,7 +801,8 @@ static void ReadGEntities(qboolean qbAutosave)
 	gi.ReadFromSaveGame('NMED', (void *)&iCount, sizeof(iCount), NULL);
 
 	int iPreviousEntRead = -1;
-	for (int i=0; i<iCount; i++)
+	int i;
+	for (i=0; i<iCount; i++)
 	{
 		int iEntIndex;
 		gi.ReadFromSaveGame('EDNM', (void *)&iEntIndex, sizeof(iEntIndex), NULL);

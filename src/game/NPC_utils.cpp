@@ -1097,9 +1097,10 @@ int NPC_FindNearestEnemy( gentity_t *ent )
 	float		nearestDist = (float)WORLD_SIZE*(float)WORLD_SIZE;
 	float		distance;
 	int			numEnts, numChecks = 0;
+	int			i;
 
 	//Setup the bbox to search in
-	for ( int i = 0; i < 3; i++ )
+	for ( i = 0; i < 3; i++ )
 	{
 		mins[i] = ent->currentOrigin[i] - NPCInfo->stats.visrange;
 		maxs[i] = ent->currentOrigin[i] + NPCInfo->stats.visrange;

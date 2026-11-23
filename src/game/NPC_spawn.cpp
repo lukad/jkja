@@ -1396,6 +1396,7 @@ bool NPC_SafeSpawn( gentity_t *ent, float safeRadius )
 	float		distance = 999999;
 	int			numEnts = 0;
 	float		safeRadiusSquared = safeRadius*safeRadius;
+	int			i;
 
 	if (!ent)
 	{
@@ -1403,7 +1404,7 @@ bool NPC_SafeSpawn( gentity_t *ent, float safeRadius )
 	}
 
 	//Setup the bbox to search in
-	for ( int i = 0; i < 3; i++ )
+	for ( i = 0; i < 3; i++ )
 	{
 		safeMins[i] = ent->currentOrigin[i] - safeRadius;
 		safeMaxs[i] = ent->currentOrigin[i] + safeRadius;

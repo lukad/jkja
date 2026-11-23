@@ -3703,7 +3703,7 @@ static qboolean PM_TryRoll( void )
 		}
 	}
 
-	vec3_t fwd, right, traceto, mins = {pm->mins[0],pm->mins[1],pm->mins[2]+STEPSIZE}, maxs = {pm->maxs[0],pm->maxs[1],pm->gent->client->crouchheight}, fwdAngles = {0, pm->ps->viewangles[YAW], 0};
+	vec3_t fwd, right, traceto, mins = {pm->mins[0],pm->mins[1],pm->mins[2]+STEPSIZE}, maxs = {pm->maxs[0],pm->maxs[1],(vec_t)pm->gent->client->crouchheight}, fwdAngles = {0, pm->ps->viewangles[YAW], 0};
 	trace_t	trace;
 	int		anim = -1;
 	AngleVectors( fwdAngles, fwd, right, NULL );
@@ -7071,8 +7071,8 @@ void PM_FootSlopeTrace( float *pDiff, float *pInterval )
 #if 1
 	for ( int i = 0; i < 3; i++ )
 	{
-		if ( _isnan( pm->gent->client->renderInfo.footLPoint[i] )
-			|| _isnan( pm->gent->client->renderInfo.footRPoint[i] ) )
+		if ( isnan( pm->gent->client->renderInfo.footLPoint[i] )
+			|| isnan( pm->gent->client->renderInfo.footRPoint[i] ) )
 		{
 			if ( pDiff != NULL )
 			{
@@ -14263,8 +14263,6 @@ void PM_AdjustAttackStates( pmove_t *pm )
 	} 
 	else 
 	{
-//		int iFlags = pm->ps->eFlags;
-
 		// Clear 'em out
 		pm->ps->eFlags &= ~EF_FIRING;
 		pm->ps->eFlags &= ~EF_ALT_FIRING;
