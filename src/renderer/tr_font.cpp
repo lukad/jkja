@@ -242,7 +242,7 @@ public:
 	const int GetDescender(void) const { return(mDescender); }
 
 	const glyphInfo_t *GetLetter(const unsigned int uiLetter, int *piShader = NULL);
-	const int GetCollapsedAsianCode(ulong uiLetter) const;
+	const int GetCollapsedAsianCode(unsigned int uiLetter) const;
 
 	const int GetLetterWidth(const unsigned int uiLetter);
 	const int GetLetterHorizAdvance(const unsigned int uiLetter);
@@ -1265,7 +1265,7 @@ const glyphInfo_t *CFontInfo::GetLetter(const unsigned int uiLetter, int *piShad
 	return pGlyph;
 }
 
-const int CFontInfo::GetCollapsedAsianCode(ulong uiLetter) const
+const int CFontInfo::GetCollapsedAsianCode(unsigned int uiLetter) const
 {
 	int iCollapsedAsianCode = 0;
 

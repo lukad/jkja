@@ -42,8 +42,8 @@ void CTRPatch::RenderCorner(ivec5_t corner)
 		VectorCopy(vert->coords, tess.xyz[tess.numVertexes]);
 		VectorCopy(vert->normal, tess.normal[tess.numVertexes]);
 
-		*(ulong *)tess.vertexColors[tess.numVertexes] = *(ulong *)vert->tint;
-		*(ulong *)tess.vertexAlphas[tess.numVertexes] = corner[2];
+		*(unsigned int *)tess.vertexColors[tess.numVertexes] = *(unsigned int *)vert->tint;
+		*(unsigned int *)tess.vertexAlphas[tess.numVertexes] = corner[2];
 
 		tess.texCoords[tess.numVertexes][0][0] = vert->tex[0];
 		tess.texCoords[tess.numVertexes][0][1] = vert->tex[1];
@@ -193,7 +193,7 @@ int CTRPatch::RenderWaterVert(int x, int y)
 	tess.xyz[tess.numVertexes][1] = vert->coords[1];
 	tess.xyz[tess.numVertexes][2] = owner->GetWaterHeight();
 
-	*(ulong *)tess.vertexColors[tess.numVertexes] = 0xffffffff;
+	*(unsigned int *)tess.vertexColors[tess.numVertexes] = 0xffffffff;
 
 	tess.texCoords[tess.numVertexes][0][0] = vert->tex[0];
 	tess.texCoords[tess.numVertexes][0][1] = vert->tex[1];

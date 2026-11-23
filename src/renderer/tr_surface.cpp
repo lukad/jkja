@@ -921,23 +921,23 @@ void RB_SurfacePolychain( srfPoly_t *p ) {
 	tess.numVertexes = numv;
 }
 
-inline static ulong ComputeFinalVertexColor(const byte *colors)
+inline static unsigned int ComputeFinalVertexColor(const byte *colors)
 {
 	int			k;
 	byte		result[4];
-	ulong		r, g, b;
+	unsigned int		r, g, b;
 
 	*(int *)result = *(int *)colors;
 	if (tess.shader->lightmapIndex[0] != LIGHTMAP_BY_VERTEX )
 	{
-		return *(ulong *)result;
+		return *(unsigned int *)result;
 	}
 	if (r_fullbright->integer)
 	{
 		result[0] = 255;
 		result[1] = 255;
 		result[2] = 255;
-		return *(ulong *)result;
+		return *(unsigned int *)result;
 	}
 	// an optimization could be added here to compute the style[0] (which is always the world normal light)
 	r = g = b = 0;
@@ -981,7 +981,7 @@ inline static ulong ComputeFinalVertexColor(const byte *colors)
 	result[2] = Com_Clamp(0, 255, b >> 8);
 	
 
-	return *(ulong *)result;
+	return *(unsigned int *)result;
 }
 
 
