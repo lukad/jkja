@@ -24,6 +24,7 @@ Architectural decisions for this project, recorded as
 | [0015](0015-savegame-format.md) | Savegame format: every saved structure is written field by field, with its schema in the file | accepted |
 | [0016](0016-menu-mouse-handling.md) | The menus' missing mouse handling is taken from Raven's Jedi Outcast release | accepted |
 | [0017](0017-missing-pc-code-from-jedi-outcast.md) | PC code that the release lacks is taken from the Jedi Outcast release, case by case | accepted |
+| [0018](0018-brightness-without-a-gamma-ramp.md) | Brightness is applied by a pass over the finished frame, in the legacy renderer's back end | proposed |
 
 ## How to add a decision
 
