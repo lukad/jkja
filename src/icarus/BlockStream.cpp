@@ -374,7 +374,7 @@ CBlock *CBlock::Duplicate( CIcarus* icarus )
 */
 
 char* CBlockStream::s_IBI_EXT				= ".IBI";	//(I)nterpreted (B)lock (I)nstructions
-char* CBlockStream::s_IBI_HEADER_ID			= "IBI";
+const char CBlockStream::s_IBI_HEADER_ID[4]	= "IBI";
 const float	CBlockStream::s_IBI_VERSION		= 1.57f;
 
 /*

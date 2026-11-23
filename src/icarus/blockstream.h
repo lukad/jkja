@@ -207,7 +207,7 @@ protected:
 	int	m_streamPos;
 
 	static char*			s_IBI_EXT;
-	static char*			s_IBI_HEADER_ID;
+	static const char		s_IBI_HEADER_ID[4];	// the four bytes a script file starts with
 	static const float		s_IBI_VERSION;
 };
 
