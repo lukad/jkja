@@ -213,7 +213,10 @@ chosen at start-up with `+set sys_headless 1`. Points that differ from the Windo
 code of the release:
 
 - A full-screen window takes the size of the desktop; the display mode is not changed,
-  and `r_mode` sizes a window on the desktop only.
+  and `r_mode` sizes a window on the desktop only. The menu's list of resolutions, which
+  is part of the game data and ends at 2048 by 1536, therefore has no effect in full
+  screen. Menus and HUD are laid out for 4:3 and are stretched to the shape of the
+  display, as the release stretches them in a wide custom mode.
 - SDL3 offers no gamma ramp. The renderer therefore takes the path it has for devices
   without one: textures are brightened when they are loaded and there are no overbright
   bits, so the picture is darker in the highlights than the release's on hardware with
@@ -261,6 +264,12 @@ path is removed ([ADR-0014](decisions/0014-audio-software-mixer-only.md)). The s
 mixer is the retail default, so this loses only the optional EAX reverb. The removal
 happens in M1, because that path cannot compile without the proprietary EAX headers;
 the SDL3 audio stream follows in M2.
+
+The mixer runs on the main thread, once a frame, and the engine empties the sound
+buffer before every file it reads ("stop sounds from repeating", `FS_ReadFile`), so
+that a slow load does not loop the last fraction of a second. The sound therefore drops
+out briefly whenever something is loaded while the game runs, for example the models of
+the character menu. That is the release's code and behaviour, kept as it is.
 
 ### 4.8 64-bit and portability rules
 
@@ -459,7 +468,7 @@ and is the main design problem of M6 and M7.
 | Headless smoke test | Start with null window and sound and the renderer bound to a no-op OpenGL, mount game data, load a map, run N frames, quit cleanly | from M1, needs game data |
 | Render smoke test | The same with a real OpenGL context on a surface nobody sees (SDL's offscreen video driver) and the sound sent to SDL's dummy device, so that texture upload and drawing run for real | from M2, needs game data and such a context |
 | Scripted input | `sys_key`, `sys_char` and `sys_mousemove` on the command line operate menus and game; with `screenshot` the result can be looked at | on demand, needs game data |
-| Play test | A fixed checklist on the opening level: movement, combat, cutscene, save, load | milestone exits |
+| Play test | A fixed checklist on the opening level: movement, combat, cutscene, save, load. Played with the `linux-release` preset: the retail game is a build without assertions, and the debug presets stop on assertions of the release that the game's own data trips | milestone exits |
 | Image comparison | Screenshots at fixed camera positions on a fixed set of maps, new renderer against legacy renderer, perceptual difference under a threshold | M4 onwards |
 | Reference | Retail `jasp.exe` under Wine, for "what did the original do?" | on demand |
 
@@ -524,12 +533,12 @@ one map, `yavin1b`, for 120 frames.
       mouse clicks on edit fields and slider bars are not handled
 - [ ] Menu mouse handling from the Jedi Outcast release
       ([ADR-0016](decisions/0016-menu-mouse-handling.md))
-- [ ] SDL3 window, input and events
+- [x] SDL3 window, input and events
 - [ ] System console input and the clipboard
 - [x] Legacy renderer running in an SDL3 OpenGL context
 - [ ] Sound and music
 - [x] Cinematics
-- [ ] Per-user write directory; read-only game data
+- [x] Per-user write directory; read-only game data
 - [x] Savegames, new format ([ADR-0015](decisions/0015-savegame-format.md))
 - [ ] Savegame leftovers of the console version: the picture stored with a save is
       commented out, and respawning loads a save named "Checkpoint" that nothing writes
@@ -541,14 +550,34 @@ one map, `yavin1b`, for 120 frames.
 Exit: the opening level is playable from start to finish including cutscenes; save and
 load round-trip; no sanitizer reports during the play-test checklist.
 
-State on 2026-11-23. Everything that can be checked without a person is in place and
-checked: menus and levels render in a real OpenGL context, videos play, a save made on
-a level with NPCs loads again in the same and in a new process, damaged saves are
-refused, all under the sanitizers. The items left unticked above that have code behind
-them wait for a person at a real window: nobody has yet pressed a key, moved a mouse or
-heard a sound. Keys and mouse motion were only fed in behind the platform layer, the
-sound was only measured as not silent, the clipboard and the default write directory
-were not exercised, and of the menus only the main menu was operated.
+State on 2026-11-23, after a first play test at a real window. Window, keyboard and
+mouse work, the menus were used as far as starting a new game, sound is heard,
+configuration and saves go to the per-user directory, and the game was played from the
+opening cutscene through the first levels to a mission of the first tier. What the play
+test found, and what became of it:
+
+| Finding | Cause | State |
+|---|---|---|
+| No cutscene on the first level, the companion does nothing | The script reader took the length of a script's 4-byte header from a pointer: no script was loaded on 64-bit | fixed |
+| Full screen drawn into a corner | The window's size was read before Wayland had applied the full-screen state | fixed |
+| Walk and run animations at about half speed | The console version's halved limit on playback speed | fixed, PC line restored |
+| Saber upright in the saber menu | The code that lays it on its side was commented out, as on the console | fixed, lines restored |
+| "Load checkpoint" does nothing | Respawning loaded the console's "Checkpoint" save, which nothing writes | fixed, PC logic restored |
+| Garbage text on the console when a cutscene is skipped | A format without its argument | fixed |
+| "glGetError() = 0x501" at level changes | Cloud layers drawn for skies that have none | fixed |
+| Loading bar is a blank upright box | `CG_LoadBar` is the console version; the PC one is not in the release | waits for [ADR-0017](decisions/0017-missing-pc-code-from-jedi-outcast.md) |
+| Debug build aborts when a droid loses a limb | An assertion of the release that the game's own data trips; the retail build has assertions off | kept; play tests use the `linux-release` preset |
+| Sound drops out while models load in the menus | The release empties the sound buffer before every file read (section 4.7) | kept; listed under "Not scheduled" |
+| Resolutions of today missing from the menu | The list is game data (section 4.5) | listed under "Not scheduled" |
+
+Checked without a person, under the sanitizers: menus, levels and the opening cutscene
+render in a real OpenGL context, the first level changes to the second, videos play, a
+save made on a level with NPCs loads again in the same and in a new process, damaged
+saves are refused, and dying and "load *respawn" restarts from the automatic save.
+
+Still open before the exit criteria can hold: the opening level has not been played to
+its end by a person since these fixes; music, the clipboard, edit fields, sliders and
+list boxes of the menus have not been confirmed; and the unticked items above.
 
 ### M3. Runs on Windows and macOS
 
@@ -610,6 +639,19 @@ Exit: a replacement material set for one map demonstrates the full pipeline.
 ### M8. Multiplayer
 
 - [ ] Decide and record how multiplayer is brought onto this engine
+
+### Not scheduled
+
+Limits of the release that the port keeps for now. Each needs a decision before it is
+given a milestone.
+
+- Wide displays: menus and HUD are stretched from 4:3, and the field of view is fixed
+  horizontally, so a wide picture shows less at top and bottom.
+- Resolution in full screen: always that of the desktop (section 4.5). A lower
+  resolution scaled up to the display, and current resolutions in the menu's list, are
+  not offered.
+- Sound drops out while files are read during play (section 4.7). Mixing on a thread of
+  its own would remove that.
 
 ## 9. Decisions
 

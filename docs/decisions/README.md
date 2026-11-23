@@ -23,6 +23,7 @@ Architectural decisions for this project, recorded as
 | [0014](0014-audio-software-mixer-only.md) | Audio: the engine's software mixer only; the OpenAL and EAX path is removed | accepted |
 | [0015](0015-savegame-format.md) | Savegame format: every saved structure is written field by field, with its schema in the file | accepted |
 | [0016](0016-menu-mouse-handling.md) | The menus' missing mouse handling is taken from Raven's Jedi Outcast release | accepted |
+| [0017](0017-missing-pc-code-from-jedi-outcast.md) | PC code that the release lacks is taken from the Jedi Outcast release, case by case | proposed |
 
 ## How to add a decision
 

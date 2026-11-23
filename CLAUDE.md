@@ -106,7 +106,7 @@ Checks come into existence milestone by milestone; run all that exist.
 | Sanitizer build and tests | M1 | the `linux-sanitize` preset, same commands |
 | Headless smoke test (needs `JKA_GAMEDATA_DIR`) | M1 | part of `ctest` |
 | Render smoke test (needs `JKA_GAMEDATA_DIR` and an OpenGL context without a display) | M2 | part of `ctest` |
-| Play-test checklist | M2 | manual; listed in `docs/design.md`, section 7 |
+| Play-test checklist | M2 | manual, with the `linux-release` preset; listed in `docs/design.md`, section 7 |
 | Image comparison, new renderer against legacy | M4 | part of `ctest`, needs game data |
 
 Presets on Linux: `linux-debug` (GCC), `linux-clang-debug`, `linux-sanitize`,
@@ -121,7 +121,10 @@ offscreen video driver gets no OpenGL context. Without `+set sys_headless 1` the
 opens a window and plays sound; for a run that should do neither on the desktop, set
 `SDL_VIDEODRIVER=offscreen` and `SDL_AUDIODRIVER=dummy`. The commands `sys_key`,
 `sys_char` and `sys_mousemove` queue input events, so menus and game can be operated
-from the command line and looked at with `screenshot`. If a script or preset name changes, update this table in the same
+from the command line and looked at with `screenshot`. A command the game queues itself,
+a change of level for one, runs only after every `+wait` still pending on the command
+line; for a run that crosses one, type the commands on the engine's standard input at
+the right times instead. If a script or preset name changes, update this table in the same
 change.
 
 "Verified" means the check was run and passed in this session. Anything else is
