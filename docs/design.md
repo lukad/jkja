@@ -72,13 +72,20 @@ Things that matter for the port:
 - **The default sound path is the software mixer.** `s_UseOpenAL` defaults to `0`
   (`code/client/snd_dma.cpp:475`); OpenAL with EAX is the optional path.
 - **The renderer has an interface, but it leaks.** See [section 6](#6-renderer).
-- **The single-player image code is the console variant.** `renderer/tr_image.cpp` reads
-  only DDS files and uploads them through `qglTexImage2DEXT`, a call that exists only in
-  the Xbox OpenGL shim, while its own header and all its callers still have the PC
-  signatures. The release's single-player renderer therefore never built for the PC as
-  it stands. The PC code survives in the multiplayer tree of the import commit
-  (`codemp/renderer/tr_image.cpp`, the branches without `_XBOX`) and is restored from
-  there in M1.
+- **The single-player tree is, in places, the console port.** The release's `code/`
+  tree does not hold the PC game as shipped: in a number of files the Xbox version
+  replaced the PC code instead of sitting beside it behind `_XBOX`. Found in M1:
+  the renderer's image code read only DDS and uploaded through a call of the console's
+  OpenGL shim; the memory tag list was the trimmed console one; mouse input was the
+  thumbstick code; game, cgame and menus called engine functions and each other's
+  variables directly, which only works in the console's single statically linked
+  executable; the savegame writer signed and stored saves the console way; the menus
+  carried the console's storage and controller dialogs. The PC projects of the release
+  therefore never built as they stand. Where the PC needs the overwritten behaviour, it
+  is restored from the multiplayer tree of the import commit (`codemp/`, where the two
+  variants are still separated), or from commented-out PC lines next to the console
+  code; console-only features are removed. More such places may surface when the game
+  first runs with a window (M2).
 
 ## 3. Principles
 
@@ -188,15 +195,26 @@ engine needs, after console and proprietary functions are dropped, is small:
 | Group | Functions (today's names) | Backed by |
 |---|---|---|
 | Process | `Sys_Init`, `Sys_Quit`, `Sys_Error`, `Sys_Print`, `Sys_Milliseconds`, `Sys_GetEvent`, `Sys_QueEvent` | SDL3 events and timers |
-| Files | `Sys_ListFiles`, `Sys_FreeFileList`, `Sys_Mkdir`, `Sys_Cwd`, `Sys_DefaultBasePath` | C++ `<filesystem>`, SDL3 paths |
-| Modules | `Sys_GetGameAPI`, `Sys_LoadCgame`, `Sys_UnloadGame` | SDL3 shared-object loading |
-| Window | `GLimp_Init`, `GLimp_Shutdown`, `GLimp_EndFrame`, `GLimp_SetGamma` | SDL3 window; a GL context for the legacy renderer |
+| Files | `Sys_ListFiles`, `Sys_FreeFileList`, `Sys_Mkdir`, `Sys_Cwd`, `Sys_DefaultBasePath`, `Sys_DefaultHomePath` | C++ `<filesystem>`, SDL3 paths |
+| Modules | `Sys_GetGameFunction`, `Sys_UnloadGame` | SDL3 shared-object loading |
+| Window | `GLimp_Init`, `GLimp_Shutdown`, `GLimp_EndFrame`, `GLimp_SetGamma`, the `qgl*` function pointers | SDL3 window; a GL context for the legacy renderer |
 | Input | `IN_Init`, `IN_Shutdown`, `IN_Frame` | SDL3 keyboard, mouse, gamepad |
 | Sound device | `SNDDMA_Init`, `SNDDMA_Shutdown`, `SNDDMA_GetDMAPos`, `SNDDMA_BeginPainting`, `SNDDMA_Submit` | SDL3 audio stream |
 | Misc | `Sys_GetClipboardData`, system console | SDL3 clipboard; stdin/stdout |
 
 CD checks (`Sys_CheckCD`), CD paths, streaming-file helpers for consoles, file codes and
 the rumble scripting layer are removed.
+
+As of M1 the layer provides the process, file and module groups through SDL3 and the
+standard library, and the null variants of window, input and sound. The system console
+is standard output only; console input, the clipboard, and the real window, input and
+sound device come with M2.
+
+The null sound device is a device, not the absence of one: the mixer is given a buffer
+and a play position that follows the clock, and what it mixes is discarded. Without a
+device the engine loads no sounds, and a debug build then refuses maps with ambient
+sound sets; with the null device a headless run loads, decodes and mixes sounds as a
+run with a device does.
 
 A **null** variant of window, input and sound exists from the first day, so the engine
 can start, mount the game data, load a map and quit without a display. That is the
@@ -212,8 +230,9 @@ load for real, the front end runs, and nothing is drawn.
 - The engine finds the game data through the existing `fs_basepath` cvar, which names the
   directory that contains `base/`. It is given at run time only.
 - The game data directory is treated as **read-only**. Configuration, saves and
-  screenshots go to a per-user directory, so the engine never writes into a Steam
-  install.
+  screenshots go to the directory named by the cvar `fs_homepath`, which defaults to a
+  per-user directory given by the platform layer and is searched before the game data,
+  so the engine never writes into a Steam install.
 - Developer tooling (tests, run scripts) reads the location from the environment variable
   `JKA_GAMEDATA_DIR`. It is never written into a tracked file. Tests that need game data
   are skipped, not failed, when it is unset.
@@ -450,30 +469,42 @@ Exit: the tree contains only in-scope single-player sources; the repo checks pas
 ### M1. Compiles
 
 - [x] Decide and record: dependencies, game module interface, audio
-- [ ] Engine and game module targets in CMake
-- [ ] Remove precompiled-header assumptions; every file includes what it uses
-- [ ] Fix compiler-dialect errors (MSVC keywords, `for` scope, non-standard library calls, pre-standard headers)
-- [ ] Replace bundled jpeg, png and zlib
-- [ ] Restore the PC texture loading and upload path of the legacy renderer
-- [ ] Remove the OpenAL and EAX sound path
-- [ ] Replace inline assembly
-- [ ] Replace the variadic cgame syscalls with a typed interface
-- [ ] Fix pointer-size compile errors; remove `long`
-- [ ] Null platform layer; legacy renderer bound to a no-op OpenGL when there is no window
-- [ ] Headless smoke test
+- [x] Engine and game module targets in CMake
+- [x] Remove precompiled-header assumptions; every file includes what it uses
+- [x] Fix compiler-dialect errors (MSVC keywords, `for` scope, non-standard library calls, pre-standard headers)
+- [x] Replace bundled jpeg, png and zlib
+- [x] Restore the PC texture loading and upload path of the legacy renderer
+- [x] Remove the OpenAL and EAX sound path
+- [x] Replace inline assembly
+- [x] Replace the variadic cgame syscalls with a typed interface
+- [x] Fix pointer-size compile errors; remove `long`
+- [x] Null platform layer; legacy renderer bound to a no-op OpenGL when there is no window
+- [x] Headless smoke test
+- [x] Fix the run-time defects that keep the smoke test from passing under the sanitizers
 
 Exit: GCC and Clang build engine and game module for Linux x86-64; the headless smoke
 test mounts the game data, loads a map and quits cleanly under the sanitizers.
 
+The exit criteria hold as of 2026-11-23. What M1 leaves unverified: everything that
+needs a window or a sound device. The restored PC texture path compiles and runs
+against the no-op OpenGL, which says nothing about what it draws; the smoke test covers
+one map, `yavin1b`, for 120 frames.
+
 ### M2. Runs on Linux
 
 - [ ] Decide and record: savegame format
+- [ ] Decide and record: where the menus' mouse handling comes from. It is missing from
+      both trees of the release: `Menu_HandleMouseMove` has only its console body, and
+      mouse clicks on edit fields and slider bars are not handled
 - [ ] SDL3 window, input and events
+- [ ] System console input and the clipboard
 - [ ] Legacy renderer running in an SDL3 OpenGL context
 - [ ] Sound and music
 - [ ] Cinematics
 - [ ] Per-user write directory; read-only game data
-- [ ] Savegames, new format
+- [ ] Savegames, new format. The writer still stores pointer fields as 4-byte indexes
+      inside 8-byte fields, and its naming of the automatic save and its commented-out
+      screenshot calls still follow the console version
 - [ ] Fix run-time 64-bit defects found by play testing
 
 Exit: the opening level is playable from start to finish including cutscenes; save and

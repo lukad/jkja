@@ -112,8 +112,10 @@ Presets on Linux: `linux-debug` (GCC), `linux-clang-debug`, `linux-sanitize`,
 `linux-release`; `cmake --list-presets` shows what the current machine can use. The
 Windows and macOS presets have not been run yet.
 
-Nothing under `src/` compiles before M1; until then the build produces the repository
-tools and runs their checks. If a script or preset name changes, update this table in the same
+From M1 the build produces the engine (`jasp`), the game module (`jagame` plus the
+architecture), the unit tests (`tests/`, Catch2) and the repository tools. The smoke
+test is `smoke-load-map`; `ctest` reports it as skipped unless `JKA_GAMEDATA_DIR` is set
+in the environment. If a script or preset name changes, update this table in the same
 change.
 
 "Verified" means the check was run and passed in this session. Anything else is
