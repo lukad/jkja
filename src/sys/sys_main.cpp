@@ -163,6 +163,9 @@ Sys_GetEvent
 ================
 */
 sysEvent_t Sys_GetEvent(void) {
+	// see what the window system has for the queue
+	Sys_PumpEvents();
+
 	if (eventHead > eventTail) {
 		eventTail++;
 		return eventQueue[(eventTail - 1) & kQueuedEventsMask];
