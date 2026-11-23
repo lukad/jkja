@@ -263,17 +263,6 @@ void SG_Shutdown();
 void QDECL Com_Error( int code, const char *fmt, ... ) {
 	va_list		argptr;
 
-#if defined(_WIN32) && defined(_DEBUG)
-	if ( code != ERR_DISCONNECT && code != ERR_NEED_CD ) {
-//		if (com_noErrorInterrupt && !com_noErrorInterrupt->integer) 
-		{
-			__asm {
-				int 0x03
-			}
-		}
-	}
-#endif
-
 	// when we are running automated scripts, make sure we
 	// know if anything failed
 	if ( com_buildScript && com_buildScript->integer ) {

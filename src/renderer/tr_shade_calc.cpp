@@ -1023,16 +1023,6 @@ void RB_CalcRotateTexCoords( float degsPerSecond, float *st )
 
 
 
-#if id386 && !(defined __linux__ && defined __i386__)
-#pragma warning(disable: 4035)
-long myftol( float f ) {
-	static int tmp;
-	__asm fld f
-	__asm fistp tmp
-	__asm mov eax, tmp
-}
-#pragma warning(default: 4035)
-#endif
 
 /*
 ** RB_CalcSpecularAlpha

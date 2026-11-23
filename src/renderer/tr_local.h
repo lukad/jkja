@@ -11,7 +11,11 @@
 #define GL_INDEX_TYPE		GL_UNSIGNED_INT
 typedef unsigned int glIndex_t;
 
-#define	myftol(x) ((int)(x))
+// fast float to int conversion
+// Rounds to nearest, as the x87 instruction did that this replaces.
+inline int myftol( float f ) {
+	return (int)lrintf( f );
+}
 
 
 // 14 bits

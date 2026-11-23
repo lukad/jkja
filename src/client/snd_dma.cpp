@@ -307,14 +307,6 @@ void S_Init( void ) {
 
 	s_CPUType = Cvar_Get("sys_cpuid","",0);
 
-#if !(defined __linux__ && defined __i386__)
-#if	!id386
-#else
-	extern unsigned int uiMMXAvailable;
-	uiMMXAvailable = !!(s_CPUType->integer >= CPUID_INTEL_MMX);
-#endif
-#endif
-
 	cv = Cvar_Get ("s_initsound", "1", CVAR_ROM);
 	if ( !cv->integer ) {
 		s_soundStarted = 0;	// needed in case you set s_initsound to 0 midgame then snd_restart (div0 err otherwise later)

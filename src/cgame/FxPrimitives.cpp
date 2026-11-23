@@ -7,22 +7,11 @@
 
 #include "cg_media.h"
 
-#pragma warning(disable: 4035)
-#ifdef _M_IX86
-static long myftol( float f ) 
+// Float to int, rounding to nearest as the x87 instruction did that this replaces.
+static int myftol( float f ) 
 {
-	static int tmp;
-	__asm fld f
-	__asm fistp tmp
-	__asm mov eax, tmp
+	return (int)lrintf( f );
 }
-#else
-static long myftol( float f ) 
-{
-	return f;
-}
-#endif
-#pragma warning(default: 4035)
 
 extern int drawnFx;
 extern int mParticles;
