@@ -671,6 +671,9 @@ void CL_FlushMemory( void );
 // dump all memory on an error
 
 void CL_StartRenderer( void );
+
+qboolean CL_ConnectingToLevel( void );
+// true from the moment the client has a connection to the server until it is in the level
 void CL_StartHunkUsers( void );
 
 void Key_WriteBindings( fileHandle_t f );

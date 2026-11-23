@@ -1161,6 +1161,9 @@ void Com_WriteConfig_f( void ) {
 	Com_WriteConfigToFile( filename );
 }
 
+// the longest a frame may be for the game, in milliseconds
+#define	COM_FRAME_CLAMP_MSEC	200
+
 /*
 ================
 Com_ModifyMsec
@@ -1203,7 +1206,7 @@ int Com_ModifyMsec( int msec, float &fraction )
 		// for local single player gaming
 		// we may want to clamp the time to prevent players from
 		// flying off edges when something hitches.
-		clampTime = 200;
+		clampTime = COM_FRAME_CLAMP_MSEC;
 	}
 
 	if ( msec > clampTime ) {
@@ -1278,6 +1281,21 @@ try
 	com_frameMsec = msec;
 	float fractionMsec=0.0f;
 	msec = Com_ModifyMsec( msec, fractionMsec);
+
+	// A frame in which files were read while a level is coming up counts as a frame of
+	// the longest length a frame is allowed, COM_FRAME_CLAMP_MSEC. On the machines the
+	// game was made for such a frame always took longer than that and was cut to it, and
+	// the levels are built on it: the server runs four frames for each, the player
+	// enters the level that much later, and scripts that start when he arrives find
+	// the characters there that are spawned in the level's first frames. A machine that
+	// loads faster than the clamp would let the player in too early for them.
+	extern int fs_loadCount;
+	static int lastLoadCount;
+	if ( fs_loadCount != lastLoadCount && CL_ConnectingToLevel() && msec < COM_FRAME_CLAMP_MSEC && !com_fixedtime->integer ) {
+		msec = COM_FRAME_CLAMP_MSEC;
+		fractionMsec = 0.0f;
+	}
+	lastLoadCount = fs_loadCount;
 	
 	//
 	// server side

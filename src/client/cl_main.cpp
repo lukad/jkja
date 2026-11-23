@@ -996,6 +996,15 @@ void CL_StartRenderer( void ) {
 
 /*
 ============================
+CL_ConnectingToLevel
+============================
+*/
+qboolean CL_ConnectingToLevel( void ) {
+	return ( cls.state >= CA_CONNECTED && cls.state < CA_ACTIVE ) ? qtrue : qfalse;
+}
+
+/*
+============================
 CL_StartHunkUsers
 
 After the server has cleared the hunk, these will need to be restarted
