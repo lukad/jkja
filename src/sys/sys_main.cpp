@@ -48,11 +48,18 @@ int Sys_Milliseconds(void) {
 ================
 Sys_Print
 
-The system console is standard output.
+The system console is standard output. The colour codes in the engine's text mean nothing
+there and are left out, as the release's console window left them out.
 ================
 */
 void Sys_Print(const char *msg) {
-	std::fputs(msg, stdout);
+	for (const char *c = msg; *c; c++) {
+		if (Q_IsColorString(c)) {
+			c++;
+			continue;
+		}
+		std::fputc(*c, stdout);
+	}
 }
 
 /*
