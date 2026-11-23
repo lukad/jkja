@@ -611,7 +611,7 @@ void G_InitCvars( void ) {
 
 	g_bobaDebug = gi.cvar ( "g_bobaDebug", "", 0 );
 
-#if defined(FINAL_BUILD) || defined(_XBOX)
+#if defined(FINAL_BUILD)
 	g_delayedShutdown = gi.cvar ( "g_delayedShutdown", "0", 0 );
 #else
 	g_delayedShutdown = gi.cvar ( "g_delayedShutdown", "1", 0 );

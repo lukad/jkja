@@ -62,7 +62,7 @@
 	#include <assert.h>
 #endif
 #if !defined(FINAL_BUILD)
-	#if !defined(RAGL_PROFILE_INC) && !defined(_XBOX)
+	#if !defined(RAGL_PROFILE_INC)
 		#define  RAGL_PROFILE_INC
 		#include "Windows.h"
 	#endif
