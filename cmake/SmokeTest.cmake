@@ -1,8 +1,13 @@
-# Headless smoke test (docs/design.md, section 7): starts the engine without a window,
-# mounts the retail game data, loads a map, runs frames and quits.
+# Smoke test (docs/design.md, section 7): starts the engine, mounts the retail game
+# data, loads a map, runs frames and quits.
 #
 #   cmake -DJASP=<engine executable> -DWORK_DIR=<scratch directory> -DMAP=<map name>
-#         -DFRAMES=<number> -P SmokeTest.cmake
+#         -DFRAMES=<number> -DWINDOW=<none|offscreen> -P SmokeTest.cmake
+#
+# WINDOW=none runs without window, input and sound device, and the renderer's OpenGL
+# calls do nothing. WINDOW=offscreen gives the renderer a real OpenGL context on a
+# surface nobody sees, through SDL's offscreen video driver, and sends the sound to
+# SDL's dummy device; where no such context can be had, the test is skipped.
 #
 # The game data is found through the environment variable JKA_GAMEDATA_DIR, the
 # directory that contains base/ (docs/decisions/0007-game-data-location.md). Without it
@@ -27,11 +32,21 @@ file(MAKE_DIRECTORY "${home}")
 set(ENV{ASAN_OPTIONS} "detect_leaks=0:abort_on_error=0")
 set(ENV{UBSAN_OPTIONS} "halt_on_error=1:print_stacktrace=1")
 
+if(WINDOW STREQUAL "offscreen")
+  set(ENV{SDL_VIDEODRIVER} "offscreen")
+  set(ENV{SDL_AUDIODRIVER} "dummy")
+  set(window_arguments +set r_fullscreen 0)
+elseif(WINDOW STREQUAL "none")
+  set(window_arguments +set sys_headless 1)
+else()
+  message(FATAL_ERROR "WINDOW is \"${WINDOW}\"; it must be none or offscreen")
+endif()
+
 execute_process(
   COMMAND "${JASP}"
     +set fs_basepath "${gamedata}"
     +set fs_homepath "${home}"
-    +set sys_headless 1
+    ${window_arguments}
     +map "${MAP}"
     +wait "${FRAMES}"
     +quit
@@ -41,6 +56,12 @@ execute_process(
   ERROR_VARIABLE output
   TIMEOUT 600
 )
+
+# The engine names GLimp_Init in the error with which it gives up on the window.
+if(WINDOW STREQUAL "offscreen" AND NOT result EQUAL 0 AND output MATCHES "GLimp_Init\\(\\) - ")
+  message("SKIPPED: no offscreen OpenGL context on this machine\n${output}")
+  return()
+endif()
 message("${output}")
 
 if(NOT result EQUAL 0)

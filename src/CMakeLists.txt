@@ -361,18 +361,25 @@ set_source_files_properties(
 )
 
 if(BUILD_TESTING)
-  # Needs the retail game data; skipped without it (docs/design.md, section 7).
-  add_test(
-    NAME smoke-load-map
-    COMMAND "${CMAKE_COMMAND}"
-      "-DJASP=$<TARGET_FILE:jasp>"
-      "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/smoke"
-      -DMAP=yavin1b
-      -DFRAMES=120
-      -P "${PROJECT_SOURCE_DIR}/cmake/SmokeTest.cmake"
-  )
-  set_tests_properties(smoke-load-map PROPERTIES
-    SKIP_REGULAR_EXPRESSION "^SKIPPED"
-    TIMEOUT 900
-  )
+  # Both need the retail game data and are skipped without it (docs/design.md,
+  # section 7). The second one also needs an OpenGL context without a display.
+  foreach(variant IN ITEMS "smoke-load-map none" "smoke-render-map offscreen")
+    separate_arguments(variant)
+    list(GET variant 0 name)
+    list(GET variant 1 window)
+    add_test(
+      NAME ${name}
+      COMMAND "${CMAKE_COMMAND}"
+        "-DJASP=$<TARGET_FILE:jasp>"
+        "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/${name}"
+        -DMAP=yavin1b
+        -DFRAMES=120
+        -DWINDOW=${window}
+        -P "${PROJECT_SOURCE_DIR}/cmake/SmokeTest.cmake"
+    )
+    set_tests_properties(${name} PROPERTIES
+      SKIP_REGULAR_EXPRESSION "^SKIPPED"
+      TIMEOUT 900
+    )
+  endforeach()
 endif()
