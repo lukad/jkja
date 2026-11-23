@@ -135,7 +135,7 @@ int G2_IsSurfaceLegal(const model_s *mod_m, const char *surfaceName, int *flags)
 			return i;
 		}
 		// find the next surface
-  		surf = (mdxmSurfHierarchy_t *)( (byte *)surf + (int)( &((mdxmSurfHierarchy_t *)0)->childIndexes[ surf->numChildren ] ));
+  		surf = (mdxmSurfHierarchy_t *)( (byte *)surf + (int)( offsetof( mdxmSurfHierarchy_t, childIndexes ) + surf->numChildren * sizeof( ((mdxmSurfHierarchy_t *)0)->childIndexes[0] ) ));
 	}
 	return -1;
 }

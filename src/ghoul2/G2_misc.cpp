@@ -195,7 +195,7 @@ public:
 	const int			modelIndex;
 	const skin_t		*skin;
 	const shader_t		*cust_shader;
-	int					*TransformedVertsArray;
+	size_t				*TransformedVertsArray;
 	const EG2_Collision	eG2TraceType;
 	bool				hitOne;
 	float				m_fRadius;
@@ -224,7 +224,7 @@ public:
 		int					initmodelIndex,
 		const skin_t		*initskin,
 		const shader_t		*initcust_shader,
-		int					*initTransformedVertsArray,
+		size_t				*initTransformedVertsArray,
 		const EG2_Collision	einitG2TraceType,
 #ifdef _G2_GORE
 		float				fRadius,
@@ -290,7 +290,7 @@ void G2_List_Model_Surfaces(const char *fileName)
 			}
 		}
 		// find the next surface
-  		surf = (mdxmSurfHierarchy_t *)( (byte *)surf + (int)( &((mdxmSurfHierarchy_t *)0)->childIndexes[ surf->numChildren ] ));
+  		surf = (mdxmSurfHierarchy_t *)( (byte *)surf + (int)( offsetof( mdxmSurfHierarchy_t, childIndexes ) + surf->numChildren * sizeof( ((mdxmSurfHierarchy_t *)0)->childIndexes[0] ) ));
   		surface =(mdxmSurface_t *)( (byte *)surface + surface->ofsEnd );
 	}
 
@@ -390,7 +390,7 @@ int G2_DecideTraceLod(CGhoul2Info &ghoul2, int useLod)
 	return returnLod;
 }
 
-void R_TransformEachSurface( const mdxmSurface_t *surface, vec3_t scale, CMiniHeap *G2VertSpace, int *TransformedVertsArray,CBoneCache *boneCache) 
+void R_TransformEachSurface( const mdxmSurface_t *surface, vec3_t scale, CMiniHeap *G2VertSpace, size_t *TransformedVertsArray,CBoneCache *boneCache) 
 {
 	int				 j, k;
 	mdxmVertex_t 	*v;
@@ -403,7 +403,7 @@ void R_TransformEachSurface( const mdxmSurface_t *surface, vec3_t scale, CMiniHe
    
 	// alloc some space for the transformed verts to get put in
 	TransformedVerts = (float *)G2VertSpace->MiniHeapAlloc(surface->numVerts * 5 * 4);
-	TransformedVertsArray[surface->thisSurfaceIndex] = (int)TransformedVerts;
+	TransformedVertsArray[surface->thisSurfaceIndex] = (size_t)TransformedVerts;
 	if (!TransformedVerts)
 	{
 		assert(TransformedVerts);
@@ -504,7 +504,7 @@ void R_TransformEachSurface( const mdxmSurface_t *surface, vec3_t scale, CMiniHe
 
 
 void G2_TransformSurfaces(int surfaceNum, surfaceInfo_v &rootSList, 
-					CBoneCache *boneCache, const model_t *currentModel, int lod, vec3_t scale, CMiniHeap *G2VertSpace, int *TransformedVertArray, bool secondTimeAround)
+					CBoneCache *boneCache, const model_t *currentModel, int lod, vec3_t scale, CMiniHeap *G2VertSpace, size_t *TransformedVertArray, bool secondTimeAround)
 {
 	int	i;
 	assert(currentModel);
@@ -603,13 +603,13 @@ void G2_TransformModel(CGhoul2Info_v &ghoul2, const int frameNum, vec3_t scale, 
 		}
 
 		// give us space for the transformed vertex array to be put in
-		g.mTransformedVertsArray = (int*)G2VertSpace->MiniHeapAlloc(g.currentModel->mdxm->numSurfaces * 4);
+		g.mTransformedVertsArray = (size_t*)G2VertSpace->MiniHeapAlloc(g.currentModel->mdxm->numSurfaces * sizeof(size_t));
 		if (!g.mTransformedVertsArray)
 		{
 			Com_Error(ERR_DROP, "Ran out of transform space for Ghoul2 Models. Adjust MiniHeapSize in SV_SpawnServer.\n");
 		}
 
-		memset(g.mTransformedVertsArray, 0,(g.currentModel->mdxm->numSurfaces * 4)); 
+		memset(g.mTransformedVertsArray, 0,(g.currentModel->mdxm->numSurfaces * sizeof(size_t))); 
 
 		G2_FindOverrideSurface(-1,g.mSlist); //reset the quick surface override lookup;
 		// recursively call the model surface transform
@@ -1666,7 +1666,7 @@ void *G2_FindSurface(const model_s *mod, int index, int lod)
 	assert(mod->mdxm);
 
 	// point at first lod list
-	byte	*current = (byte*)((int)mod->mdxm + (int)mod->mdxm->ofsLODs);
+	byte	*current = (byte*)mod->mdxm + mod->mdxm->ofsLODs;
 	int i;
 
 	//walk the lods
@@ -1705,7 +1705,7 @@ void G2_SaveGhoul2Models(CGhoul2Info_v &ghoul2)
 	}
 
 	// this one isn't a define since I couldn't work out how to figure it out at compile time
-	const int ghoul2BlockSize = (int)&ghoul2[0].BSAVE_END_FIELD - (int)&ghoul2[0].BSAVE_START_FIELD;
+	const int ghoul2BlockSize = (int)((byte *)&ghoul2[0].BSAVE_END_FIELD - (byte *)&ghoul2[0].BSAVE_START_FIELD);
 
 	// add in count for number of ghoul2 models
 	iGhoul2Size += 4;	
@@ -1818,7 +1818,7 @@ void G2_LoadGhoul2Model(CGhoul2Info_v &ghoul2, char *buffer)
 	}
 
 	// this one isn't a define since I couldn't work out how to figure it out at compile time
-	const int ghoul2BlockSize = (int)&ghoul2[0].mTransformedVertsArray - (int)&ghoul2[0].mModelindex;
+	const int ghoul2BlockSize = (int)((byte *)&ghoul2[0].mTransformedVertsArray - (byte *)&ghoul2[0].mModelindex);
 
 	// now we have enough instances, lets go through each one and load up the relevant details
 	for (int i=0; i<ghoul2.size(); i++)
