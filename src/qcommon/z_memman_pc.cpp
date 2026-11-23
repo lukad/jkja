@@ -4,6 +4,8 @@
 #include "qcommon.h"
 #include "sstring.h"
 
+#include <unordered_set>
+
 
 #ifdef DEBUG_ZONE_ALLOCS
 int giZoneSnaphotNum=0;
@@ -196,6 +198,15 @@ const static StaticMem_t gNumberString[] = {
 
 qboolean gbMemFreeupOccured = qfalse;
 
+// The blocks that Z_Malloc has handed out and not freed. Z_IsFromZone is asked about
+// pointers that never came from the zone, string literals for one, and must not look
+// for a header in front of those.
+static std::unordered_set<const zoneHeader_t *> &Zone_LiveBlocks()
+{
+	static std::unordered_set<const zoneHeader_t *> blocks;
+	return blocks;
+}
+
 #ifdef DEBUG_ZONE_ALLOCS
 void *_D_Z_Malloc ( int iSize, memtag_t eTag, qboolean bZeroit, const char *psFile, int iLine)
 #else
@@ -319,6 +330,8 @@ void *Z_Malloc(int iSize, memtag_t eTag, qboolean bZeroit, int unusedAlign)
 	pMemory->iSnapshotNumber	= giZoneSnaphotNum;
 #endif
 
+	Zone_LiveBlocks().insert(pMemory);
+
 	// Link in
 	pMemory->iMagic	= ZONE_MAGIC;
 	pMemory->eTag	= eTag;
@@ -415,6 +428,8 @@ static int Zone_FreeBlock(zoneHeader_t *pMemory)
 			pMemory->pNext->pPrev = pMemory->pPrev;
 		}
 		
+		Zone_LiveBlocks().erase(pMemory);
+
 		//debugging double frees
 		pMemory->iMagic = 'FREE';
 		free (pMemory);
@@ -439,14 +454,7 @@ static int Zone_FreeBlock(zoneHeader_t *pMemory)
 qboolean Z_IsFromZone(void *pvAddress, memtag_t eTag)
 {
 	zoneHeader_t *pMemory = ((zoneHeader_t *)pvAddress) - 1;
-#if 1	//debugging double free
-	if (pMemory->iMagic == 'FREE')
-	{
-		Com_Printf("Z_IsFromZone(%x): Ptr has been freed already!(%9s)\n",pvAddress,pvAddress);
-		return qfalse;
-	}
-#endif
-	if (pMemory->iMagic != ZONE_MAGIC)
+	if (!Zone_LiveBlocks().count(pMemory))
 	{
 		return qfalse;
 	}
