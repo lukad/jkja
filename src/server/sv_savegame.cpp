@@ -1225,27 +1225,43 @@ int Compress_RLE(const byte *pIn, int iLength, byte *pOut)
 	return iOutIndex;
 }
 
-void DeCompress_RLE(byte *pOut, const byte *pIn, int iDecompressedBytesRemaining)
+// Returns qfalse if the compressed data does not hold what it claims to: it comes from a
+// file, and neither buffer may be overrun because of what the file says.
+qboolean DeCompress_RLE(byte *pOut, const byte *pIn, int iCompressedBytes, int iDecompressedBytesRemaining)
 {
-	signed char count;
+	const byte *pInEnd = pIn + iCompressedBytes;
+	int count;
 	
 	while (iDecompressedBytesRemaining > 0) 
 	{
+		if (pIn >= pInEnd)
+		{
+			return qfalse;
+		}
 		count = (signed char) *pIn++;
 		if (count>0) 
 		{
+			if (count > iDecompressedBytesRemaining || pIn >= pInEnd)
+			{
+				return qfalse;
+			}
 			memset(pOut,*pIn++,count);
 		} 
 		else 
 		if (count<0)
 		{
-			count = (signed char) -count;
+			count = -count;
+			if (count > iDecompressedBytesRemaining || count > pInEnd - pIn)
+			{
+				return qfalse;
+			}
 			memcpy(pOut,pIn,count);
 			pIn += count;
 		}
 		pOut += count;
 		iDecompressedBytesRemaining -= count;
 	}
+	return qtrue;
 }
 
 // simulate decompression over original data (but don't actually do it), to test de/compress validity...
@@ -1508,8 +1524,7 @@ static int SG_Read_Actual(unsigned int chid, void *pvAddress, int iLength, void 
 		strcpy(sChidText2, SG_GetChidText(chid));
 		if (!qbSGReadIsTestOnly)
 		{
-			return 0;
-			//Com_Error(ERR_DROP, "Loaded chunk ID (%s) does not match requested chunk ID (%s)", sChidText1, sChidText2);
+			Com_Error(ERR_DROP, "Loaded chunk ID (%s) does not match requested chunk ID (%s)", sChidText1, sChidText2);
 		}
 		return 0;
 	}
@@ -1522,13 +1537,24 @@ static int SG_Read_Actual(unsigned int chid, void *pvAddress, int iLength, void 
 		{
 			if (!qbSGReadIsTestOnly)
 			{
-				return 0;
-				//Com_Error(ERR_DROP, "Loaded chunk (%s) has different length than requested", SG_GetChidText(chid));
+				Com_Error(ERR_DROP, "Loaded chunk (%s) has different length than requested", SG_GetChidText(chid));
 			}
 			return 0;
 		}
 	}
 	iLength = uiLoadedLength;	// for retval
+
+	// A chunk cannot be longer than its file, or, compressed, than the longest run of
+	// every byte of the file. Without this a damaged length asks for any amount of memory.
+	const int iFileLength = FS_filelength( fhSaveGame );
+	if ( iLength < 0 || iLength / (bBlockIsCompressed ? 127 : 1) > iFileLength )
+	{
+		if (!qbSGReadIsTestOnly)
+		{
+			Com_Error(ERR_DROP, "Chunk %s is damaged", SG_GetChidText(chid));
+		}
+		return 0;
+	}
 
 	// alloc?...
 	//
@@ -1557,10 +1583,14 @@ static int SG_Read_Actual(unsigned int chid, void *pvAddress, int iLength, void 
 		// read compressed data length...
 		//
 		uiLoaded += SG_ReadBytes( &uiCompressedLength, sizeof(uiCompressedLength),fhSaveGame);
+		if ( uiCompressedLength > (unsigned int)iFileLength )
+		{
+			uiCompressedLength = 0;	// damaged; the checks below report it
+		}
 		//
 		// alloc space...
 		//	
-		byte *pTempRLEData = (byte *)Z_Malloc(uiCompressedLength, TAG_SAVEGAME, qfalse);
+		byte *pTempRLEData = (byte *)Z_Malloc(uiCompressedLength, TAG_SAVEGAME, qtrue);
 		//
 		// read compressed data...
 		//
@@ -1568,7 +1598,10 @@ static int SG_Read_Actual(unsigned int chid, void *pvAddress, int iLength, void 
 		//
 		// decompress it...
 		//
-		DeCompress_RLE((byte *)pvAddress, pTempRLEData, iLength);
+		if ( !DeCompress_RLE((byte *)pvAddress, pTempRLEData, uiCompressedLength, iLength) )
+		{
+			uiLoaded = 0;	// so that the check for read errors below fails
+		}
 		//
 		// free workspace...
 		//
@@ -1591,8 +1624,7 @@ static int SG_Read_Actual(unsigned int chid, void *pvAddress, int iLength, void 
 	
 		if (!qbSGReadIsTestOnly)
 		{
-			return 0;
-			//Com_Error(ERR_DROP, "Failed checksum check for chunk", SG_GetChidText(chid));
+			Com_Error(ERR_DROP, "Failed checksum check for chunk %s", SG_GetChidText(chid));
 		}
 		else
 		{
@@ -1610,8 +1642,7 @@ static int SG_Read_Actual(unsigned int chid, void *pvAddress, int iLength, void 
 	{
 		if (!qbSGReadIsTestOnly)
 		{
-			return 0;
-			//Com_Error(ERR_DROP, "Error during loading chunk %s", SG_GetChidText(chid));
+			Com_Error(ERR_DROP, "Error during loading chunk %s", SG_GetChidText(chid));
 		}
 		else
 		{
