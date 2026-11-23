@@ -221,7 +221,8 @@ Targets are 64-bit only: x86-64 and arm64.
 
 - **Typed module interface.** The variadic cgame syscalls are replaced by a struct of
   typed function pointers, the same pattern the server-side game interface already uses.
-  This removes the pointer-through-`int` path completely.
+  This removes the pointer-through-`int` path completely
+  ([ADR-0013](decisions/0013-typed-cgame-interface.md)).
 - **Fixed-width integers at boundaries.** Anything read from or written to a file uses
   `int32_t`-style types. `long` is removed from non-third-party code.
 - **Pointer/integer casts.** Compilers reject truncating pointer casts in C++; every such
@@ -532,7 +533,6 @@ Still to be made, each before the milestone that needs it:
 
 | Decision | Needed by |
 |---|---|
-| Game module interface (shape of the typed cgame interface) | M1 |
 | Audio backend | M2 |
 | Savegame format | M2 |
 | Continuous integration provider | M3 |

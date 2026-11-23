@@ -19,6 +19,7 @@ Architectural decisions for this project, recorded as
 | [0010](0010-project-and-binary-names.md) | Project name `jasp`; binaries keep their original names | accepted |
 | [0011](0011-repository-tooling-in-cpp.md) | Repository tooling is written in C++ and built by the project | accepted |
 | [0012](0012-dependencies.md) | Dependencies are pinned and built by the project; nothing is taken from the system | accepted |
+| [0013](0013-typed-cgame-interface.md) | The cgame interface is a pair of structs of typed function pointers | accepted |
 
 ## How to add a decision
 
