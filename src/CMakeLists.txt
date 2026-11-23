@@ -5,11 +5,9 @@
 # for the engine and game/game.vcproj for the game module, as they stand after M0.
 # Sources are listed explicitly; a new file is added here by hand.
 #
-# Neither target is part of the default build until it compiles (roadmap, M1).
-
 # The Win32 platform code in win32/ is not built; sys/ replaces it
 # (docs/decisions/0005-platform-layer-sdl3.md).
-add_executable(jasp EXCLUDE_FROM_ALL
+add_executable(jasp
   client/cl_cgame.cpp
   client/cl_cin.cpp
   client/cl_console.cpp
@@ -169,7 +167,7 @@ else()
 endif()
 
 # game, cgame and ICARUS. The file name states the architecture: jagamex86_64, jagamearm64.
-add_library(jagame MODULE EXCLUDE_FROM_ALL
+add_library(jagame MODULE
   cgame/FX_ATSTMain.cpp
   cgame/FX_Blaster.cpp
   cgame/FX_Bowcaster.cpp
