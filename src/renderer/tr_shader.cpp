@@ -3302,7 +3302,7 @@ static inline const short *R_FindLightmap( const short *lightmapIndex )
 	//R_SyncRenderThread(); 
 
 	// attempt to load an external lightmap 
-	sprintf( fileName, "$%s/" EXTERNAL_LIGHTMAP, tr.worldDir, *lightmapIndex ); 
+	Com_sprintf( fileName, sizeof( fileName ), "$%s/" EXTERNAL_LIGHTMAP, tr.worldDir, *lightmapIndex ); 
 	image = R_FindImageFile( fileName, qfalse, qfalse, r_ext_compressed_lightmaps->integer, GL_CLAMP ); 
 	if( image == NULL ) 
 	{ 
