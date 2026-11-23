@@ -10,7 +10,6 @@
 #include "tr_stb.h"
 #include <miniz.h>
 #include "../qcommon/sstring.h"
-#include "../win32/xbox_texture_man.h"
 
 static byte			 s_intensitytable[256];
 static unsigned char s_gammatable[256];
@@ -126,7 +125,7 @@ void GL_TextureMode( const char *string ) {
 	   				 R_Images_StartIteration();
 	while ( (glt   = R_Images_GetNextIteration()) != NULL)
 	{
-		if ( glt->mipmap ) {
+		if ( glt->mipcount ) {
 			GL_Bind (glt);
 			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
 			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
@@ -192,22 +191,6 @@ static float R_BytesPerTex (int format)
 		//"DXT5 " 
 		return 1;
 		break;
-	case GL_DDS1_EXT:
-		//"DDS1 "
-		return 0.5f;
-		break;
-	case GL_DDS5_EXT:
-		//"DDS5 "
-		return 1;
-		break;
-	case GL_DDS_RGB16_EXT:
-		//"DDS16"
-		return 2;
-		break;
-	case GL_DDS_RGBA32_EXT:
-		//"DDS32"
-		return 4;
-		break;
 	default:
 		//"???? " 
 		return 4;
@@ -226,22 +209,14 @@ void R_ImageList_f( void ) {
 //	int		totalFileSizeK = 0;
 	float	texBytes = 0.0f;
 	const char *yesno[] = {"no ", "yes"};
-	int curTexels;
-	unsigned curBytes;
 
-	VID_Printf (PRINT_ALL, "\n      -w-- -h-- -mm- -if-- --size-- surfs --name-------\n");
+	VID_Printf (PRINT_ALL, "\n      -w-- -h-- -mm- -if-- --name-------\n");
 
 	int iNumImages = R_Images_StartIteration();
 	while ( (image = R_Images_GetNextIteration()) != NULL)
 	{
-		curTexels = image->width * image->height;
-		texels   += curTexels;
-
-		curBytes = curTexels * R_BytesPerTex(image->internalFormat);
-		if( image->mipcount )
-			curBytes *= 1.3;
-		curBytes = (curBytes + 127) &  ~127;
-		texBytes += curBytes;
+		texels   += image->width*image->height;
+		texBytes += image->width*image->height * R_BytesPerTex (image->internalFormat);
 //		totalFileSizeK += (image->imgfileSize+1023)/1024;
 		VID_Printf (PRINT_ALL,  "%4i: %4i %4i  %s ",
 			i, image->width, image->height, yesno[image->mipcount?1:0] );
@@ -279,27 +254,14 @@ void R_ImageList_f( void ) {
 		case GL_RGB5:
 			VID_Printf( PRINT_ALL, "RGB5 " );
 			break;
-		case GL_DDS1_EXT:
-			VID_Printf( PRINT_ALL, "DDS1 " );
-			break;
-		case GL_DDS5_EXT:
-			VID_Printf( PRINT_ALL, "DDS5 " );
-			break;
-		case GL_DDS_RGB16_EXT:
-			VID_Printf( PRINT_ALL, "DDS16" );
-			break;
-		case GL_DDS_RGBA32_EXT:
-			VID_Printf( PRINT_ALL, "DDS32" );
-			break;
 		default:
 			VID_Printf( PRINT_ALL, "???? " );
 		}
 
 #ifndef FINAL_BUILD
-		VID_Printf( PRINT_ALL, " %8u %4i %s\n", curBytes, R_SurfaceImageCount(image),
-				image->imgName );
+		VID_Printf( PRINT_ALL, "%s\n", image->imgName );
 #else
-		VID_Printf( PRINT_ALL, " %8u %u\n", curBytes, image->imgCode );
+		VID_Printf( PRINT_ALL, "%u\n", image->imgCode );
 #endif
 		i++;
 	}
@@ -528,20 +490,21 @@ Upload32
 ===============
 */
 static void Upload32( unsigned *data, 
-						  int img_width, int img_height, 
 						  GLenum format,
-						  int mipcount, 
+						  qboolean mipmap, 
 						  qboolean picmip, 
 						  qboolean isLightmap, 
-						  int *pformat )
+						  qboolean allowTC,
+						  int *pformat, 
+						  unsigned short *pUploadWidth, unsigned short *pUploadHeight )
 {
 	if (format == GL_RGBA)
 	{
 		int			samples;
 		int			i, c;
 		byte		*scan;
-		int			width = img_width;
-		int			height = img_height; 
+		int			width = *pUploadWidth;
+		int			height = *pUploadHeight; 
 		
 		//
 		// perform optional picmip operation
@@ -590,7 +553,20 @@ static void Upload32( unsigned *data,
 		// select proper internal format
 		if ( samples == 3 )
 		{
-			if ( isLightmap && r_texturebitslm->integer > 0 )
+			if ( glConfig.textureCompression == TC_S3TC && allowTC )
+			{
+				*pformat = GL_RGB4_S3TC;
+			}
+			else if ( glConfig.textureCompression == TC_S3TC_DXT && allowTC )
+			{	// Compress purely color - no alpha
+				if ( r_texturebits->integer == 16 ) {
+					*pformat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;	//this format cuts to 16 bit
+				}
+				else {//if we aren't using 16 bit then, use 32 bit compression
+					*pformat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+				}
+			}
+			else if ( isLightmap && r_texturebitslm->integer > 0 )
 			{
 				// Allow different bit depth when we are a lightmap
 				if ( r_texturebitslm->integer == 16 )
@@ -617,7 +593,11 @@ static void Upload32( unsigned *data,
 		}
 		else if ( samples == 4 )
 		{
-			if ( r_texturebits->integer == 16 )
+			if ( glConfig.textureCompression == TC_S3TC_DXT && allowTC)
+			{	// Compress both alpha and color
+				*pformat = GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
+			}
+			else if ( r_texturebits->integer == 16 )
 			{
 				*pformat = GL_RGBA4;
 			}
@@ -631,47 +611,61 @@ static void Upload32( unsigned *data,
 			}
 		}
 		
+		*pUploadWidth = width;
+		*pUploadHeight = height;
+		
 		// copy or resample data as appropriate for first MIP level
-		if (!mipcount)
+		if (!mipmap)
 		{
 			qglTexImage2D (GL_TEXTURE_2D, 0, *pformat, width, height, 0, 
 				GL_RGBA, GL_UNSIGNED_BYTE, data);
+			goto done;
 		}
-		else
+		
+		R_LightScaleTexture (data, width, height, (qboolean)!mipmap );
+		
+		qglTexImage2D (GL_TEXTURE_2D, 0, *pformat, width, height, 0, 
+			GL_RGBA, GL_UNSIGNED_BYTE, data );
+		
+		if (mipmap)
 		{
-			if (mipcount)
+			int		miplevel;
+			
+			miplevel = 0;
+			while (width > 1 || height > 1)
 			{
-				int	miplevel = 0;
-				int total = 1;
-				int n = width;
-				if (height > n) n = height;
-				while (n > 1)
+				R_MipMap( (byte *)data, width, height );
+				width >>= 1;
+				height >>= 1;
+				if (width < 1)
+					width = 1;
+				if (height < 1)
+					height = 1;
+				miplevel++;
+				
+				if ( r_colorMipLevels->integer ) 
 				{
-					n >>= 1;
-					++total;
+					R_BlendOverTexture( (byte *)data, width * height, mipBlendColors[miplevel] );
 				}
 				
-				qglTexImage2DEXT (GL_TEXTURE_2D, 0, total, *pformat, width, height, 
-					0, GL_RGBA, GL_UNSIGNED_BYTE, data );
+				qglTexImage2D (GL_TEXTURE_2D, miplevel, *pformat, width, height, 0, 
+					GL_RGBA, GL_UNSIGNED_BYTE, data );
 			}
 		}
 	}
 	else
 	{
-		*pformat = format;
-
-		qglTexImage2DEXT (GL_TEXTURE_2D, 0, mipcount,
-			format, img_width, img_height, 0, format, 
-			GL_UNSIGNED_BYTE, data);
 	}
 
-	if (mipcount)
+done:
+
+	if (mipmap)
 	{
 		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
 		qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
-		if(glConfig.textureFilterAnisotropicAvailable)
+		if(r_ext_texture_filter_anisotropic->integer>1 && glConfig.maxTextureFilterAnisotropy>0)
 		{
-			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, 2.0f);
+			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, r_ext_texture_filter_anisotropic->value);
 		}
 	}
 	else
@@ -684,7 +678,7 @@ static void Upload32( unsigned *data,
 }
 
 
-typedef tmap (int, image_t *)	AllocatedImages_t;
+typedef std::map< int, image_t *, std::less< int > >	AllocatedImages_t;
 								AllocatedImages_t* AllocatedImages = NULL;
 								AllocatedImages_t::iterator itAllocatedImages;
 
@@ -751,7 +745,6 @@ static void GL_ResetBinds(void)
 //
 void R_Images_DeleteLightMaps(void)
 {
-	assert( 0 && "This function will wreak havoc on texture pool!" );
 	qboolean bEraseOccured = qfalse;
 	for (AllocatedImages_t::iterator itImage = AllocatedImages->begin(); itImage != AllocatedImages->end(); bEraseOccured?itImage:++itImage)
 	{			
@@ -811,24 +804,6 @@ void R_Images_Clear(void)
 	}
 
 	giTextureBindNum = 1024;
-
-	// Is this safe? Sure seems to be. And necessary, to avoid putting more than 4096
-	// image swap files on the Z drive.
-	glw_state->textureBindNum = 1;
-
-	gTextures.Reset();
-/*
-	extern unsigned long texturePoint;
-	texturePoint = 0;
-
-	// Avert disaster. I can't conceive of how the second one could be true,
-	// but I'm so friggin paranoid right now.
-	extern byte *smallBinkTexture;
-	smallBinkTexture = NULL;
-
-	extern bool bNextTextureIsSmallBink;
-	bNextTextureIsSmallBink = false;
-*/
 }
 
 
@@ -861,7 +836,6 @@ qboolean RE_RegisterImages_LevelLoadEnd(void)
 			//
 			if ( pImage->iLastLevelUsedOn != RE_RegisterMedia_GetLevel() )
 			{	// nope, so dump it...
-				assert( 0 && "This will wreak havoc on texture pool!" );
 				//VID_Printf( PRINT_DEVELOPER, "Dumping image \"%s\"\n",pImage->imgName);
 				R_Images_DeleteImageContents(pImage);
 				itImage = AllocatedImages->erase(itImage);
@@ -881,7 +855,7 @@ qboolean RE_RegisterImages_LevelLoadEnd(void)
 //
 // This is called by both R_FindImageFile and anything that creates default images...
 //
-static image_t *R_FindImageFile_NoLoad(const char *name, int mipcount, qboolean allowPicmip, int glWrapClampMode )
+static image_t *R_FindImageFile_NoLoad(const char *name, qboolean mipmap, qboolean allowPicmip, qboolean allowTC, int glWrapClampMode )
 {	
 	if (!name) {
 		return NULL;
@@ -901,7 +875,7 @@ static image_t *R_FindImageFile_NoLoad(const char *name, int mipcount, qboolean 
 		// the white image can be used with any set of parms, but other mismatches are errors...
 		//
 		if ( strcmp( pName, "*white" ) ) {
-			if ( !!pImage->mipcount != !!mipcount ) {
+			if ( !!pImage->mipcount != !!mipmap ) {
 				VID_Printf( PRINT_WARNING, "WARNING: reused image %s with mixed mipmap parm\n", pName );
 			}
 //			if ( pImage->allowPicmip != !!allowPicmip ) {
@@ -926,8 +900,8 @@ This is the only way any image_t are created
 ================
 */
 image_t *R_CreateImage( const char *name, const byte *pic, int width, int height, 
-					   GLenum format, int mipcount, qboolean allowPicmip, 
-					   int glWrapClampMode )
+					   GLenum format, qboolean mipmap, qboolean allowPicmip, qboolean allowTC, 
+					   int glWrapClampMode, int fileSize )
 {
 	image_t		*image;
 	qboolean	isLightmap = qfalse;
@@ -950,18 +924,18 @@ image_t *R_CreateImage( const char *name, const byte *pic, int width, int height
 		Com_Error( ERR_FATAL, "R_CreateImage: %s dimensions (%i x %i) not power of 2!\n",name,width,height);
 	}
 
-	image = R_FindImageFile_NoLoad(name, mipcount, allowPicmip, glWrapClampMode );
+	image = R_FindImageFile_NoLoad(name, mipmap, allowPicmip, allowTC, glWrapClampMode );
 	if (image) {
 		return image;
 	}
 
 	image = (image_t*) Z_Malloc( sizeof( image_t ), TAG_IMAGE_T, qtrue );
 
-	qglGenTextures(1, (GLuint*)&image->texnum);
+	image->texnum = 1024 + giTextureBindNum++;	// ++ is of course staggeringly important...
 
 	image->iLastLevelUsedOn = RE_RegisterMedia_GetLevel();
 
-	image->mipcount = mipcount;
+	image->mipcount = !!mipmap;
 //	image->allowPicmip = allowPicmip;
 
 	image->imgCode = mz_crc32(MZ_CRC32_INIT, (const unsigned char *)name, strlen(name));
@@ -975,16 +949,20 @@ image_t *R_CreateImage( const char *name, const byte *pic, int width, int height
 	image->isSystem = (name[0] == '*');
 	image->isLightmap = isLightmap;
 
-	GL_SelectTexture( 0 );
+	if ( qglActiveTextureARB ) {
+		GL_SelectTexture( 0 );
+	}
 
 	GL_Bind(image);
 
-	Upload32( (unsigned *)pic,	image->width, image->height, 
-								format,
-								image->mipcount,
+	Upload32( (unsigned *)pic,	format,
+								(qboolean)image->mipcount,
 								allowPicmip, 
 								isLightmap, 
-								&image->internalFormat );
+								allowTC,
+								&image->internalFormat,
+								&image->width,
+								&image->height );
 
 	qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, glWrapClampMode );
 	qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, glWrapClampMode );
@@ -1004,7 +982,7 @@ image_t *R_CreateImage( const char *name, const byte *pic, int width, int height
 void R_CreateAutomapImage( const char *name, const byte *pic, int width, int height, 
 					   qboolean mipmap, qboolean allowPicmip, qboolean allowTC, int glWrapClampMode ) 
 {
-	R_CreateImage(name, pic, width, height, GL_RGBA, mipmap, allowPicmip, glWrapClampMode);
+	R_CreateImage(name, pic, width, height, GL_RGBA, mipmap, allowPicmip, allowTC, glWrapClampMode);
 }
 
 /*
@@ -1095,7 +1073,6 @@ bool LoadTGAPalletteImage ( const char *name, byte **pic, int *width, int *heigh
 Ghoul2 Insert End
 */
 
-/*
 // My TGA loader...
 //
 //---------------------------------------------------
@@ -1450,69 +1427,6 @@ TGADone:
 	}
 	return filelen;
 }
-*/
-
-/*
-=========================================================
-
-DDS LOADING
-
-=========================================================
-*/
-
-void LoadDDS ( const char *name, byte **pic, int *width, int *height, int *mipcount, GLenum *format )
-{
-	fileHandle_t h;
-	int len = FS_FOpenFileRead( name, &h, qfalse );
-	if ( h == 0 )
-	{
-		return;
-	}
-	
-	*pic = (byte*)Z_Malloc( len, TAG_TEMP_WORKSPACE, qfalse , 32);
-	FS_Read( *pic, len, h );
-	FS_FCloseFile( h );
-
-	DWORD dds = MAKEFOURCC('D', 'D', 'S', ' ');
-	if (*(DWORD*)(*pic) != dds)
-	{
-		FS_FreeFile (*pic);
-		*pic = NULL;
-		return;
-	}
-	
-	DDS_HEADER *desc = (DDS_HEADER *)(*pic + sizeof(DWORD));
-	DWORD dxt1 = MAKEFOURCC('D', 'X', 'T', '1');
-	DWORD dxt5 = MAKEFOURCC('D', 'X', 'T', '5');
-	
-	if (desc->ddspf.dwFourCC == dxt1)
-	{
-		*format = GL_DDS1_EXT;
-	}
-	else if (desc->ddspf.dwFourCC == dxt5)
-	{
-		*format = GL_DDS5_EXT;
-	}
-	else if (desc->ddspf.dwRGBBitCount == 16)
-	{
-		*format = GL_DDS_RGB16_EXT;
-	}
-	else if (desc->ddspf.dwRGBBitCount == 32)
-	{
-		*format = GL_DDS_RGBA32_EXT;
-	}
-	else
-	{
-		FS_FreeFile (*pic);
-		*pic = NULL;
-		return;
-	}
-
-	*width = desc->dwWidth;
-	*height = desc->dwHeight;
-	*mipcount = desc->dwMipMapCount;
-}
-
 
 //===================================================================
 
@@ -1524,12 +1438,13 @@ Loads any of the supported image types into a cannonical
 32 bit format.
 =================
 */
-void R_LoadImage( const char *shortname, byte **pic, int *width, int *height, int *mipcount, GLenum *format ) {
+int R_LoadImage( const char *shortname, byte **pic, int *width, int *height, GLenum *format ) {
 	char	name[MAX_QPATH];
 
 	*pic = NULL;
 	*width = 0;
 	*height = 0;
+	*format = GL_RGBA;
 
 	//handle external LMs
 	if (shortname[0] == '$') {
@@ -1538,41 +1453,26 @@ void R_LoadImage( const char *shortname, byte **pic, int *width, int *height, in
 		Q_strncpyz( name, shortname, sizeof( name ) );
 	}
 
-	// Try DDS first - saves a ton of failed GOB checks on startup:
-	COM_StripExtension(name, name);
-	COM_DefaultExtension(name, sizeof(name), ".dds");
-	LoadDDS( name, pic, width, height, mipcount, format );
-	if( *pic )
-		return;
-
-	// The formats of the PC game, in the order its loader tried them. The decoders
-	// return 32-bit RGBA without mip levels.
-	*format = GL_RGBA;
-	*mipcount = 1;
-
 	COM_StripExtension(name,name);
 	COM_DefaultExtension(name, sizeof(name), ".jpg");
 	LoadJPG( name, pic, width, height );
 	if (*pic) {
-		return;
+		return 1;
 	}
 
 	COM_StripExtension(name,name);
 	COM_DefaultExtension(name, sizeof(name), ".png");
 	LoadPNG32( name, pic, width, height );
 	if (*pic) {
-		return;
+		return 1;
 	}
 
 	COM_StripExtension(name,name);
 	COM_DefaultExtension(name, sizeof(name), ".tga");
 	LoadTGA( name, pic, width, height );
-	if (*pic) {
-		return;
-	}
 
 	// Return whether or not it worked
-	return;
+	return *pic != NULL;
 }
 
 
@@ -1840,7 +1740,6 @@ Returns NULL if it fails, not a default image.
 image_t	*R_FindImageFile( const char *name, qboolean mipmap, qboolean allowPicmip, qboolean allowTC, int glWrapClampMode ) {
 	image_t	*image;
 	int		width, height;
-	int		mipcount;
 	byte	*pic;
 	GLenum	format;
    
@@ -1855,7 +1754,7 @@ image_t	*R_FindImageFile( const char *name, qboolean mipmap, qboolean allowPicmi
 		glWrapClampMode = GL_CLAMP_TO_EDGE;
 	}
 
-	image = R_FindImageFile_NoLoad(name, mipmap, allowPicmip, glWrapClampMode );
+	image = R_FindImageFile_NoLoad(name, mipmap, allowPicmip, allowTC, glWrapClampMode );
 	if (image) {
 		return image;
 	}
@@ -1863,12 +1762,12 @@ image_t	*R_FindImageFile( const char *name, qboolean mipmap, qboolean allowPicmi
 	//
 	// load the pic from disk
 	//
-	R_LoadImage( name, &pic, &width, &height, &mipcount, &format );
+	R_LoadImage( name, &pic, &width, &height, &format );
 	if ( !pic ) {
         return NULL;            
 	}
 
-	image = R_CreateImage( ( char * ) name, pic, width, height, format, mipcount, allowPicmip, glWrapClampMode );
+	image = R_CreateImage( ( char * ) name, pic, width, height, format, mipmap, allowPicmip, allowTC, glWrapClampMode );
 	Z_Free( pic );
 	return image;
 }
@@ -2006,7 +1905,7 @@ static void R_CreateFogImage( void ) {
 	// standard openGL clamping doesn't really do what we want -- it includes
 	// the border color at the edges.  OpenGL 1.2 has clamp-to-edge, which does
 	// what we want.
-	tr.fogImage = R_CreateImage("*fog", (byte *)data, FOG_S, FOG_T, GL_RGBA, qfalse, qfalse, GL_CLAMP);
+	tr.fogImage = R_CreateImage("*fog", (byte *)data, FOG_S, FOG_T, GL_RGBA, qfalse, qfalse, qfalse, GL_CLAMP);
 	Z_Free( data );
 
 	borderColor[0] = 1.0;
@@ -2050,7 +1949,7 @@ static void R_CreateDefaultImage( void ) {
 		data[x][DEFAULT_SIZE-1][2] =
 		data[x][DEFAULT_SIZE-1][3] = 255;
 	}
-	tr.defaultImage = R_CreateImage("*default", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, GL_RGBA, qtrue, qfalse, GL_REPEAT);
+	tr.defaultImage = R_CreateImage("*default", (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, GL_RGBA, qtrue, qfalse, qfalse, GL_REPEAT);
 }
 
 /*
@@ -2058,37 +1957,76 @@ static void R_CreateDefaultImage( void ) {
 R_CreateBuiltinImages
 ==================
 */
-bool R_UpdateSaveGameImage(const char *filename);
-
 void R_CreateBuiltinImages( void ) {
-	int		x;
-	byte	*data = (byte *) Z_Malloc( SCREEN_IMAGE_MAX_WIDTH * SCREEN_IMAGE_MAX_HEIGHT * 4, TAG_TEMP_WORKSPACE, qfalse, 4 );
+	int		x,y;
+	byte	data[DEFAULT_SIZE][DEFAULT_SIZE][4];
 
 	R_CreateDefaultImage();
 
 	// we use a solid white image instead of disabling texturing
-	memset( data, 255, Z_Size( data ) );
+	memset( data, 255, sizeof( data ) );
 
-	tr.whiteImage = R_CreateImage("*white", data, 8, 8, GL_RGBA, qfalse, qfalse, GL_REPEAT);
+	tr.whiteImage = R_CreateImage("*white", (byte *)data, 8, 8, GL_RGBA, qfalse, qfalse, qfalse, GL_REPEAT);
 
-	// Make these the right size the first time!
-	tr.screenImage = R_CreateImage("*screen", data, SCREEN_IMAGE_MAX_WIDTH, SCREEN_IMAGE_MAX_HEIGHT, GL_RGBA, 1, qfalse, GL_REPEAT );
-	tr.saveGameImage = R_CreateImage("*savegame", data, SAVE_GAME_IMAGE_W, SAVE_GAME_IMAGE_H, GL_DDS1_EXT, 1, qfalse, GL_REPEAT );
+	tr.screenImage = R_CreateImage("*screen", (byte *)data, 8, 8, GL_RGBA, qfalse, qfalse, qfalse, GL_REPEAT );
 
-	tr.identityLightImage = R_CreateImage("*identityLight", data, 8, 8, GL_RGBA, qfalse, qfalse, GL_REPEAT);
+	// Create the scene glow image. - AReis
+	tr.screenGlow = 1024 + giTextureBindNum++;
+	qglDisable( GL_TEXTURE_2D );
+	qglEnable( GL_TEXTURE_RECTANGLE_EXT );
+	qglBindTexture( GL_TEXTURE_RECTANGLE_EXT, tr.screenGlow );
+	qglTexImage2D( GL_TEXTURE_RECTANGLE_EXT, 0, GL_RGBA16, glConfig.vidWidth, glConfig.vidHeight, 0, GL_RGB, GL_FLOAT, 0 );
+	qglTexParameteri( GL_TEXTURE_RECTANGLE_EXT, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	qglTexParameteri( GL_TEXTURE_RECTANGLE_EXT, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	qglTexParameteri( GL_TEXTURE_RECTANGLE_EXT, GL_TEXTURE_WRAP_S, GL_CLAMP );
+	qglTexParameteri( GL_TEXTURE_RECTANGLE_EXT, GL_TEXTURE_WRAP_T, GL_CLAMP );
 
-	// load the last saveimage
-	R_UpdateSaveGameImage("z:\\screenshot.xbx");
+	// Create the scene image. - AReis
+	tr.sceneImage = 1024 + giTextureBindNum++;
+	qglBindTexture( GL_TEXTURE_RECTANGLE_EXT, tr.sceneImage );
+	qglTexImage2D( GL_TEXTURE_RECTANGLE_EXT, 0, GL_RGBA16, glConfig.vidWidth, glConfig.vidHeight, 0, GL_RGB, GL_FLOAT, 0 );
+	qglTexParameteri( GL_TEXTURE_RECTANGLE_EXT, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	qglTexParameteri( GL_TEXTURE_RECTANGLE_EXT, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	qglTexParameteri( GL_TEXTURE_RECTANGLE_EXT, GL_TEXTURE_WRAP_S, GL_CLAMP );
+	qglTexParameteri( GL_TEXTURE_RECTANGLE_EXT, GL_TEXTURE_WRAP_T, GL_CLAMP );
 
+	// Create the minimized scene blur image.
+	if ( r_DynamicGlowWidth->integer > glConfig.vidWidth  )
+	{
+		r_DynamicGlowWidth->integer = glConfig.vidWidth;
+	}
+	if ( r_DynamicGlowHeight->integer > glConfig.vidHeight  )
+	{
+		r_DynamicGlowHeight->integer = glConfig.vidHeight;
+	}
+	tr.blurImage = 1024 + giTextureBindNum++;
+	qglBindTexture( GL_TEXTURE_RECTANGLE_EXT, tr.blurImage );
+	qglTexImage2D( GL_TEXTURE_RECTANGLE_EXT, 0, GL_RGBA16, r_DynamicGlowWidth->integer, r_DynamicGlowHeight->integer, 0, GL_RGB, GL_FLOAT, 0 );
+	qglTexParameteri( GL_TEXTURE_RECTANGLE_EXT, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	qglTexParameteri( GL_TEXTURE_RECTANGLE_EXT, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+	qglTexParameteri( GL_TEXTURE_RECTANGLE_EXT, GL_TEXTURE_WRAP_S, GL_CLAMP );
+	qglTexParameteri( GL_TEXTURE_RECTANGLE_EXT, GL_TEXTURE_WRAP_T, GL_CLAMP );
+	qglDisable( GL_TEXTURE_RECTANGLE_EXT );
+	qglEnable( GL_TEXTURE_2D );
+
+	// with overbright bits active, we need an image which is some fraction of full color,
+	// for default lightmaps, etc
+	for (x=0 ; x<DEFAULT_SIZE ; x++) {
+		for (y=0 ; y<DEFAULT_SIZE ; y++) {
+			data[y][x][0] = 
+			data[y][x][1] = 
+			data[y][x][2] = tr.identityLightByte;
+			data[y][x][3] = 255;			
+		}
+	}
+
+	tr.identityLightImage = R_CreateImage("*identityLight", (byte *)data, 8, 8, GL_RGBA, qfalse, qfalse, qfalse, GL_REPEAT);
 
 	// scratchimage is usually used for cinematic drawing
 	for(x=0;x<NUM_SCRATCH_IMAGES;x++) {
 		// scratchimage is usually used for cinematic drawing
-		// XBOX - Only used for planet movies, which are all 128x128
-		tr.scratchImage[x] = R_CreateImage(va("*scratch%d",x), data, 128, 128, GL_RGBA, qfalse, qfalse, GL_CLAMP);
+		tr.scratchImage[x] = R_CreateImage(va("*scratch%d",x), (byte *)data, DEFAULT_SIZE, DEFAULT_SIZE, GL_RGBA, qfalse, qtrue, qfalse, GL_CLAMP);
 	}
-
-	Z_Free( data );
 
 	R_CreateDlightImage();
 	R_CreateFogImage();
@@ -2165,6 +2103,11 @@ void R_SetColorMappings( void ) {
 			j = 255;
 		}
 		s_intensitytable[i] = j;
+	}
+
+	if ( glConfig.deviceSupportsGamma )
+	{
+		GLimp_SetGamma( s_gammatable, s_gammatable, s_gammatable );
 	}
 }
 
