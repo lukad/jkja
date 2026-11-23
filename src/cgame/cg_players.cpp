@@ -1152,13 +1152,16 @@ static void CG_PlayerAnimEvents( int animFileIndex, qboolean torso, int oldFrame
 		else
 		{//still in same anim, check for looping anim
 			inSameAnim = qtrue;
-			animation_t *animation = &level.knownAnimFileSets[animFileIndex].animations[anim];
-			animBackward = (animation->frameLerp<0);
-			if ( animation->loopFrames != -1 )
-			{//a looping anim!
-				loopAnim = qtrue;
-				firstFrame = animation->firstFrame;
-				lastFrame = animation->firstFrame+animation->numFrames;
+			if ( anim >= 0 )
+			{//the frames belong to an animation; -1 used to index the table all the same
+				animation_t *animation = &level.knownAnimFileSets[animFileIndex].animations[anim];
+				animBackward = (animation->frameLerp<0);
+				if ( animation->loopFrames != -1 )
+				{//a looping anim!
+					loopAnim = qtrue;
+					firstFrame = animation->firstFrame;
+					lastFrame = animation->firstFrame+animation->numFrames;
+				}
 			}
 		}
 	}

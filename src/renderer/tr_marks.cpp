@@ -397,7 +397,7 @@ int R_MarkFragments( int numPoints, const vec3_t *points, const vec3_t projectio
 			const int * const indexes = (int *)( (byte *)surf + surf->ofsIndices );
 			for ( k = 0 ; k < surf->numIndices ; k += 3 ) {
 				for ( j = 0 ; j < 3 ; j++ ) {
-					const float	* const v = surf->points[0] + VERTEXSIZE * indexes[k+j];
+					const float	* const v = surf->points[ indexes[k+j] ];
 					VectorMA( v, MARKER_OFFSET, surf->plane.normal, clipPoints[0][j] );
 				}
 				// add the fragments of this face
