@@ -18,6 +18,14 @@
 //	#include "../game/IGInterface.h"
 //#endif
 
-// More stuff that we "need" on Xbox, as we don't use PCH
+// What every game source needs. The release got these through its precompiled header
+// on the PC; without one they are included here, as the console build did.
+	#include "b_local.h"
+	#include "g_functions.h"
+	#include "g_nav.h"
+	#include "g_navigator.h"
+	#include "g_vehicles.h"
+	#include "../cgame/cg_camera.h"	// Just for AI_Rancor
+	#include "../cgame/cg_local.h"	// Evil? Maybe. Necessary? Absolutely.
 
 #endif // G_HEADERS_H_INC

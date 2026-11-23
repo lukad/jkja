@@ -2,10 +2,11 @@
 
 #include "cg_local.h"
 
-// No PCH at all on Xbox build, we just include everything. Does this slow
-// down builds? Somewhat. But then again, if I do change headers, I have to
-// tolerate VS.net's piss poor dependency system that requires my to manually
-// delete the .pch for the PC version to work at all. So, I'll live.
+// What every cgame source needs. The release got these through its precompiled header
+// on the PC; without one they are included here, as the console build did.
+	#include "../game/g_local.h"
+	#include "../game/g_functions.h"
+	#include "../game/b_local.h"
 
 //#include "CGEntity.h"
 //#include "../game/SpawnSystem.h"
