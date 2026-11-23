@@ -65,7 +65,7 @@ static void ObjectivePrint_Line(const int color, const int objectIndex, int &mis
 		gi.Cvar_VariableStringBuffer("ui_prisonerobj_maxtotal",value,sizeof(value));
 		minTotal = atoi(value);
 
-		sprintf(finalText,va(finalText,currTotal,minTotal));
+		sprintf(finalText,"%s",va(finalText,currTotal,minTotal));
 	}
 
 	pixelLen = cgi_R_Font_StrLenPixels(finalText, cgs.media.qhFontMedium, 1.0f);

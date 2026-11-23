@@ -7,6 +7,7 @@
 #include "sequence.h"
 #include "taskmanager.h"
 #include "sequencer.h"
+#include "../game/q_shared.h"
 
 #define STL_ITERATE( a, b )		for ( a = b.begin(); a != b.end(); a++ )
 #define STL_INSERT( a, b )		a.insert( a.end(), b );
@@ -94,42 +95,10 @@ CIcarus::~CIcarus()
 	Delete();
 }
 
-#if defined (_DEBUG) && defined (_WIN32)
-#include "../qcommon/platform.h" // for OutputDebugString
-#endif
-
 void CIcarus::Delete( void )
 {
 
 	Free();
-
-#ifdef _DEBUG
-	
-	char	buffer[1024];
-
-	OutputDebugString( "\nICARUS Instance Debug Info:\n---------------------------\n" );
-
-	sprintf( (char *) buffer, "Sequencers Allocated:\t%d\n", m_DEBUG_NumSequencerAlloc );
-	OutputDebugString( (const char *) &buffer );
-
-	sprintf( (char *) buffer, "Sequencers Freed:\t\t%d\n", m_DEBUG_NumSequencerFreed );
-	OutputDebugString( (const char *) &buffer );
-
-	sprintf( (char *) buffer, "Sequencers Residual:\t%d\n\n", m_DEBUG_NumSequencerResidual );
-	OutputDebugString( (const char *) &buffer );
-
-	sprintf( (char *) buffer, "Sequences Allocated:\t%d\n", m_DEBUG_NumSequenceAlloc );
-	OutputDebugString( (const char *) &buffer );
-
-	sprintf( (char *) buffer, "Sequences Freed:\t\t%d\n", m_DEBUG_NumSequenceFreed );
-	OutputDebugString( (const char *) &buffer );
-
-	sprintf( (char *) buffer, "Sequences Residual:\t\t%d\n\n", m_DEBUG_NumSequenceResidual );
-	OutputDebugString( (const char *) &buffer );
-
-	OutputDebugString( "\n" );
-
-#endif
 }
 
 void CIcarus::Signal( const char *identifier )

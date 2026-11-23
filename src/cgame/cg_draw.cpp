@@ -2140,10 +2140,6 @@ CG_DrawPickupItem
 static void CG_DrawPickupItem( void ) {
 	int		value;
 	float	*fadeColor;
-	int xoff = 0;
-
-	if(cg.widescreen)
-		xoff = 40;
 
 	value = cg.itemPickup;
 	if ( value && cg_items[ value ].icon != -1 ) 
@@ -2153,7 +2149,7 @@ static void CG_DrawPickupItem( void ) {
 		{
 			CG_RegisterItemVisuals( value );
 			cgi_R_SetColor( fadeColor );
-			CG_DrawPic( 573 - xoff, 320, ICON_SIZE, ICON_SIZE, cg_items[ value ].icon );
+			CG_DrawPic( 573, 320, ICON_SIZE, ICON_SIZE, cg_items[ value ].icon );
 			//CG_DrawBigString( ICON_SIZE + 16, 398, bg_itemlist[ value ].classname, fadeColor[0] );
 			//CG_DrawProportionalString( ICON_SIZE + 16, 398, 
 			//	bg_itemlist[ value ].classname, CG_SMALLFONT,fadeColor );

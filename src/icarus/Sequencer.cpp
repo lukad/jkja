@@ -2476,7 +2476,7 @@ int	CSequencer::Save()
 	pIcarus->BufferWrite( &numSequences, sizeof( numSequences ) );
 
 	//Second pass, save out all sequences, in order
-	sequence_l::iterator iterSeq = NULL;
+	sequence_l::iterator iterSeq;
 	STL_ITERATE( iterSeq, m_sequences )
 	{
 		id = (*iterSeq)->GetID();
@@ -2553,7 +2553,8 @@ int	CSequencer::Load( CIcarus* icarus, IGameInterface* game )
 	pIcarus->BufferRead( &numSequences, sizeof( numSequences ) );
 
 	//Read in all the sequences
-	for ( int i = 0; i < numSequences; i++ )
+	int i;
+	for ( i = 0; i < numSequences; i++ )
 	{
 		pIcarus->BufferRead( &seqID, sizeof( seqID ) );
 

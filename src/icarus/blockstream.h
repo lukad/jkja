@@ -4,6 +4,7 @@
 #define	__INTERPRETED_BLOCK_STREAM__
 
 #include <assert.h>
+#include <string.h>
 
 typedef float vec3_t[3];
 

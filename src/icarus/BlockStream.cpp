@@ -318,7 +318,7 @@ CBlockMember *CBlock::GetMember( int memberNum )
 {
 	if ( memberNum > GetNumMembers()-1 )
 	{
-		return false;
+		return NULL;
 	}
 	return m_members[ memberNum ];
 }
@@ -352,7 +352,7 @@ CBlock *CBlock::Duplicate( CIcarus* icarus )
 	newblock = new CBlock;
 
 	if ( newblock == NULL )
-		return false;
+		return NULL;
 
 	newblock->Create( m_id );
 
