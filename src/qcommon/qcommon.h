@@ -670,6 +670,7 @@ void	CL_ForwardCommandToServer( void );
 void CL_FlushMemory( void );
 // dump all memory on an error
 
+void CL_StartRenderer( void );
 void CL_StartHunkUsers( void );
 
 void Key_WriteBindings( fileHandle_t f );

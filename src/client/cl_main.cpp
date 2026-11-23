@@ -948,13 +948,15 @@ void CL_StartSound( void ) {
 
 /*
 ============================
-CL_StartHunkUsers
+CL_StartRenderer
 
-After the server has cleared the hunk, these will need to be restarted
-This is the only place that any of these functions are called from
+The renderer's part of CL_StartHunkUsers. The server calls it on its own right after it
+has cleared the hunk: the game registers models while it spawns, and the renderer's
+tables were on the hunk. The menus are not started here, so the models the game asks
+for first still get the first handles.
 ============================
 */
-void CL_StartHunkUsers( void ) {
+void CL_StartRenderer( void ) {
 	if ( !com_cl_running->integer ) {
 		return;
 	}
@@ -990,6 +992,22 @@ void CL_StartHunkUsers( void ) {
 
 
 	}
+}
+
+/*
+============================
+CL_StartHunkUsers
+
+After the server has cleared the hunk, these will need to be restarted
+This is the only place that any of these functions are called from
+============================
+*/
+void CL_StartHunkUsers( void ) {
+	if ( !com_cl_running->integer ) {
+		return;
+	}
+
+	CL_StartRenderer();
 
 	if ( !cls.soundStarted ) {
 		cls.soundStarted = qtrue;

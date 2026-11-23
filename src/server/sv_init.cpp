@@ -294,6 +294,10 @@ void SV_SpawnServer( char *iServer, ForceReload_e eForceReload, qboolean bAllowS
 	sv.time = 1000;
 	G2API_SetTime(sv.time,G2T_SV_TIME);
 
+	// The hunk held the renderer's tables, and the game registers models while it
+	// spawns: bring the renderer back before anything is loaded.
+	CL_StartRenderer();
+
 	CM_LoadMap( va("maps/%s.bsp", server), qfalse, &checksum, qfalse );
 
 	// set serverinfo visible name
