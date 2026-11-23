@@ -54,3 +54,4 @@ and hashes are in `cmake/Dependencies.cmake`.
 |---|---|
 | miniz | Copyright 2013-2014 RAD Game Tools and Valve Software; copyright 2010-2014 Rich Geldreich and Tenacious Software LLC. MIT licence. |
 | SDL3 | Copyright 1997-2026 Sam Lantinga. zlib licence. |
+| Catch2 (unit tests only, not part of the binaries) | Copyright Catch2 authors. Boost Software License 1.0. |

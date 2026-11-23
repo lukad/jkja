@@ -62,3 +62,6 @@ include(cmake/Dependencies.cmake)
 
 add_subdirectory(tools)
 add_subdirectory(src)
+if(BUILD_TESTING)
+  add_subdirectory(tests)
+endif()

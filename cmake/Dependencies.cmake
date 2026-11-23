@@ -56,3 +56,11 @@ jasp_dependency(SDL3 3.4.20
   "https://github.com/libsdl-org/SDL/releases/download/release-3.4.20/SDL3-3.4.20.tar.gz"
   f3bb06f55bed9557227a700af2ea62e49497ebdf58037732a731a5fb3ef8581f
 )
+
+# Unit test framework, for tests/ only. Targets: Catch2::Catch2, Catch2::Catch2WithMain.
+if(BUILD_TESTING)
+  jasp_dependency(Catch2 3.16.1
+    "https://github.com/catchorg/Catch2/archive/refs/tags/v3.16.1.tar.gz"
+    d16bd1b8b2364918bd472cb216394acb93bde6784890df0d91bccfb3f28d777d
+  )
+endif()
