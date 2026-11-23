@@ -834,6 +834,7 @@ Ghoul2 Insert End
 #define	MAX_MOD_KNOWN	1024
 
 void		R_ModelInit (void);
+void		R_ModelHashClear (void);
 model_t		*R_GetModelByHandle( qhandle_t hModel );
 void		R_LerpTag( orientation_t *tag, qhandle_t handle, int startFrame, int endFrame, 
 					 float frac, const char *tagName );

@@ -1237,6 +1237,9 @@ extern void R_ReloadFonts_f(void);
 void R_ClearStuffToStopGhoul2CrashingThings(void)
 {
 	memset( &tr, 0, sizeof( tr ) );
+
+	// The models and their hash entries were on the hunk, which has just been freed.
+	R_ModelHashClear();
 }
 
 /*

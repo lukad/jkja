@@ -913,6 +913,18 @@ void RE_BeginRegistration( glconfig_t *glconfigOut ) {
 
 /*
 ===============
+R_ModelHashClear
+
+Forgets the registered models without touching the memory they were in
+===============
+*/
+void R_ModelHashClear( void ) 
+{
+	memset(mhHashTable, 0, sizeof(mhHashTable));
+}
+
+/*
+===============
 R_ModelInit
 ===============
 */
