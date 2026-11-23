@@ -1,7 +1,7 @@
 // leave this line at the top for all g_xxxx.cpp files...
 #include "g_headers.h"
 
-#include "G_Local.h"
+#include "g_local.h"
 #include "../rufl/hstring.h"
 
 #define MAX_GTIMERS	16384

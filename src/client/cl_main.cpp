@@ -9,11 +9,11 @@
 #include "client_ui.h"
 #include <limits.h>
 #include "fffx.h"
-#include "../ghoul2/g2.h"
+#include "../ghoul2/G2.h"
 
 #include "../qcommon/xb_settings.h"
 
-#include "../RMG/RM_Headers.h"
+#include "../rmg/RM_Headers.h"
 
 
 #define	RETRANSMIT_TIMEOUT	3000	// time between connection packet retransmits

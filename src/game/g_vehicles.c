@@ -7,7 +7,7 @@
 
 #include "g_functions.h"
 #include "g_vehicles.h"
-#include "../CGame/cg_Local.h"
+#include "../cgame/cg_local.h"
 
 
 #define GAME_INLINE inline

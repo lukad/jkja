@@ -12,7 +12,7 @@
 #include "../server/server.h"
 #include "../game/q_shared.h"
 #include "qcommon.h"
-#include "../qcommon/fixedmap.h"
+#include "fixedmap.h"
 #include "../zlib/zlib.h"
 
 //

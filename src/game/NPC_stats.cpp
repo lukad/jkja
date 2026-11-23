@@ -6,13 +6,13 @@
 #include "b_public.h"
 #include "anims.h"
 #include "wp_saber.h"
-#include "g_Vehicles.h"
+#include "g_vehicles.h"
 #if !defined(RUFL_HSTRING_INC)
-	#include "..\Rufl\hstring.h"
+	#include "../rufl/hstring.h"
 #endif
-	#include "..\Ratl\string_vs.h"
-	#include "..\Rufl\hstring.h"
-	#include "..\Ratl\vector_vs.h"
+	#include "../ratl/string_vs.h"
+	#include "../rufl/hstring.h"
+	#include "../ratl/vector_vs.h"
 
 extern void WP_RemoveSaber( gentity_t *ent, int saberNum );
 extern qboolean NPCsPrecached;

@@ -1,10 +1,10 @@
 // leave this as first line for PCH reasons...
 //
-#include "../server/exe_headers.h"
+#include "exe_headers.h"
 
 
 
-#include "..\client\vmachine.h"
+#include "../client/vmachine.h"
 #include "server.h"
 
 

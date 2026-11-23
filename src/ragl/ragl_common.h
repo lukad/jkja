@@ -68,10 +68,10 @@
 	#endif
 #endif
 #if !defined(RAVL_VEC_INC)
-	#include "..\Ravl\CVec.h"
+	#include "../ravl/CVec.h"
 #endif
 #if !defined(RATL_COMMON_INC)
-	#include "..\Ratl\ratl_common.h"
+	#include "../ratl/ratl_common.h"
 #endif
 namespace ragl
 {

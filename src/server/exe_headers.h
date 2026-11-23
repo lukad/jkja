@@ -6,7 +6,7 @@
 #include "../qcommon/qcommon.h"
 
 #include "../client/client.h"
-#include "../server/server.h"
+#include "server.h"
 #include "../renderer/tr_local.h"
 
 #pragma hdrstop

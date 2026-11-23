@@ -12,14 +12,14 @@
 	#include "../renderer/tr_local.h"
 #endif
 
-#include "../renderer/MatComp.h"
+#include "../renderer/matcomp.h"
 
 #if !defined(G2_H_INC)
 	#include "G2.h"
 #endif
 
 #if !defined (MINIHEAP_H_INC)
-	#include "../qcommon/miniheap.h"
+	#include "../qcommon/MiniHeap.h"
 #endif
 
 #define G2_MODEL_OK(g) ((g)&&(g)->mValid&&(g)->aHeader&&(g)->currentModel&&(g)->animModel)

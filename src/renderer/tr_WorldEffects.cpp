@@ -24,9 +24,9 @@ extern void			SetViewportAndScissor( void );
 ////////////////////////////////////////////////////////////////////////////////////////
 #include "tr_local.h"
 #include "tr_WorldEffects.h"
-#include "../Ravl/CVec.h"
-#include "../Ratl/vector_vs.h"
-#include "../Ratl/bits_vs.h"
+#include "../ravl/CVec.h"
+#include "../ratl/vector_vs.h"
+#include "../ratl/bits_vs.h"
 
 
 ////////////////////////////////////////////////////////////////////////////////////////

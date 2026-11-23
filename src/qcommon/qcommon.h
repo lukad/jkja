@@ -3,7 +3,7 @@
 #define __QCOMMON_H__
 
 #include "stringed_ingame.h"
-#include "../qcommon/cm_public.h"
+#include "cm_public.h"
 
 
 // some zone mem debugging stuff

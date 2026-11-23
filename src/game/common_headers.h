@@ -3,7 +3,7 @@
 #define COMMON_HEADERS_H_INC
 
 #if !defined(__Q_SHARED_H)
-	#include "../game/q_shared.h"
+	#include "q_shared.h"
 #endif
 
 //#if !defined(Q_SHAREDBASIC_H_INC)

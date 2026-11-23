@@ -5,7 +5,7 @@
 #include "../server/exe_headers.h"
 #include "../ui/ui_shared.h"
 
-#include "../RMG/RM_Headers.h"
+#include "../rmg/RM_Headers.h"
 
 	   		
 

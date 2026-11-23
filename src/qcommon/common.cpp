@@ -2,7 +2,7 @@
 
 #include "../game/q_shared.h"
 #include "qcommon.h"
-#include "../qcommon/sstring.h"	// to get Gil's string class, because MS's doesn't compile properly in here
+#include "sstring.h"	// to get Gil's string class, because MS's doesn't compile properly in here
 #include "stv_version.h"
 
 

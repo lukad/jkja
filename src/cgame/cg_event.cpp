@@ -7,7 +7,7 @@
 #include "cg_media.h"
 #include "FxScheduler.h"
 
-#include "..\game\anims.h"
+#include "../game/anims.h"
 
 
 extern qboolean CG_TryPlayCustomSound( vec3_t origin, int entityNum, soundChannel_t channel, const char *soundName, int customSoundSet );

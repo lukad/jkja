@@ -35,7 +35,7 @@
 
 
 #if !defined(RUFL_HFILE_INC)
-	#include "..\Rufl\hfile.h"
+	#include "../rufl/hfile.h"
 #endif
 
 

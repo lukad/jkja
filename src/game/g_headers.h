@@ -3,7 +3,7 @@
 #define G_HEADERS_H_INC
 
 #if !defined(G_LOCAL_H_INC)
-	#include "../game/g_local.h"
+	#include "g_local.h"
 #endif
 
 //#if !defined(G_WRAITH_H_INC)
@@ -11,7 +11,7 @@
 //#endif
 
 #if !defined(TEAMS_H_INC)
-	#include "../game/Teams.h"
+	#include "teams.h"
 #endif
 
 //#if !defined(IGINTERFACE_H_INC)

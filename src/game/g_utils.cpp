@@ -223,7 +223,7 @@ void G_StopEffect(const char *name, const int modelIndex, const int boltIndex, c
 //===Bypass network for sounds on specific channels====================
 
 extern void cgi_S_StartSound( const vec3_t origin, int entityNum, int entchannel, sfxHandle_t sfx );
-#include "..\cgame\cg_media.h"	//access to cgs
+#include "../cgame/cg_media.h"	//access to cgs
 extern qboolean CG_TryPlayCustomSound( vec3_t origin, int entityNum, soundChannel_t channel, const char *soundName, int customSoundSet );
 extern cvar_t *g_timescale;
 //NOTE: Do NOT Try to use this before the cgame DLL is valid, it will NOT work!

@@ -1,7 +1,7 @@
 // cmodel.c -- model loading
 
 #include "cm_local.h"
-#include "../RMG/RM_Headers.h"
+#include "../rmg/RM_Headers.h"
 
 void CM_LoadShaderText(bool forceReload);
 

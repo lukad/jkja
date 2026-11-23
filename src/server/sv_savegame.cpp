@@ -2,7 +2,7 @@
 //
 // leave this as first line for PCH reasons...
 //
-#include "../server/exe_headers.h"
+#include "exe_headers.h"
 
 // a little naughty, since these are in the renderer, but I need access to them for savegames, so...
 //
@@ -22,11 +22,11 @@ extern byte *Compress_JPG(int *pOutputSize, int quality, int image_width, int im
 										//	(EF1 behaviour). I should maybe time/date check them though?
 
 #include "server.h"
-#include "..\game\statindex.h"
-#include "..\game\weapons.h"
-#include "..\game\g_items.h"
+#include "../game/statindex.h"
+#include "../game/weapons.h"
+#include "../game/g_items.h"
 
-#include "..\zlib\zlib.h"
+#include "../zlib/zlib.h"
 
 
 #pragma warning(disable : 4786)  // identifier was truncated (STL crap)

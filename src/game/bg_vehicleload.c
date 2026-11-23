@@ -6,7 +6,7 @@
 
 
 
-#include "..\Ratl\string_vs.h"
+#include "../ratl/string_vs.h"
 
 #ifdef QAGAME
 extern void G_SetSharedVehicleFunctions( vehicleInfo_t *pVehInfo );

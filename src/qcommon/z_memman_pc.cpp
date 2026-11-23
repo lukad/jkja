@@ -2,7 +2,7 @@
 
 #include "../game/q_shared.h"
 #include "qcommon.h"
-#include "../qcommon/sstring.h"
+#include "sstring.h"
 
 #include "platform.h"
 
@@ -22,7 +22,7 @@ static void Z_Details_f(void);
 #define TAGDEF(blah) #blah
 static const char *psTagStrings[TAG_COUNT+1]=	// +1 because TAG_COUNT will itself become a string here. Oh well.
 {
-	#include "../qcommon/tags.h"
+	#include "tags.h"
 };
 
 // This handles zone memory allocation.

@@ -21,7 +21,7 @@
 
 
 #if !defined(RAVL_VEC_INC)
-	#include "..\Ravl\CVec.h"
+	#include "../ravl/CVec.h"
 #endif
 
 

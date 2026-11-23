@@ -4,10 +4,10 @@
 //#include "cg_local.h"
 #include "cg_media.h"
 #include "FxScheduler.h"
-#include "..\game\wp_saber.h"
-#include "..\game\g_vehicles.h"
+#include "../game/wp_saber.h"
+#include "../game/g_vehicles.h"
 
-#include "..\game\anims.h"
+#include "../game/anims.h"
 
 /////////////////////  this is a bit kludgy, but it only gives access to one
 //							enum table because of the #define. May get changed.

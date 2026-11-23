@@ -42,25 +42,25 @@ extern vec3_t		playerMaxs;
 #include "b_local.h"
 #include "g_navigator.h"
 #if !defined(RAGL_GRAPH_VS_INC)
-	#include "..\Ragl\graph_vs.h"
+	#include "../ragl/graph_vs.h"
 #endif
 #if !defined(RATL_GRAPH_REGION_INC)
-	#include "..\Ragl\graph_region.h"
+	#include "../ragl/graph_region.h"
 #endif
 //#if !defined(RATL_GRAPH_TRIANGULATE_INC)
 //	#include "..\Ragl\graph_triangulate.h"
 //#endif
 #if !defined(RATL_VECTOR_VS_INC)
-	#include "..\Ratl\vector_vs.h"
+	#include "../ratl/vector_vs.h"
 #endif
 #if !defined(RUFL_HSTRING_INC)
-	#include "..\Rufl\hstring.h"
+	#include "../rufl/hstring.h"
 #endif
 #if !defined(RUFL_HFILE_INC)
-	#include "..\Rufl\hfile.h"
+	#include "../rufl/hfile.h"
 #endif
 #if !defined(RAVL_BOUNDS_INC)
-	#include "..\Ravl\CBounds.h"
+	#include "../ravl/CBounds.h"
 #endif
 
 

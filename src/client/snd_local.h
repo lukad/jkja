@@ -9,8 +9,8 @@
 #include "../mp3code/mp3struct.h"
 
 // Open AL Specific
-#include "openal\al.h"
-#include "openal\alc.h"
+#include "openal/al.h"
+#include "openal/alc.h"
 #include "eax\eax.h"
 #include "eax\eaxman.h"
 

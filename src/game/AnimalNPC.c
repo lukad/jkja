@@ -16,7 +16,7 @@
 
 #include "g_functions.h"
 #include "g_vehicles.h"
-#include "..\game\wp_saber.h"
+#include "wp_saber.h"
 
 #define bgEntity_t gentity_t
 
