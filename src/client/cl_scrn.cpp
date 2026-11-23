@@ -415,7 +415,7 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 	_UI_Refresh( cls.realtime );
 
 	// console draws next
-//	Con_DrawConsole ();
+	Con_DrawConsole ();
 
 	// debug graph can be drawn on top of anything
 	if ( cl_debuggraph->integer || cl_timegraph->integer ) {
