@@ -8,7 +8,6 @@
 //#include "../qcommon/q_imath.h"
 #include "cm_terrainmap.h"
 #include "cm_draw.h"
-#include "../png/png.h"
 
 static CTerrainMap	*TerrainMap = 0;
 

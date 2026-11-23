@@ -58,6 +58,7 @@ endif()
 include(CTest)
 include(cmake/StrictWarnings.cmake)
 include(cmake/LegacyTarget.cmake)
+include(cmake/Dependencies.cmake)
 
 add_subdirectory(tools)
 add_subdirectory(src)

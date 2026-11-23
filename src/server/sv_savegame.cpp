@@ -6,8 +6,7 @@
 
 // a little naughty, since these are in the renderer, but I need access to them for savegames, so...
 //
-extern void Decompress_JPG( const char *filename, byte *pJPGData, unsigned char **pic, int *width, int *height );
-extern byte *Compress_JPG(int *pOutputSize, int quality, int image_width, int image_height, byte *image_buffer, qboolean bInvertDuringCompression);
+#include "../renderer/tr_stb.h"
 
 #define JPEG_IMAGE_QUALITY 95
 
@@ -25,8 +24,6 @@ extern byte *Compress_JPG(int *pOutputSize, int quality, int image_width, int im
 #include "../game/statindex.h"
 #include "../game/weapons.h"
 #include "../game/g_items.h"
-
-#include "../zlib/zlib.h"
 
 
 #pragma warning(disable : 4786)  // identifier was truncated (STL crap)
@@ -946,7 +943,7 @@ static qboolean SG_ReadScreenshot(qboolean qbSetAsLoadingScreen, void *pvDest)
 	//
 	byte *pDecompressedPic = NULL;
 	int iWidth, iHeight;
-	Decompress_JPG( "[savegame]", pJPGData, &pDecompressedPic, &iWidth, &iHeight );
+	Decompress_JPG( "[savegame]", pJPGData, iScreenShotLength, &pDecompressedPic, &iWidth, &iHeight );
 	//
 	// if the loaded image is the same size as the game is expecting, then copy it to supplied arg (if present)...
 	//

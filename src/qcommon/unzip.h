@@ -1,3 +1,4 @@
+#include <miniz.h>
 
 #if defined(STRICTUNZIP) || defined(STRICTZIPUNZIP)
 /* like the STRICT of WIN32, we define a pointer that cannot be converted
@@ -63,7 +64,7 @@ typedef struct unz_file_info_internal_s
 typedef struct
 {
 	char  *read_buffer;         /* internal buffer for compressed data */
-	z_stream stream;            /* zLib stream structure for inflate */
+	mz_stream stream;            /* zLib stream structure for inflate */
 
 	unsigned long pos_in_zipfile;       /* position in unsigned char on the zipfile, for fseek*/
 	unsigned long stream_initialised;   /* flag set if stream structure is initialised*/
@@ -106,7 +107,7 @@ typedef struct
 
 #define UNZ_OK                                  (0)
 #define UNZ_END_OF_LIST_OF_FILE (-100)
-#define UNZ_ERRNO               (Z_DATA_ERROR)
+#define UNZ_ERRNO               (MZ_DATA_ERROR)
 #define UNZ_EOF                 (0)
 #define UNZ_PARAMERROR                  (-102)
 #define UNZ_BADZIPFILE                  (-103)

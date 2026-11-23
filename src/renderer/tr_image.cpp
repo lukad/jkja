@@ -7,8 +7,8 @@
 
 
 #include "tr_local.h"
-#include "tr_jpeg_interface.h"
-#include "../png/png.h"
+#include "tr_stb.h"
+#include <miniz.h>
 #include "../qcommon/sstring.h"
 #include "../win32/xbox_texture_man.h"
 
@@ -892,7 +892,7 @@ static image_t *R_FindImageFile_NoLoad(const char *name, int mipcount, qboolean 
 	//
 	// see if the image is already loaded
 	//
-	int code = crc32(0, (const Bytef *)pName, strlen(pName));
+	int code = mz_crc32(MZ_CRC32_INIT, (const unsigned char *)pName, strlen(pName));
 	AllocatedImages_t::iterator itAllocatedImage = AllocatedImages->find(code);
 	if (itAllocatedImage != AllocatedImages->end())
 	{	
@@ -964,7 +964,7 @@ image_t *R_CreateImage( const char *name, const byte *pic, int width, int height
 	image->mipcount = mipcount;
 //	image->allowPicmip = allowPicmip;
 
-	image->imgCode = crc32(0, (const Bytef *)name, strlen(name));
+	image->imgCode = mz_crc32(MZ_CRC32_INIT, (const unsigned char *)name, strlen(name));
 #ifndef FINAL_BUILD
 	Q_strncpyz(image->imgName, name, sizeof(image->imgName));
 #endif
@@ -993,7 +993,7 @@ image_t *R_CreateImage( const char *name, const byte *pic, int width, int height
 	glState.currenttextures[glState.currenttmu] = 0;	//mark it not bound
 
 	const char* psNewName = GenerateImageMappingName(name);
-	image->imgCode = crc32(0, (const Bytef *)psNewName, strlen(psNewName));
+	image->imgCode = mz_crc32(MZ_CRC32_INIT, (const unsigned char *)psNewName, strlen(psNewName));
 
 	(*AllocatedImages)[ image->imgCode ] = image;
 
@@ -1544,28 +1544,32 @@ void R_LoadImage( const char *shortname, byte **pic, int *width, int *height, in
 	LoadDDS( name, pic, width, height, mipcount, format );
 	if( *pic )
 		return;
-/*
-	// OK. Now look for TGA:
+
+	// The formats of the PC game, in the order its loader tried them. The decoders
+	// return 32-bit RGBA without mip levels.
 	*format = GL_RGBA;
 	*mipcount = 1;
 
 	COM_StripExtension(name,name);
-	COM_DefaultExtension(name, sizeof(name), ".tga");
-	LoadTGA( name, pic, width, height );
-
-	if (*pic)
-	{
-		int j = (*width) * (*height) * 4;
-		byte *buf = *pic;
-		byte swap;
-		for (int i = 0 ; i < j ; i+=4 ) {
-			swap = buf[i];
-			buf[i] = buf[i+2];
-			buf[i+2] = swap;
-		}
+	COM_DefaultExtension(name, sizeof(name), ".jpg");
+	LoadJPG( name, pic, width, height );
+	if (*pic) {
 		return;
 	}
-*/
+
+	COM_StripExtension(name,name);
+	COM_DefaultExtension(name, sizeof(name), ".png");
+	LoadPNG32( name, pic, width, height );
+	if (*pic) {
+		return;
+	}
+
+	COM_StripExtension(name,name);
+	COM_DefaultExtension(name, sizeof(name), ".tga");
+	LoadTGA( name, pic, width, height );
+	if (*pic) {
+		return;
+	}
 
 	// Return whether or not it worked
 	return;

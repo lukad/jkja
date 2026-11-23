@@ -72,6 +72,13 @@ Things that matter for the port:
 - **The default sound path is the software mixer.** `s_UseOpenAL` defaults to `0`
   (`code/client/snd_dma.cpp:475`); OpenAL with EAX is the optional path.
 - **The renderer has an interface, but it leaks.** See [section 6](#6-renderer).
+- **The single-player image code is the console variant.** `renderer/tr_image.cpp` reads
+  only DDS files and uploads them through `qglTexImage2DEXT`, a call that exists only in
+  the Xbox OpenGL shim, while its own header and all its callers still have the PC
+  signatures. The release's single-player renderer therefore never built for the PC as
+  it stands. The PC code survives in the multiplayer tree of the import commit
+  (`codemp/renderer/tr_image.cpp`, the branches without `_XBOX`) and is restored from
+  there in M1.
 
 ## 3. Principles
 
@@ -447,6 +454,7 @@ Exit: the tree contains only in-scope single-player sources; the repo checks pas
 - [ ] Remove precompiled-header assumptions; every file includes what it uses
 - [ ] Fix compiler-dialect errors (MSVC keywords, `for` scope, non-standard library calls, pre-standard headers)
 - [ ] Replace bundled jpeg, png and zlib
+- [ ] Restore the PC texture loading and upload path of the legacy renderer
 - [ ] Remove the OpenAL and EAX sound path
 - [ ] Replace inline assembly
 - [ ] Replace the variadic cgame syscalls with a typed interface

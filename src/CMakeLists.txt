@@ -34,42 +34,6 @@ add_executable(jasp EXCLUDE_FROM_ALL
   ghoul2/G2_bones.cpp
   ghoul2/G2_misc.cpp
   ghoul2/G2_surfaces.cpp
-  jpeg-6/jcapimin.cpp
-  jpeg-6/jccoefct.cpp
-  jpeg-6/jccolor.cpp
-  jpeg-6/jcdctmgr.cpp
-  jpeg-6/jchuff.cpp
-  jpeg-6/jcinit.cpp
-  jpeg-6/jcmainct.cpp
-  jpeg-6/jcmarker.cpp
-  jpeg-6/jcmaster.cpp
-  jpeg-6/jcomapi.cpp
-  jpeg-6/jcparam.cpp
-  jpeg-6/jcphuff.cpp
-  jpeg-6/jcprepct.cpp
-  jpeg-6/jcsample.cpp
-  jpeg-6/jctrans.cpp
-  jpeg-6/jdapimin.cpp
-  jpeg-6/jdapistd.cpp
-  jpeg-6/jdatadst.cpp
-  jpeg-6/jdatasrc.cpp
-  jpeg-6/jdcoefct.cpp
-  jpeg-6/jdcolor.cpp
-  jpeg-6/jddctmgr.cpp
-  jpeg-6/jdhuff.cpp
-  jpeg-6/jdinput.cpp
-  jpeg-6/jdmainct.cpp
-  jpeg-6/jdmarker.cpp
-  jpeg-6/jdmaster.cpp
-  jpeg-6/jdpostct.cpp
-  jpeg-6/jdsample.cpp
-  jpeg-6/jdtrans.cpp
-  jpeg-6/jerror.cpp
-  jpeg-6/jfdctflt.cpp
-  jpeg-6/jidctflt.cpp
-  jpeg-6/jmemmgr.cpp
-  jpeg-6/jmemnobs.cpp
-  jpeg-6/jutils.cpp
   mp3code/cdct.c
   mp3code/csbt.c
   mp3code/csbtb.c
@@ -91,7 +55,6 @@ add_executable(jasp EXCLUDE_FROM_ALL
   mp3code/uph.c
   mp3code/upsf.c
   mp3code/wavep.c
-  png/png.cpp
   qcommon/cm_draw.cpp
   qcommon/cm_load.cpp
   qcommon/cm_patch.cpp
@@ -126,7 +89,6 @@ add_executable(jasp EXCLUDE_FROM_ALL
   renderer/tr_ghoul2.cpp
   renderer/tr_image.cpp
   renderer/tr_init.cpp
-  renderer/tr_jpeg_interface.cpp
   renderer/tr_light.cpp
   renderer/tr_main.cpp
   renderer/tr_marks.cpp
@@ -140,6 +102,7 @@ add_executable(jasp EXCLUDE_FROM_ALL
   renderer/tr_shader.cpp
   renderer/tr_shadows.cpp
   renderer/tr_sky.cpp
+  renderer/tr_stb.cpp
   renderer/tr_stl.cpp
   renderer/tr_surface.cpp
   renderer/tr_surfacesprites.cpp
@@ -172,11 +135,14 @@ add_executable(jasp EXCLUDE_FROM_ALL
   ui/ui_saber.cpp
   ui/ui_shared.cpp
   ui/ui_syscalls.cpp
-  zlib32/deflate.cpp
-  zlib32/inflate.cpp
-  zlib32/zipcommon.cpp
 )
-target_compile_definitions(jasp PRIVATE _JK2EXE)
+target_compile_definitions(jasp PRIVATE
+  _JK2EXE
+  # miniz is used under its own names. Its zlib aliases are macros (crc32, compress,
+  # ...) and would rename unrelated identifiers wherever its header is included.
+  MINIZ_NO_ZLIB_COMPATIBLE_NAMES
+)
+target_link_libraries(jasp PRIVATE miniz)
 jasp_legacy_target(jasp)
 
 # game, cgame and ICARUS. The file name states the architecture: jagamex86_64, jagamearm64.

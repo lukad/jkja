@@ -13,7 +13,7 @@
 #include "../game/q_shared.h"
 #include "qcommon.h"
 #include "fixedmap.h"
-#include "../zlib/zlib.h"
+#include <miniz.h>
 
 //
 //////////////////////////////////////////////////
@@ -663,7 +663,7 @@ void CStringEdPackage::AddEntry( LPCSTR psLocalReference )
 void CStringEdPackage::SetString( LPCSTR psLocalReference, LPCSTR psNewString, SE_BOOL bEnglishDebug )
 {
 	const char *ref = va("%s_%s", m_strCurrentFileRef_ParseOnly.c_str(), psLocalReference);
-	unsigned long refCrc = crc32( 0, (const Bytef *)ref, strlen(ref) );
+	unsigned long refCrc = mz_crc32( MZ_CRC32_INIT, (const unsigned char *)ref, strlen(ref) );
 
 	if ( bEnglishDebug )
 	{	
@@ -869,7 +869,7 @@ LPCSTR SE_GetString( LPCSTR psPackageAndStringReference )
 	Q_strncpyz( sReference, psPackageAndStringReference, sizeof(sReference) );
 	Q_strupr( sReference );
 
-	unsigned long refCrc = crc32( 0, (const Bytef *)sReference, len );
+	unsigned long refCrc = mz_crc32( MZ_CRC32_INIT, (const unsigned char *)sReference, len );
 	char **strData = TheStringPackage.m_Strings->Find( refCrc );
 
 	if( !strData )

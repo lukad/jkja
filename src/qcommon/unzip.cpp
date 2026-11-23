@@ -19,7 +19,6 @@
 #define ZIP_fread	fread
 #define ZIP_ftell	ftell
 
-#include "../zlib32/zip.h"
 #include "unzip.h"
 
 /* unzip.h -- IO for uncompress .zip files using zlib 
@@ -924,7 +923,7 @@ static int unzlocal_CheckCurrentFileCoherencyHeader (unz_s* s, uInt* piSizeVar,
 		err=UNZ_BADZIPFILE;
 
     if ((err==UNZ_OK) && (s->cur_file_info.compression_method!=0) &&
-                         (s->cur_file_info.compression_method!=ZF_DEFLATED))
+                         (s->cur_file_info.compression_method!=MZ_DEFLATED))
         err=UNZ_BADZIPFILE;
 
 	if (unzlocal_getLong(s->file,&uData) != UNZ_OK) /* date/time */
@@ -1004,7 +1003,7 @@ extern int unzOpenCurrentFile (unzFile file)
 	pfile_in_zip_read_info->stream_initialised=0;
 	
 	if ((s->cur_file_info.compression_method!=0) &&
-        (s->cur_file_info.compression_method!=ZF_DEFLATED))
+        (s->cur_file_info.compression_method!=MZ_DEFLATED))
 		err=UNZ_BADZIPFILE;
 	Store = s->cur_file_info.compression_method==0;
 
@@ -1019,8 +1018,11 @@ extern int unzOpenCurrentFile (unzFile file)
 
 	if (!Store)
 	{
-	  err=inflateInit(&pfile_in_zip_read_info->stream, Z_SYNC_FLUSH, 1);
-	  if (err == Z_OK)
+	  pfile_in_zip_read_info->stream.zalloc = NULL;
+	  pfile_in_zip_read_info->stream.zfree = NULL;
+	  pfile_in_zip_read_info->stream.opaque = NULL;
+	  err=mz_inflateInit2(&pfile_in_zip_read_info->stream, -MZ_DEFAULT_WINDOW_BITS);
+	  if (err == MZ_OK)
 	    pfile_in_zip_read_info->stream_initialised=1;
         /* windowBits is passed < 0 to tell that there is no zlib header.
          * Note that in this case inflate *requires* an extra "dummy" byte
@@ -1126,7 +1128,7 @@ extern int unzReadCurrentFile  (unzFile file, void *buf, unsigned len)
 				*(pfile_in_zip_read_info->stream.next_out+i) =
                         *(pfile_in_zip_read_info->stream.next_in+i);
 					
-			pfile_in_zip_read_info->crc32 = crc32(pfile_in_zip_read_info->crc32,
+			pfile_in_zip_read_info->crc32 = mz_crc32(pfile_in_zip_read_info->crc32,
 								pfile_in_zip_read_info->stream.next_out,
 								uDoCopy);
 			pfile_in_zip_read_info->rest_read_uncompressed-=uDoCopy;
@@ -1152,13 +1154,13 @@ extern int unzReadCurrentFile  (unzFile file, void *buf, unsigned len)
 				(pfile_in_zip_read_info->rest_read_compressed == 0))
 				flush = Z_FINISH;
 			*/
-			err=inflate(&pfile_in_zip_read_info->stream);
+			err=mz_inflate(&pfile_in_zip_read_info->stream, MZ_SYNC_FLUSH);
 
 			uTotalOutAfter = pfile_in_zip_read_info->stream.total_out;
 			uOutThis = uTotalOutAfter-uTotalOutBefore;
 			
 			pfile_in_zip_read_info->crc32 = 
-                crc32(pfile_in_zip_read_info->crc32,bufBefore,
+                mz_crc32(pfile_in_zip_read_info->crc32,bufBefore,
                         (uInt)(uOutThis));
 
 			pfile_in_zip_read_info->rest_read_uncompressed -=
@@ -1166,14 +1168,14 @@ extern int unzReadCurrentFile  (unzFile file, void *buf, unsigned len)
 
 			iRead += (uInt)(uTotalOutAfter - uTotalOutBefore);
             
-			if (err==Z_STREAM_END)
+			if (err==MZ_STREAM_END)
 				return (iRead==0) ? UNZ_EOF : iRead;
-			if (err!=Z_OK) 
+			if (err!=MZ_OK) 
 				break;
 		}
 	}
 
-	if (err==Z_OK)
+	if (err==MZ_OK)
 		return iRead;
 	return err;
 }
@@ -1302,7 +1304,7 @@ extern int unzCloseCurrentFile (unzFile file)
 	TRYFREE(pfile_in_zip_read_info->read_buffer);
 	pfile_in_zip_read_info->read_buffer = NULL;
 	if (pfile_in_zip_read_info->stream_initialised)
-		inflateEnd(&pfile_in_zip_read_info->stream);
+		mz_inflateEnd(&pfile_in_zip_read_info->stream);
 
 	pfile_in_zip_read_info->stream_initialised = 0;
 	TRYFREE(pfile_in_zip_read_info);

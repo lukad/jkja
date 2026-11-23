@@ -8,7 +8,7 @@
 
 #include "tr_local.h"
 #include "tr_stl.h"
-#include "tr_jpeg_interface.h"
+#include "tr_stb.h"
 #include "tr_font.h"
 #include "tr_WorldEffects.h"
 
