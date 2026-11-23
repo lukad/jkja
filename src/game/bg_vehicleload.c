@@ -12,23 +12,6 @@
 extern void G_SetSharedVehicleFunctions( vehicleInfo_t *pVehInfo );
 extern int G_ModelIndex( const char *name );
 extern int G_SoundIndex( const char *name );
-#elif CGAME
-#include "../namespace_begin.h"
-extern qhandle_t	trap_R_RegisterModel( const char *name );			// returns rgb axis if not found
-extern qhandle_t	trap_R_RegisterSkin( const char *name );			// returns all white if not found
-extern qhandle_t	trap_R_RegisterShader( const char *name );
-extern qhandle_t	trap_R_RegisterShaderNoMip( const char *name );
-extern int			trap_FX_RegisterEffect(const char *file);
-extern sfxHandle_t	trap_S_RegisterSound( const char *sample);		// returns buzz if not found
-#include "../namespace_end.h"
-#else//UI
-#include "../namespace_begin.h"
-extern qhandle_t	trap_R_RegisterModel( const char *name );			// returns rgb axis if not found
-extern qhandle_t	trap_R_RegisterSkin( const char *name );			// returns all white if not found
-extern qhandle_t	trap_R_RegisterShader( const char *name );			// returns all white if not found
-extern qhandle_t	trap_R_RegisterShaderNoMip( const char *name );			// returns all white if not found
-extern sfxHandle_t	trap_S_RegisterSound( const char *sample);		// returns buzz if not found
-#include "../namespace_end.h"
 #endif
 
 extern stringID_table_t animTable [MAX_ANIMATIONS+1];
