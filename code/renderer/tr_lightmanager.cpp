@@ -1,4 +1,0 @@
-/*
-** tr_lightmanager.cpp
-*/
-
