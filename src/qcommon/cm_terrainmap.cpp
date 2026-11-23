@@ -304,7 +304,7 @@ void CTerrainMap::AddPlayer(vec3_t origin, vec3_t angles)
 	vec3_t p;
 	int x,y,i;
 	float facing;
-	POINT poly[4];
+	drawPoint_t poly[4];
 
 	facing = angles[1];
 	

@@ -73,24 +73,6 @@ public:
 	  mName(name)
 	{
 	}
-	~ErrorReporter()
-	{
-		char mess[1000];
-		int total=0;
-		sprintf(mess,"****** %s Error Report Begin******\n",mName.c_str());
-		OutputDebugString(mess);
-
-		map<string,int>::iterator i;
-		for (i=mErrors.begin();i!=mErrors.end();i++)
-		{
-			total+=(*i).second;
-			sprintf(mess,"%s (hits %d)\n",(*i).first.c_str(),(*i).second);
-			OutputDebugString(mess);
-		}
-		
-		sprintf(mess,"****** %s Error Report End   %d errors of %d kinds******\n",mName.c_str(),total,mErrors.size());
-		OutputDebugString(mess);
-	}
 	int AnimTest(CGhoul2Info_v &ghoul2,const char *m,const char *, int line)
 	{
 		if (G2_SetupModelPointers(ghoul2))
@@ -250,11 +232,6 @@ public:
 		if ((*f).second<=MAX_ERROR_PRINTS&&kind<2)
 		{
 			Com_Printf("%s (hit # %d)\n",full.c_str(),(*f).second);
-			if (1)
-			{
-				sprintf(mess,"%s (hit # %d)\n",full.c_str(),(*f).second);
-				OutputDebugString(mess);
-			}
 		}
 		return ret;
 	}
@@ -379,11 +356,6 @@ public:
 	{
 		if (mFreeIndecies.size()<MAX_G2_MODELS)
 		{
-#if G2API_DEBUG
-			char mess[1000];
-			sprintf(mess,"************************\nLeaked %d ghoul2info slots\n", MAX_G2_MODELS - mFreeIndecies.size());
-			OutputDebugString(mess);
-#endif
 			int i;
 			for (i=0;i<MAX_G2_MODELS;i++)
 			{
@@ -395,25 +367,10 @@ public:
 				}
 				if (j==mFreeIndecies.end())
 				{
-#if G2API_DEBUG
-					sprintf(mess,"Leaked Info idx=%d id=%d sz=%d\n", i, mIds[i], mInfos[i].size());
-					OutputDebugString(mess);
-					if (mInfos[i].size())
-					{
-						sprintf(mess,"%s\n", mInfos[i][0].mFileName);
-						OutputDebugString(mess);
-					}
-#endif
 					DeleteLow(i);
 				}
 			}
 		}
-#if G2API_DEBUG
-		else
-		{
-			OutputDebugString("No ghoul2 info slots leaked\n");
-		}
-#endif
 	}
 
 
@@ -1550,7 +1507,7 @@ qboolean G2API_GetBoltMatrix(CGhoul2Info_v &ghoul2, const int modelIndex, const 
 				{
 					for ( int j = 0; j < 4; j++ )
 					{
-						assert( !_isnan(matrix->matrix[i][j]));
+						assert( !isnan(matrix->matrix[i][j]));
 					}
 				}
 #endif// _DEBUG

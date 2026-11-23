@@ -8,12 +8,15 @@
 
 #include "../qcommon/sstring.h"
 #include <algorithm>
+#include <string>
 
 #include "snd_local.h"
 #include "cl_mp3.h"
 
 //
 #include "snd_music.h"
+
+using std::string;
 
 extern qboolean S_FileExists( const char *psFilename );
 

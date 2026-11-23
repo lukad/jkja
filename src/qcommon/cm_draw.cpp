@@ -548,7 +548,7 @@ void CDraw32::DrawLineAANC(long x0, long y0, long x1, long y1, CPixel32 color)
  		// Y-major line; calculate 16-bit fixed-point fractional part of a
  		// pixel that X advances each time Y advances 1 pixel, truncating the
  		// result so that we won't overrun the endpoint along the X axis 
- 		unsigned short	ErrorAdj = unsigned short 
+ 		unsigned short	ErrorAdj = (unsigned short)
 				(((unsigned long) DeltaX << 16) / (unsigned long) DeltaY);
 
  		// Draw all pixels other than the first and last 
@@ -580,7 +580,7 @@ void CDraw32::DrawLineAANC(long x0, long y0, long x1, long y1, CPixel32 color)
 	// It's an X-major line; calculate 16-bit fixed-point fractional part of a
  	// pixel that Y advances each time X advances 1 pixel, truncating the
  	// result to avoid overrunning the endpoint along the X axis 
-	unsigned short	ErrorAdj = unsigned short 
+	unsigned short	ErrorAdj = (unsigned short)
 		(((unsigned long) DeltaY << 16) / (unsigned long) DeltaX);
 	// Draw all pixels other than the first and last 
 	while (--DeltaX) 
@@ -1077,7 +1077,7 @@ typedef struct
 
 // global for speed
 static long   	 n;				// number of vertices
-static POINT  	*pt;		  	// vertices
+static drawPoint_t	*pt;		  	// vertices
 
 static long	    nact;	  		// number of active edges
 static POLYEDGE active[256];	// active edge list:edges crossing scanline y
@@ -1107,8 +1107,8 @@ static void ins_edge(long i, long y)
 {
 	int 		j;
 	long    dx;
-	POINT   *p;
-	POINT   *q;
+	drawPoint_t   *p;
+	drawPoint_t   *q;
 
 	j = i < n - 1 ? i + 1 : 0;
 	if (pt[i].y < pt[j].y)
@@ -1186,7 +1186,7 @@ void shell_sort(void *vec, long n, long siz,
 	}
 }
 
-void CDraw32::DrawPolygon(long nvert, POINT *point, CPixel32 edge, CPixel32 fill)
+void CDraw32::DrawPolygon(long nvert, drawPoint_t *point, CPixel32 edge, CPixel32 fill)
 //USE:    Scan convert a polygon
 //IN:     nvert:        Number of vertices
 //        point:        Vertices of polygon

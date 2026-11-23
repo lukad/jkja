@@ -50,7 +50,6 @@ TO DO: Test mixed blocks (mixed long/short)
 #include <stdio.h>
 #include <float.h>
 #include <math.h>
-#include <memory.h>
 #include <string.h>
 #include <assert.h>
 #include "mhead.h"		/* mpeg header structure */

@@ -96,13 +96,13 @@ static float CM_NoiseGet4f( float x, float y, float z, float t )
 /* Ken Shoemake, 1994 */
 
 /* Perform a generic vector unary operation. */
-#define V_Op(vdst,gets,vsrc,n) {register int V_i;\
+#define V_Op(vdst,gets,vsrc,n) {int V_i;\
     for(V_i=(n)-1;V_i>=0;V_i--) (vdst)[V_i] gets ((vsrc)[V_i]);}
 
 static void lerp(float t, float a0, float a1, vec4_t p0, vec4_t p1, int m, vec4_t p)
 {
-    register float t0=(a1-t)/(a1-a0), t1=1-t0;
-    register int i;
+    float t0=(a1-t)/(a1-a0), t1=1-t0;
+    int i;
     for (i=m-1; i>=0; i--) p[i] = t0*p0[i] + t1*p1[i];
 }
 
@@ -116,7 +116,7 @@ static void lerp(float t, float a0, float a1, vec4_t p0, vec4_t p1, int m, vec4_
 static int DialASpline(float t, float a[], vec4_t p[], int m, int n, vec4_t work[],
                     unsigned int Cn, bool interp, vec4_t val)
 {
-    register int i, j, k, h, lo, hi;
+    int i, j, k, h, lo, hi;
 
     if (Cn>n-1) Cn = n-1;       /* Anything greater gives one polynomial */
     for (k=0; t> a[k]; k++);    /* Find enclosing knot interval */

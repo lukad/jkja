@@ -826,7 +826,7 @@ void SV_Trace( trace_t *results, const vec3_t start, const vec3_t mins, const ve
 Ghoul2 Insert End
 */
 #ifdef _DEBUG
-	assert( !_isnan(start[0])&&!_isnan(start[1])&&!_isnan(start[2])&&!_isnan(end[0])&&!_isnan(end[1])&&!_isnan(end[2]));
+	assert( !isnan(start[0])&&!isnan(start[1])&&!isnan(start[2])&&!isnan(end[0])&&!isnan(end[1])&&!isnan(end[2]));
 #endif// _DEBUG
 
 #if SV_TRACE_PROFILE

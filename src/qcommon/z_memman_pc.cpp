@@ -4,7 +4,6 @@
 #include "qcommon.h"
 #include "sstring.h"
 
-#include "platform.h"
 
 #ifdef DEBUG_ZONE_ALLOCS
 int giZoneSnaphotNum=0;

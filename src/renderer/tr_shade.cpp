@@ -1342,7 +1342,7 @@ static void ComputeColors( shaderStage_t *pStage, alphaGen_t forceAlphaGen, colo
 	if ( tess.shader != tr.projectionShadowShader && tess.shader != tr.shadowShader && 
 			( backEnd.currentEntity->e.renderfx & (RF_DISINTEGRATE1|RF_DISINTEGRATE2)))
 	{
-		RB_CalcDisintegrateColors( (unsigned char *)tess.svars.colors, pStage->rgbGen );
+		RB_CalcDisintegrateColors( (unsigned char *)tess.svars.colors, (colorGen_t)pStage->rgbGen );
 		RB_CalcDisintegrateVertDeform();
 
 		// We've done some custom alpha and color stuff, so we can skip the rest.  Let it do fog though
@@ -1355,7 +1355,7 @@ static void ComputeColors( shaderStage_t *pStage, alphaGen_t forceAlphaGen, colo
 	//
 	if ( !forceRGBGen )
 	{
-		forceRGBGen = pStage->rgbGen;
+		forceRGBGen = (colorGen_t)pStage->rgbGen;
 	}
 
 	if ( backEnd.currentEntity->e.renderfx & RF_VOLUMETRIC ) // does not work for rotated models, technically, this should also be a CGEN type, but that would entail adding new shader commands....which is too much work for one thing
@@ -1390,7 +1390,7 @@ static void ComputeColors( shaderStage_t *pStage, alphaGen_t forceAlphaGen, colo
 
 	if ( !forceAlphaGen )	//set this up so we can override below
 	{
-		forceAlphaGen = pStage->alphaGen;
+		forceAlphaGen = (alphaGen_t)pStage->alphaGen;
 	}
 
 	switch ( forceRGBGen )

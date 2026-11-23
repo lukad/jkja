@@ -29,7 +29,7 @@ using std::string;
 
 #ifdef _STRINGED
 #include <stdlib.h>
-#include <memory.h>
+#include <string.h>
 #include "generic.h"
 #endif
 

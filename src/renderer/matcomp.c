@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
-#include <memory.h>	// for memcpy
+#include <string.h>	// for memcpy
 
 #define MC_MASK_X ((1<<(MC_BITS_X))-1)
 #define MC_MASK_Y ((1<<(MC_BITS_Y))-1)

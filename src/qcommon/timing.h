@@ -2,8 +2,8 @@
 class timing_c
 {
 private:
-	__int64	start;
-	__int64	end;
+	long long	start;
+	long long	end;
 
 	int		reset;
 public:
@@ -12,7 +12,7 @@ public:
 	}
 	void Start()
 	{
-		const __int64 *s = &start;
+		const long long *s = &start;
 
 		__asm
 		{
@@ -32,8 +32,8 @@ public:
 	}
 	int End()
 	{
-		const __int64 *e = &end;
-		__int64	time;
+		const long long *e = &end;
+		long long	time;
 
 		__asm
 		{

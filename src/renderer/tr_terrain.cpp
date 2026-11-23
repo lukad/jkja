@@ -726,12 +726,6 @@ void CTRLandScape::CalculateShaders(void)
 				{
 					shaders[y * width + x] = mFlatShader;
 				}
-
-#ifdef _DEBUG
-				OutputDebugString ( va("Flat Area:  %f %f\n", 
-									GetMins()[0] + (GetMaxs()[0]-GetMins()[0])/width * x,
-									GetMins()[1] + (GetMaxs()[1]-GetMins()[1])/height * y) );
-#endif
 			}
 		}
 	}
@@ -791,7 +785,7 @@ void CTRLandScape::CalculateShaders(void)
 	// Cleanup our temporary array
 	delete[] shaders;
 
-	qsort(mSortedPatches, mSortedCount, sizeof(*mSortedPatches), (int (__cdecl *)(const void *,const void *))ComparePatchInfo);
+	qsort(mSortedPatches, mSortedCount, sizeof(*mSortedPatches), (int (*)(const void *,const void *))ComparePatchInfo);
 
 #endif // PRE_RELEASE_DEMO
 }

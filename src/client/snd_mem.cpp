@@ -7,6 +7,9 @@
 
 #include "snd_local.h"
 #include "cl_mp3.h"
+#include <string>
+
+using std::string;
 
 /*
 ===============================================================================

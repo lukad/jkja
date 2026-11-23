@@ -21,7 +21,8 @@
 #pragma warning(disable : 4503)	// decorated name length xceeded, name was truncated
 
 #include <map>
-#include "../qcommon/sstring.h"	// #include <string>
+#include <string>
+#include "../qcommon/sstring.h"
 using std::map;
 using std::multimap;
 using std::pair;

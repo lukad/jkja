@@ -266,7 +266,7 @@ static void AS_GetTimeBetweenWaves( ambientSet_t &set )
 	int		startTime, endTime;
 
 	//Get the data
-	sscanf( parseBuffer+parsePos, "%s %d %d", &tempBuffer, &startTime, &endTime );
+	sscanf( parseBuffer+parsePos, "%s %d %d", tempBuffer, &startTime, &endTime );
 
 	//Check for swapped start / end
 	if ( startTime > endTime )
@@ -300,7 +300,7 @@ static void AS_GetSubWaves( ambientSet_t &set )
 	char	dirBuffer[512], waveBuffer[256], waveName[1024];
 
 	//Get the directory for these sets
-	sscanf( parseBuffer+parsePos, "%s %s", &tempBuffer, &dirBuffer );	
+	sscanf( parseBuffer+parsePos, "%s %s", tempBuffer, dirBuffer );	
 
 	//Move the pointer past these two strings
 	parsePos += ((strlen(keywordNames[SET_KEYWORD_SUBWAVES])+1) + (strlen(dirBuffer)+1));
@@ -309,7 +309,7 @@ static void AS_GetSubWaves( ambientSet_t &set )
 	while ( parsePos <= parseSize )
 	{
 		//Get the data
-		sscanf( parseBuffer+parsePos, "%s", &waveBuffer );
+		sscanf( parseBuffer+parsePos, "%s", waveBuffer );
 
 		if ( set.numSubWaves > MAX_WAVES_PER_GROUP )
 		{
@@ -361,7 +361,7 @@ static void AS_GetLoopedWave( ambientSet_t &set )
 	char	waveBuffer[256], waveName[1024];
 
 	//Get the looped wave name
-	sscanf( parseBuffer+parsePos, "%s %s", &tempBuffer, &waveBuffer );
+	sscanf( parseBuffer+parsePos, "%s %s", tempBuffer, waveBuffer );
 
 	//Construct the wave name
 	strcpy( (char *) waveName, "sound/" );
@@ -391,7 +391,7 @@ static void AS_GetVolumeRange( ambientSet_t &set )
 	int		min, max;
 
 	//Get the data
-	sscanf( parseBuffer+parsePos, "%s %d %d", &tempBuffer, &min, &max );
+	sscanf( parseBuffer+parsePos, "%s %d %d", tempBuffer, &min, &max );
 
 	//Check for swapped min / max
 	if ( min > max )
@@ -421,7 +421,7 @@ AS_GetRadius
 static void AS_GetRadius( ambientSet_t &set )
 {
 	//Get the data
-	sscanf( parseBuffer+parsePos, "%s %d", &tempBuffer, &set.radius );
+	sscanf( parseBuffer+parsePos, "%s %d", tempBuffer, &set.radius );
 
 	AS_SkipLine();
 }
@@ -439,7 +439,7 @@ static void AS_GetGeneralSet( ambientSet_t &set )
 	//The other parameters of the set come in a specific order
 	while ( parsePos <= parseSize )
 	{
-		int iFieldsScanned = sscanf( parseBuffer+parsePos, "%s", &tempBuffer );
+		int iFieldsScanned = sscanf( parseBuffer+parsePos, "%s", tempBuffer );
 		if (iFieldsScanned <= 0)
 			return;
 
@@ -498,7 +498,7 @@ static void AS_GetLocalSet( ambientSet_t &set )
 	//The other parameters of the set come in a specific order
 	while ( parsePos <= parseSize )
 	{
-		int iFieldsScanned = sscanf( parseBuffer+parsePos, "%s", &tempBuffer );
+		int iFieldsScanned = sscanf( parseBuffer+parsePos, "%s", tempBuffer );
 		if (iFieldsScanned <= 0)
 			return;
 
@@ -561,7 +561,7 @@ static void AS_GetBModelSet( ambientSet_t &set )
 	//The other parameters of the set come in a specific order
 	while ( parsePos <= parseSize )
 	{
-		int iFieldsScanned = sscanf( parseBuffer+parsePos, "%s", &tempBuffer );
+		int iFieldsScanned = sscanf( parseBuffer+parsePos, "%s", tempBuffer );
 		if (iFieldsScanned <= 0)
 			return;
 
@@ -630,7 +630,7 @@ static qboolean AS_ParseSet( int setID, CSetGroup *sg )
 			parsePos+=strlen(name)+1;	//Also take the following space out
 
 			//Get the set name (this MUST be first)
-			sscanf( parseBuffer+parsePos, "%s", &tempBuffer );
+			sscanf( parseBuffer+parsePos, "%s", tempBuffer );
 			AS_SkipLine();
 	
 			//Test the string against the precaches
@@ -671,14 +671,14 @@ static void AS_ParseHeader( void )
 
 	while ( parsePos <= parseSize )
 	{
-		sscanf( parseBuffer+parsePos, "%s", &tempBuffer );
+		sscanf( parseBuffer+parsePos, "%s", tempBuffer );
 
 		keywordID = AS_GetKeywordIDForString( (const char *) &tempBuffer );
 
 		switch ( keywordID )
 		{
 		case SET_KEYWORD_TYPE:
-			sscanf( parseBuffer+parsePos, "%s %s", &tempBuffer, &typeBuffer );
+			sscanf( parseBuffer+parsePos, "%s %s", tempBuffer, typeBuffer );
 
 			if ( !Q_stricmp( (const char *) typeBuffer, "ambientSet" ) )
 			{

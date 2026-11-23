@@ -77,6 +77,13 @@ inline CPixel32 LIGHT_PIX (CPixel32 p, long light)
 
 // Colors are 32-bit RGBA
 
+// a vertex of DrawPolygon
+struct drawPoint_t
+{
+	int x;
+	int y;
+};
+
 // draw class
 class CDraw32
 {
@@ -224,7 +231,7 @@ public:
 	void				DrawCircleAve(long xc, long yc, long r, CPixel32 edge, CPixel32 fill);
 
 	// draw a polygon (complex) with fill and edge colors 
-	void				DrawPolygon(long nvert, POINT *point, CPixel32 edge, CPixel32 fill);
+	void				DrawPolygon(long nvert, drawPoint_t *point, CPixel32 edge, CPixel32 fill);
 
 	// simple blit function
 	void				BlitNC(long dstX, long dstY, long dstWidth, long dstHeight, 
