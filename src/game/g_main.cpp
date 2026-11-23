@@ -47,8 +47,7 @@ extern qboolean g_bCollidableRoffs;
 level_locals_t	level;
 game_import_t	gi;
 game_export_t	globals;
-//gentity_t		g_entities[MAX_GENTITIES];
-gentity_t		*g_entities = NULL;
+gentity_t		g_entities[MAX_GENTITIES];
 unsigned int	g_entityInUseBits[MAX_GENTITIES/32];
 
 static void ClearAllInUse(void)
@@ -2228,47 +2227,4 @@ void PrintEntClassname( int gentNum )
 IGhoul2InfoArray &TheGameGhoul2InfoArray()
 {
 	return gi.TheGhoul2InfoArray();
-}
-
-extern bool bHadPersistedSurface;
-gentity_t *pReservedZoneGentities = NULL;
-
-void G_ReserveZoneGentities( void )
-{
-	pReservedZoneGentities = (gentity_t *) Z_Malloc( sizeof(gentity_t) * MAX_GENTITIES, TAG_TEMP_WORKSPACE, qfalse, 4 );
-}
-
-void G_AllocGentities( void )
-{
-	g_entities = (gentity_t *) HeapAlloc( GetProcessHeap(), 0, sizeof(gentity_t) * MAX_GENTITIES );
-
-	// If it worked...
-	if( g_entities )
-	{
-		// And we had a persisted surface. (Normal case). Free the reserved zone:
-		if( bHadPersistedSurface )
-		{
-			Z_Free( pReservedZoneGentities );
-			pReservedZoneGentities = NULL;
-			return;
-		}
-
-		// Really bad case #1:
-		Com_PrintfAlways( "G_AllocGentities: Extreme failure #1\n" );
-		return;
-	}
-	else
-	{
-		// It failed. Hopefully that means that there was no persisted surface.
-		if( !bHadPersistedSurface )
-		{
-			g_entities = pReservedZoneGentities;
-			pReservedZoneGentities = NULL;
-			return;
-		}
-
-		// Really bad case #2:
-		Com_PrintfAlways( "G_AllocGentities: Extreme failure #2\n" );
-		return;
-	}
 }
