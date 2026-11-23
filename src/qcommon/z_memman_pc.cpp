@@ -56,9 +56,22 @@ typedef struct
 
 } zoneTail_t;
 
-static inline zoneTail_t *ZoneTailFromHeader(zoneHeader_t *pHeader)
+// The tail follows the block's memory directly, at whatever address that ends, so it is
+// read and written bytewise.
+static inline int ZoneTailMagic(const zoneHeader_t *pHeader)
 {
-	return (zoneTail_t*) ( (char*)pHeader + sizeof(*pHeader) + pHeader->iSize );
+	zoneTail_t Tail;
+
+	memcpy( &Tail, (const char*)pHeader + sizeof(*pHeader) + pHeader->iSize, sizeof(Tail) );
+	return Tail.iMagic;
+}
+
+static inline void ZoneTailSetMagic(zoneHeader_t *pHeader)
+{
+	zoneTail_t Tail;
+
+	Tail.iMagic = ZONE_MAGIC;
+	memcpy( (char*)pHeader + sizeof(*pHeader) + pHeader->iSize, &Tail, sizeof(Tail) );
 }
 
 #ifdef DETAILED_ZONE_DEBUG_CODE
@@ -139,7 +152,7 @@ int Z_Validate(void)
 		}
 
 
-		if (ZoneTailFromHeader(pMemory)->iMagic != ZONE_MAGIC)
+		if (ZoneTailMagic(pMemory) != ZONE_MAGIC)
 		{
 			Com_Error(ERR_FATAL, "Z_Validate(): Corrupt zone tail!");
 			return ret;
@@ -154,30 +167,31 @@ int Z_Validate(void)
 
 // static mem blocks to reduce a lot of small zone overhead
 //
-#pragma pack(push)
-#pragma pack(1)
+// The tail is declared as bytes so that it follows the memory without padding, as it
+// does in a block from Z_Malloc; the bytes are ZONE_MAGIC in memory order.
+#define STATIC_ZONE_TAIL	{0x87, 0x65, 0x43, 0x21}
+
 typedef struct
 {
 	zoneHeader_t	Header;	
 //	byte mem[0];
-	zoneTail_t		Tail;
+	byte			Tail[sizeof(zoneTail_t)];
 } StaticZeroMem_t;
 
 typedef struct
 {
 	zoneHeader_t	Header;	
 	byte mem[2];
-	zoneTail_t		Tail;
+	byte			Tail[sizeof(zoneTail_t)];
 } StaticMem_t;
-#pragma pack(pop)
 
 const static StaticZeroMem_t gZeroMalloc  =
-	{ {ZONE_MAGIC, TAG_STATIC,0,NULL,NULL},{ZONE_MAGIC}};
+	{ {ZONE_MAGIC, TAG_STATIC,0,NULL,NULL},STATIC_ZONE_TAIL};
 
 #ifdef DEBUG_ZONE_ALLOCS
-#define DEF_STATIC(_char) {ZONE_MAGIC, TAG_STATIC,2,NULL,NULL, "<static>",0,"",0},_char,'\0',{ZONE_MAGIC}
+#define DEF_STATIC(_char) {ZONE_MAGIC, TAG_STATIC,2,NULL,NULL, "<static>",0,"",0},{_char,'\0'},STATIC_ZONE_TAIL
 #else
-#define DEF_STATIC(_char) {ZONE_MAGIC, TAG_STATIC,2,NULL,NULL			        },_char,'\0',{ZONE_MAGIC}	
+#define DEF_STATIC(_char) {ZONE_MAGIC, TAG_STATIC,2,NULL,NULL			        },{_char,'\0'},STATIC_ZONE_TAIL	
 #endif
 
 const static StaticMem_t gEmptyString =
@@ -346,7 +360,7 @@ void *Z_Malloc(int iSize, memtag_t eTag, qboolean bZeroit, int unusedAlign)
 	//
 	// add tail...
 	//
-	ZoneTailFromHeader(pMemory)->iMagic = ZONE_MAGIC;
+	ZoneTailSetMagic(pMemory);
 
 	// Update stats...
 	//
@@ -555,7 +569,7 @@ int Z_Free(void *pvAddress)
 		Com_Error(ERR_FATAL, "Z_Free(): Corrupt zone header!");
 		return -1;
 	}
-	if (ZoneTailFromHeader(pMemory)->iMagic != ZONE_MAGIC)
+	if (ZoneTailMagic(pMemory) != ZONE_MAGIC)
 	{
 		Com_Error(ERR_FATAL, "Z_Free(): Corrupt zone tail!");
 		return -1;
