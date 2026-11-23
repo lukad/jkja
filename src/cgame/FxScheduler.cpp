@@ -429,7 +429,7 @@ int CFxScheduler::RegisterEffect( const char *file, bool bHasCorrectPath /*= fal
 	else
 	{
 		// Add on our extension and prepend the file with the default path
-		sprintf( temp, "%s/%s.efx", FX_FILE_PATH, sfile );
+		Com_sprintf( temp, sizeof(temp), "%s/%s.efx", FX_FILE_PATH, sfile );
 		pfile = temp;
 	}
 
