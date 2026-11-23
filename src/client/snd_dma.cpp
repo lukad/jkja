@@ -2756,7 +2756,12 @@ void S_RestartMusic( void )
 		//if (gsIntroMusic[0] || gsLoopMusic[0])	// dont test this anymore (but still *use* them), they're blank for JK2 dynamic-music levels anyway
 		{
 			MusicState_e ePrevState	= eMusic_StateRequest;
-			S_StartBackgroundTrack( gsIntroMusic, gsLoopMusic, qfalse );	// ( default music start will set the state to EXPLORE )
+			// S_StartBackgroundTrack copies its arguments into gsIntroMusic and gsLoopMusic
+			char sIntro[MAX_QPATH];
+			char sLoop [MAX_QPATH];
+			Q_strncpyz(sIntro, gsIntroMusic, sizeof(sIntro));
+			Q_strncpyz(sLoop,  gsLoopMusic,  sizeof(sLoop));
+			S_StartBackgroundTrack( sIntro, sLoop, qfalse );	// ( default music start will set the state to EXPLORE )
 			S_SetDynamicMusicState( ePrevState );					// restore to prev state
 		}
 	}

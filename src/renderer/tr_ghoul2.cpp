@@ -904,9 +904,11 @@ static int G2_GetBonePoolIndex(	const mdxaHeader_t *pMDXAHeader, int iFrame, int
 	assert(iBone>=0&&iBone<pMDXAHeader->numBones);
 	const int iOffsetToIndex = (iFrame * pMDXAHeader->numBones * 3) + (iBone * 3);
 
-	mdxaIndex_t *pIndex = (mdxaIndex_t *) ((byte*) pMDXAHeader + pMDXAHeader->ofsFrames + iOffsetToIndex);
+	// the indexes are three bytes apart, so most of them are not aligned
+	mdxaIndex_t index;
+	memcpy( &index, (byte*) pMDXAHeader + pMDXAHeader->ofsFrames + iOffsetToIndex, sizeof(index) );
 
-	return pIndex->iIndex & 0x00FFFFFF;	// this will cause problems for big-endian machines... ;-)
+	return index.iIndex & 0x00FFFFFF;	// this will cause problems for big-endian machines... ;-)
 }
 
 /*******************************************************************************************************************/
