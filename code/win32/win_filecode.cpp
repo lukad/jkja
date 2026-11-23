@@ -28,8 +28,6 @@
 
 #if defined(_WINDOWS)
 #include <windows.h>
-#elif defined(_XBOX)
-#include <xtl.h>
 #endif
 
 struct FileInfo

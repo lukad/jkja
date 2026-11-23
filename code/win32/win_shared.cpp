@@ -261,9 +261,6 @@ int Sys_GetProcessorId( void )
 
 char *Sys_GetCurrentUser( void )
 {
-#ifdef _XBOX
-	return NULL;
-#else
 	static char s_userName[1024];
 	unsigned long size = sizeof( s_userName );
 
@@ -277,5 +274,4 @@ char *Sys_GetCurrentUser( void )
 	}
 
 	return s_userName;
-#endif
 }

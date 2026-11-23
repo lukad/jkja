@@ -25,8 +25,6 @@
 
 #if defined(_WINDOWS) || defined(_XBOX)
 #include "glw_win_dx8.h"
-#elif defined(_GAMECUBE)
-#include "glw_win_gc.h"
 #endif
 
 

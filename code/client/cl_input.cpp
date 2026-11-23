@@ -8,9 +8,6 @@
 #include "client.h"
 #include "client_ui.h"
 
-#ifdef _XBOX
-#include "cl_input_hotswap.h"
-#endif
 
 unsigned	frame_msec;
 int			old_com_frameTime;
@@ -49,57 +46,6 @@ kbutton_t	in_buttons[9];
 qboolean	in_mlooking;
 
 
-#ifdef _XBOX
-HotSwapManager swapMan1(HOTSWAP_ID_WHITE);
-HotSwapManager swapMan2(HOTSWAP_ID_BLACK);
-HotSwapManager swapMan3(HOTSWAP_ID_YELLOW);
-
-
-void IN_HotSwap1On(void)
-{
-	swapMan1.SetDown();
-}
-
-void IN_HotSwap2On(void)
-{
-	swapMan2.SetDown();
-}
-
-void IN_HotSwap3On(void)
-{
-	swapMan3.SetDown();
-}
-
-
-void IN_HotSwap1Off(void)
-{
-	swapMan1.SetUp();
-}
-
-void IN_HotSwap2Off(void)
-{
-	swapMan2.SetUp();
-}
-
-void IN_HotSwap3Off(void)
-{
-	swapMan3.SetUp();
-}
-
-
-void CL_UpdateHotSwap(void)
-{
-	swapMan1.Update();
-	swapMan2.Update();
-	swapMan3.Update();
-}
-
-
-bool CL_ExtendSelectTime(void)
-{
-	return swapMan1.ButtonDown() || swapMan2.ButtonDown() || swapMan3.ButtonDown();
-}
-#endif
 
 
 static void IN_UseGivenForce(void)
@@ -502,24 +448,6 @@ void CL_JoystickMove( usercmd_t *cmd )
 CL_MouseMove
 =================
 */
-#ifdef _XBOX
-void CL_MouseClamp(int *x, int *y)
-{
-	float ax = Q_fabs(*x);
-	float ay = Q_fabs(*y);
-
-	ax = (ax-10)*(3.0f/45.0f) * (ax-10) * (Q_fabs(*x) > 10);
-	ay = (ay-10)*(3.0f/45.0f) * (ay-10) * (Q_fabs(*y) > 10);
-	if (*x < 0)
-		*x = -ax;
-	else
-		*x = ax;
-	if (*y < 0)
-		*y = -ay;
-	else
-		*y = ay;
-}
-#endif
 
 extern short cg_crossHairStatus;
 
@@ -712,18 +640,6 @@ usercmd_t CL_CreateCmd( void ) {
 	// get basic movement from keyboard
 	CL_KeyMove (&cmd);
 
-#ifdef XBOX_DEMO
-	static int lastStickData = cl.mouseDx[cl.mouseIndex] + cl.mouseDy[cl.mouseIndex] +
-							   cl.joystickAxis[AXIS_SIDE] + cl.joystickAxis[AXIS_FORWARD];
-	int newStickData = cl.mouseDx[cl.mouseIndex] + cl.mouseDy[cl.mouseIndex] +
-					   cl.joystickAxis[AXIS_SIDE] + cl.joystickAxis[AXIS_FORWARD];
-	if( lastStickData != newStickData )
-	{
-		extern void Demo_TimerKeypress( void );
-		Demo_TimerKeypress();
-	}
-	lastStickData = newStickData;
-#endif
 
 	// get basic movement from mouse
 	CL_MouseMove( &cmd );
@@ -747,7 +663,6 @@ usercmd_t CL_CreateCmd( void ) {
 	CL_FinishMove( &cmd );
 
 	// draw debug graphs of turning for mouse testing
-#ifndef _XBOX
 	if ( cl_debugMove->integer ) {
 		if ( cl_debugMove->integer == 1 ) {
 			SCR_DebugGraph( abs(cl.viewangles[YAW] - oldAngles[YAW]), 0 );
@@ -756,7 +671,6 @@ usercmd_t CL_CreateCmd( void ) {
 			SCR_DebugGraph( abs(cl.viewangles[PITCH] - oldAngles[PITCH]), 0 );
 		}
 	}
-#endif
 
 	return cmd;
 }
@@ -1001,14 +915,6 @@ void CL_InitInput( void ) {
 	Cmd_AddCommand ("+speed", IN_SpeedDown);
 	Cmd_AddCommand ("-speed", IN_SpeedUp);
 	//xbox hot swappable buttons
-#ifdef _XBOX
-	Cmd_AddCommand ("+hotswap1", IN_HotSwap1On);
-	Cmd_AddCommand ("+hotswap2", IN_HotSwap2On);
-	Cmd_AddCommand ("+hotswap3", IN_HotSwap3On);
-	Cmd_AddCommand ("-hotswap1", IN_HotSwap1Off);
-	Cmd_AddCommand ("-hotswap2", IN_HotSwap2Off);
-	Cmd_AddCommand ("-hotswap3", IN_HotSwap3Off);
-#endif
 	Cmd_AddCommand ("useGivenForce", IN_UseGivenForce);
 	//buttons
 	Cmd_AddCommand ("+attack", IN_Button0Down);//attack

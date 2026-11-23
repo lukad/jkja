@@ -174,13 +174,11 @@ void *RE_RegisterModels_Malloc(int iSize, void *pvDiskBufferIfJustLoaded, const 
 		//
 		// ... groan, but not if doing a limb hierarchy creation (some VV stuff?), in which case it's NULL
 		//			
-#ifndef _XBOX	// GODDAMN - No, we can't do this.
 		if ( pvDiskBufferIfJustLoaded )
 		{
 			Z_MorphMallocTag( pvDiskBufferIfJustLoaded, eTag );
 		}
 		else
-#endif
 		{
 			pvDiskBufferIfJustLoaded =  Z_Malloc(iSize,eTag, qfalse );
 		}
@@ -810,13 +808,8 @@ static qboolean R_LoadMD3 (model_t *mod, int lod, void *buffer, const char *mod_
 		//
 		// Aaaargh. Kill me now...
 		//
-#ifdef _XBOX
-		// Yeah. Unless we're on Xbox. Where we don't try and re-tag memory after allocation.
-		memcpy( mod->md3[lod], buffer, size );	// and don't do this now, since it's the same thing
-#else
 		bAlreadyCached = qtrue;
 		assert( mod->md3[lod] == buffer );
-#endif
 
 		LL(mod->md3[lod]->ident);
 		LL(mod->md3[lod]->version);
@@ -968,9 +961,7 @@ void CM_SetupShaderProperties(void);
 ** RE_BeginRegistration
 */
 void RE_BeginRegistration( glconfig_t *glconfigOut ) {
-#ifndef _XBOX
 	ShaderTableCleanup();
-#endif
 	Hunk_ClearToMark();
 
 	R_Init();
@@ -992,16 +983,8 @@ R_ModelInit
 */
 void R_ModelInit( void ) 
 {
-#ifdef _XBOX
-	// Sorry Raven, but static maps == fragmentation
-	if (!CachedModels)
-	{
-		CachedModels = new CachedModels_t;
-	}
-#else
 	static CachedModels_t singleton;	// sorry vv, your dynamic allocation was a (false) memory leak
 	CachedModels = &singleton;
-#endif
 
 	model_t		*mod;
 
@@ -1190,14 +1173,3 @@ void R_ModelBounds( qhandle_t handle, vec3_t mins, vec3_t maxs ) {
 }
 
 
-#ifdef _XBOX
-void R_ModelFree(void)
-{
-	if (CachedModels)
-	{
-		RE_RegisterModels_DeleteAll();
-		delete CachedModels;
-		CachedModels = NULL;
-	}
-}
-#endif

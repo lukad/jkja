@@ -823,14 +823,12 @@ qboolean CM_SameMap(char *server)
 	return qtrue;
 }
 
-#ifndef _XBOX
 qboolean CM_HasTerrain(void)
 {
 	if (cmg.landScape)
 		return qtrue;
 	return qfalse;
 }
-#endif
 
 /*
 ==================
@@ -848,7 +846,6 @@ void CM_ClearMap( void )
 //	MAT_Shutdown();
 #endif
 
-#ifndef _XBOX
 	if (TheRandomMissionManager)
 	{
 		delete TheRandomMissionManager;
@@ -860,7 +857,6 @@ void CM_ClearMap( void )
 		delete cmg.landScape;
 		cmg.landScape = 0;
 	}
-#endif
 
 	memset( &cmg, 0, sizeof( cmg ) );
 	CM_ClearLevelPatches();
@@ -1159,11 +1155,7 @@ int CM_LoadSubBSP(const char *name, qboolean clientload)
 		Com_Error (ERR_DROP, "CM_LoadSubBSP: too many unique sub BSPs");
 	}
 
-#ifdef _XBOX
-	assert(0); // MATT! - testing now - fix this later!
-#else
 	CM_LoadMap_Actual( name, clientload, &checksum, SubBSP[NumSubBSP] );
-#endif
 	NumSubBSP++;
 
 	return count;

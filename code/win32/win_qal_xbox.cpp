@@ -891,18 +891,6 @@ static void _streamOpen(DWORD file, DWORD offset, bool loop)
 	// Get the original name, not re-mapped:
 	const char* name = Sys_GetFileCodeName(file);
 
-#ifdef XBOX_DEMO
-	// Skip over "D:"
-	name += 2;
-
-	// Get the base path, then add the important part of the filename:
-	extern char demoBasePath[64];
-	char mappedName[128];
-
-	strcpy( mappedName, demoBasePath );
-	strcat( mappedName, name );
-	name = mappedName;
-#endif
 
 	WaitForSingleObject(Sys_FileStreamMutex, INFINITE);
 

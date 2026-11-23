@@ -7,9 +7,6 @@
 
 #include "snd_local_console.h"
 
-#ifdef _XBOX
-#include <xtl.h>
-#endif
 
 #define SND_MAX_LOADS 48
 static sfx_t** s_LoadList = NULL;
@@ -28,10 +25,6 @@ void S_DrainRawSoundData(void)
 	{
 		S_UpdateLoading();
 
-#ifdef _GAMECUBE
-		extern void ERR_DiscFail(bool);
-		ERR_DiscFail(true);
-#endif
 	} 
 	while (s_LoadListSize);
 }
@@ -50,18 +43,6 @@ wavinfo_t GetWavInfo(byte *data)
 
 	if (!data) return info;
 
-#ifdef _GAMECUBE
-	if (*(short*)&data[14] != 0)
-	{
-		// invalid type, abort
-		return info;
-	}
-
-	info.format = AL_FORMAT_MONO4;
-	info.width = 4;
-	info.size = ((*(int*)&data[20]) >> 1) + 96;
-	info.rate = *(int*)&data[8];
-#else
 	int dataofs = 0;
 	if (strncmp((char *)&data[dataofs + 0], "RIFF", 4) ||
 		strncmp((char *)&data[dataofs + 8], "WAVE", 4))
@@ -81,7 +62,6 @@ wavinfo_t GetWavInfo(byte *data)
 	info.samples = (info.size * 2);
 
 	dataofs += 8; // done with data chunk
-#endif
 
 	return info;
 }
@@ -235,14 +215,8 @@ qboolean S_StartLoadSound( sfx_t *sfx )
 		return qfalse;
 	}
 
-#ifdef _GAMECUBE
-	// Allocate a buffer to read into...
-	sfx->pSoundData = Z_Malloc(sfx->iSoundLength + 64, TAG_SND_RAWDATA,
-			qtrue, 32);
-#else
 	// Allocate a buffer to read into...
 	sfx->pSoundData = Z_Malloc(sfx->iSoundLength, TAG_SND_RAWDATA, qtrue, 32);
-#endif
 
 	// Setup the background read
 	if ( !sfx->pSoundData || 
@@ -338,9 +312,6 @@ qboolean S_EndLoadSound( sfx_t *sfx )
 	
 	sfx->Buffer = Buffer;
 
-#ifdef _GAMECUBE
-	Z_Free(sfx->pSoundData);
-#endif
 	sfx->iFlags |= SFX_FLAG_RESIDENT;
 
 	return qtrue;

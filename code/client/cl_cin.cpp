@@ -1748,11 +1748,6 @@ static void PlayCinematic(const char *arg, const char *s, qboolean qbInGame)
 		//
 		////////////////////////////////////////////////////////////////////
 
-#ifdef _XBOX
-		if(cg.widescreen)
-			CL_handle = CIN_PlayCinematic( arg, 0, 0, 720, SCREEN_HEIGHT, bits, psAudioFile );
-		else
-#endif
 		CL_handle = CIN_PlayCinematic( arg, 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, bits, psAudioFile );
 		if (CL_handle >= 0) 
 		{

@@ -72,7 +72,6 @@ extern stringID_table_t animTable [MAX_ANIMATIONS+1];
 #define MAX_VEH_WEAPON_DATA_SIZE 0x4000
 #define MAX_VEHICLE_DATA_SIZE 0x10000
 
-#if !defined(_XBOX) || defined(QAGAME)
 	char	VehWeaponParms[MAX_VEH_WEAPON_DATA_SIZE];
 	char	VehicleParms[MAX_VEHICLE_DATA_SIZE];
 
@@ -83,10 +82,6 @@ void BG_ClearVehicleParseParms(void)
 	VehicleParms[0] = 0;
 }
 
-#else
-	extern char VehWeaponParms[MAX_VEH_WEAPON_DATA_SIZE];
-	extern char VehicleParms[MAX_VEHICLE_DATA_SIZE];
-#endif
 
 #ifdef _JK2MP
 #include "../namespace_begin.h"

@@ -7,12 +7,7 @@
 
 
 #include "tr_local.h"
-#ifndef _XBOX
 #include "tr_jpeg_interface.h"
-#else
-#include "../qcommon/sstring.h"
-#include "../zlib/zlib.h"
-#endif
 #include "../png/png.h"
 #include "../qcommon/sstring.h"
 #include "../win32/xbox_texture_man.h"
@@ -131,11 +126,7 @@ void GL_TextureMode( const char *string ) {
 	   				 R_Images_StartIteration();
 	while ( (glt   = R_Images_GetNextIteration()) != NULL)
 	{
-#ifdef _XBOX
-		if ( glt->mipcount ) {
-#else
 		if ( glt->mipmap ) {
-#endif
 			GL_Bind (glt);
 			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, gl_filter_min);
 			qglTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, gl_filter_max);
@@ -1581,7 +1572,6 @@ void R_LoadImage( const char *shortname, byte **pic, int *width, int *height, in
 }
 
 
-#ifndef _XBOX	// Only used for terrain
 void R_LoadDataImage( const char *name, byte **pic, int *width, int *height)
 {
 	int		len;
@@ -1623,7 +1613,6 @@ void R_LoadDataImage( const char *name, byte **pic, int *width, int *height)
 	Com_Printf("Couldn't read %s -- dataimage load failed\n", name);
 //	MD_PopTag();
 }
-#endif
 
 void R_InvertImage(byte *data, int width, int height, int depth)
 {
@@ -1888,7 +1877,6 @@ R_CreateDlightImage
 #define	DLIGHT_SIZE	64
 static void R_CreateDlightImage( void ) 
 {
-#ifndef _XBOX
 	int		width, height;
 	byte	*pic;
 	GLenum	format;
@@ -1926,7 +1914,6 @@ static void R_CreateDlightImage( void )
 		}
 		tr.dlightImage = R_CreateImage("*dlight", (byte *)data, DLIGHT_SIZE, DLIGHT_SIZE, GL_RGBA, qfalse, qfalse, qfalse, GL_CLAMP );
 	}
-#endif
 }
 
 /*
@@ -2655,24 +2642,4 @@ void	R_SkinList_f (void) {
 	VID_Printf (PRINT_ALL, "------------------\n");
 }
 
-#ifdef _XBOX
-
-extern BOOL LoadCompressedScreenshot(const char* filename);
-
-/*
-===============
-R_UpdateSaveGameImage
-filename	- .xbx format file with a screenshot
-===============
-*/
-bool R_UpdateSaveGameImage(const char* filename)
-{
-	// bind the savegame image
-	GL_Bind(tr.saveGameImage);
-
-	// replace the texture with the one from the file
-	return LoadCompressedScreenshot(filename);
-}
-
-#endif // _XBOX
 

@@ -844,11 +844,6 @@ bool CGenericParser2::Parse(char **dataPtr, bool cleanFirst, bool writeable)
 {
 	CTextPool	*topPool;
 
-#ifdef _XBOX
-	// Parsers are temporary structures.  They exist mainly at load time.
-	extern void Z_SetNewDeleteTemporary(bool bTemp);
-	Z_SetNewDeleteTemporary(true);
-#endif
 
 	if (cleanFirst)
 	{
@@ -865,9 +860,6 @@ bool CGenericParser2::Parse(char **dataPtr, bool cleanFirst, bool writeable)
 	topPool = mTextPool;
 	bool ret = mTopLevel.Parse(dataPtr, &topPool);
 
-#ifdef _XBOX
-	Z_SetNewDeleteTemporary(false);
-#endif
 
 	return ret;
 }

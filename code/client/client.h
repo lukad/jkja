@@ -164,15 +164,9 @@ typedef enum {
 	EXIT_LAUNCH			// quit all the way out of the game on disconnect
 } exitTo_t;
 
-#ifdef _XBOX
-#define	MAX_LOCAL_SERVERS	1
-#define	MAX_GLOBAL_SERVERS	1
-#define MAX_PINGREQUESTS	1
-#else
 #define	MAX_LOCAL_SERVERS	16
 #define	MAX_GLOBAL_SERVERS	256
 #define MAX_PINGREQUESTS	16
-#endif
 
 typedef struct {
 	netadr_t	adr;
@@ -202,9 +196,6 @@ typedef struct {
 	qboolean	soundRegistered;
 	qboolean	uiStarted;
 	qboolean	cgameStarted;
-#ifdef _IMMERSION
-	qboolean	forceStarted;
-#endif // _IMMERSION
 
 	int			framecount;
 	int			frametime;			// msec since last frame
@@ -223,16 +214,9 @@ typedef struct {
 	qhandle_t	whiteShader;
 //	qhandle_t	consoleShader;
 
-#ifdef _XBOX
-	short		mainGamepad;
-#endif
 } clientStatic_t;
 
-#ifdef _XBOX
-#define	CON_TEXTSIZE	256
-#else
 #define	CON_TEXTSIZE	32768
-#endif
 #define	NUM_CON_TIMES	4
 
 typedef struct {
@@ -285,9 +269,6 @@ extern	cvar_t	*cl_run;
 extern	cvar_t	*cl_anglespeedkey;
 
 extern	cvar_t	*cl_sensitivity;
-#ifdef _XBOX
-extern	cvar_t	*cl_sensitivityY;
-#endif
 
 extern	cvar_t	*cl_freelook;
 
@@ -419,9 +400,6 @@ void	SCR_DrawSmallStringColor( int x, int y, const char *s, vec4_t color );	// i
 void	SCR_DrawBigChar( int x, int y, int ch );
 void	SCR_DrawSmallChar( int x, int y, int ch );
 
-#ifdef _XBOX
-void	SCR_PrecacheScreenshot();
-#endif
 
 
 //
@@ -445,10 +423,6 @@ void CIN_SetLooping (int handle, qboolean loop);
 void CIN_UploadCinematic(int handle);
 void CIN_CloseAllVideos(void);
 
-#ifdef _XBOX
-void CIN_Init(void);
-bool CIN_PlayAllFrames( const char *arg, int x, int y, int w, int h, int systemBits, bool keyBreakAllowed );
-#endif
 
 
 //

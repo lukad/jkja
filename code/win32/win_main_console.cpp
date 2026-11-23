@@ -10,15 +10,6 @@
 #include "glw_win_dx8.h"
 #include "../qcommon/xb_settings.h"
 
-#ifdef _XBOX
-#include <IO.h>
-#define NEWDECL __cdecl
-
-#ifndef FINAL_BUILD
-#include "dbg_console_xbox.h"
-#endif
-
-#endif
 
 int gLaunchController = 0;
 
@@ -67,20 +58,12 @@ void Sys_Init( void )
 	Cmd_AddCommand ("net_restart", Sys_Net_Restart_f);
 }
 
-#ifdef XBOX_DEMO
-// When we're a demo, we're not running from D:\, so we need some hacks:
-char demoBasePath[64];
-#endif
 
 char *Sys_Cwd( void )
 {
 	static char cwd[MAX_OSPATH];
 
-#ifdef XBOX_DEMO
-	strcpy( cwd, demoBasePath );
-#else
 	strcpy(cwd, "d:");
-#endif
 
 	return cwd;
 }
@@ -112,11 +95,7 @@ void Sys_Error( const char *error, ... ) {
         vsprintf (text, error, argptr);
         va_end (argptr);
 
-#ifdef _GAMECUBE
-        printf(text);
-#else
         OutputDebugString(text);
-#endif
 
 #if 0 // UN-PORT
         Com_ShutdownZoneMemory();
@@ -162,11 +141,7 @@ sysEvent_t Sys_GetEvent( void ) {
 
 void Sys_Print(const char *msg)
 {
-#ifdef _GAMECUBE
-	printf(msg);
-#else
 	OutputDebugString(msg);
-#endif
 }
 
 /*
@@ -248,15 +223,9 @@ void Sys_Log( const char *file, const void *buffer, int size, bool flush ) {
 #endif
 }
 
-#ifdef _XBOX
-HANDLE Sys_FileStreamMutex = INVALID_HANDLE_VALUE;
-#endif
 
 void Win_Init(void)
 {
-#ifdef _XBOX
-	Sys_FileStreamMutex = CreateMutex(NULL, FALSE, NULL);
-#endif
 }
 
 /*
@@ -267,26 +236,12 @@ XBE SWITCHING SUPPORT
 =====================
 */
 
-#ifdef XBOX_DEMO
-// Filled in when we're launched from CDX
-LD_DEMO demoLaunchData;
-bool demoLaunchDataValid = false;
-
-// If we were launched by the user, or someone has pressed a key
-// then the timer should not count down during movies/loading:
-bool demoTimerAlways = false;
-int demoTimer = 0;
-#endif
 
 // Takes a filename (relative to ".") and pre-pends the right path. This
 // is needed for demos where the game won't be running from D:
 const char *Sys_RemapPath( const char *filename )
 {
-#ifdef XBOX_DEMO
-	return va( "%s\\%s", demoBasePath, filename );
-#else
 	return va( "D:\\%s", filename );
-#endif
 }
 
 // Despite what you may think, this function actually just returns
@@ -307,40 +262,6 @@ bool Sys_QuickStart( void )
 
 	initialized = true;
 
-#ifdef XBOX_DEMO
-	// Default to D:\, this gets replaced below if CDX started us
-	strcpy( demoBasePath, "D:" );
-
-	gLaunchController = 0;	// Irrelevant in demo
-	retVal = false;			// We never come from MP (eg), so always false
-	DWORD launchType;
-
-	DWORD result = XGetLaunchInfo( &launchType, (LAUNCH_DATA *) &demoLaunchData );
-	if( result == ERROR_SUCCESS && launchType == LDT_TITLE )
-	{
-		// We were launched by CDX:
-		demoLaunchDataValid = true;
-
-		// How we were launched affects timer behavior:
-		demoTimerAlways = (demoLaunchData.dwRunmode == XLDEMO_RUNMODE_KIOSKMODE);
-
-		// Need to re-map paths, as D:\\ doesn't work now:
-		Q_strncpyz( demoBasePath, demoLaunchData.szLaunchedXBE, sizeof(demoBasePath), qtrue );
-
-		// Find our executable name in the path, and truncate the string there:
-		char *pXBE = strstr( demoBasePath, "\\default.xbe" );
-		if( !pXBE )
-			Com_Error( ERR_FATAL, "Error re-mapping D drive\n" );
-		*pXBE = 0;
-
-		// Fix the video path:
-		extern char XBOX_VIDEO_PATH[64];
-		strcpy( XBOX_VIDEO_PATH, demoBasePath );
-		strcat( XBOX_VIDEO_PATH, "\\base\\video\\" );
-	}
-
-	return retVal;
-#else
 	DWORD launchType;
 	LAUNCH_DATA ld;
 
@@ -356,7 +277,6 @@ bool Sys_QuickStart( void )
 		Settings.Disable();
 
 	return (retVal = true);
-#endif
 }
 
 extern int IN_GetMainController(void);
@@ -368,19 +288,6 @@ extern void SP_DrawMPLoadScreen(void);
 // For the demo, the only valid reason is "demo", and pData should be NULL
 void Sys_Reboot( const char *reason, const void *pData )
 {
-#ifdef XBOX_DEMO
-	if( pData || !demoLaunchDataValid || Q_stricmp( reason, "demo" ) != 0 )
-		Com_Error( ERR_DROP, "Invalid Sys_Reboot call\n" );
-
-	// Kill off the sound and stream threads:
-	S_Shutdown();
-	extern void Sys_StreamShutdown(void);
-	Sys_StreamShutdown();
-
-	// Now return to CDX
-	XLaunchNewImage( demoLaunchData.szLauncherXBE, (LAUNCH_DATA *) &demoLaunchData );
-	// Should never return!
-#else
 	LAUNCH_DATA ld;
 	const char *path = NULL;
 	int controller;
@@ -435,7 +342,6 @@ void Sys_Reboot( const char *reason, const void *pData )
 
 	// This function should not return!
 	Com_Error( ERR_FATAL, "ERROR: XLaunchNewImage returned\n" );
-#endif
 }
 
 static XONLINE_ACCEPTED_GAMEINVITE acceptedGameInvite;
@@ -444,9 +350,6 @@ static XONLINE_ACCEPTED_GAMEINVITE acceptedGameInvite;
 // Can only return true on the FIRST call.
 bool Sys_InviteExists( void )
 {
-#ifdef XBOX_DEMO
-	return false;
-#else
 	static bool initialized = false;
 	if( initialized )
 		return false;
@@ -462,7 +365,6 @@ bool Sys_InviteExists( void )
 	XOnlineCleanup();
 
 	return (hr == S_OK);
-#endif
 }
 
 // Reboot to MP to join the game that we have an invite for:
@@ -473,65 +375,6 @@ void Sys_JoinInvite( void )
 	// Never returns!
 }
 
-#ifdef XBOX_DEMO
-// Timer code for the demo:
-static int lastTime = 0;
-static bool demoTimerPaused = false;
-
-// Notify the demo timer of a keypress, which resets the timer, and ensures
-// that the timer no longer runs during FMV/loading (if it was before)
-void Demo_TimerKeypress( void )
-{
-	demoTimerAlways = false;
-
-	// Reset the timer:
-	demoTimer = demoLaunchData.dwTimeout;
-
-	// Stamp the diff-timer
-	lastTime = Sys_Milliseconds();
-}
-
-// Update the timer, and check to see if we should reboot:
-void Demo_TimerUpdate( void )
-{
-	// Handle first call correctly
-	if( !lastTime )
-	{
-		demoTimer = demoLaunchData.dwTimeout;
-		lastTime = Sys_Milliseconds();
-	}
-
-	int newTime = Sys_Milliseconds();
-	int diffTime = newTime - lastTime;
-	lastTime = newTime;
-
-	// If the timer isn't supposed to run, and we're "paused", don't update:
-	extern bool in_camera;
-	if( !demoTimerAlways && (demoTimerPaused || in_camera) )
-		return;
-
-	// If we weren't even launched by CDX in the first place, or were given
-	// a zero timeout, do nothing:
-	if( !demoLaunchDataValid || !demoLaunchData.dwTimeout )
-		return;
-
-	// Time ran out?
-	if( demoTimer < diffTime )
-		Sys_Reboot( "demo", NULL );
-
-	demoTimer -= diffTime;
-}
-
-// Pause/unpause the demo timer when entering/exiting non-interactive state:
-void Demo_TimerPause( bool bPaused )
-{
-	// Always stamp the timer right before we change state:
-	Demo_TimerUpdate();
-
-	demoTimerPaused = bPaused;
-}
-
-#endif
 
 /*
 ==================
@@ -539,11 +382,6 @@ WinMain
 
 ==================
 */
-#if defined (_XBOX)
-int __cdecl main()
-#elif defined (_GAMECUBE)
-int main(int argc, char* argv[])
-#endif
 {
 //	Z_SetFreeOSMem();
 
@@ -636,14 +474,8 @@ char** Sys_ListFiles(const char *directory, const char *extension, int *numfiles
 	char	**retList;
 
 	// S00per hack
-#ifdef XBOX_DEMO
-	const char *basePath = Sys_RemapPath( "base\\" );
-	if (strstr(directory, basePath))
-		directory += strlen( basePath );
-#else
 	if (strstr(directory, "d:\\base\\"))
 		directory += 8;
-#endif
 
 	if (!extension)
 	{

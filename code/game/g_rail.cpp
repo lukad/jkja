@@ -46,9 +46,6 @@ class	CRailMover;
 	#include "..\Ratl\pool_vs.h"
 #endif
 
-#ifdef _XBOX
-using dllNamespace::hstring;
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Constants

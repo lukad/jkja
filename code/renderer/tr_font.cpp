@@ -8,9 +8,6 @@
 
 #include "../qcommon/stringed_ingame.h"
 
-#ifdef _XBOX
-#include "../win32/glw_win_dx8.h"
-#endif
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1566,11 +1563,6 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 
 				hShader = RE_RegisterShaderNoMip( xbGlyphShaders[uiLetter - XB_GLYPH_A] );
 
-#ifdef _XBOX
-				extern int Menus_AnyFullScreenVisible();
-				if(glw_state->isWidescreen && cls.state == CA_ACTIVE && !(Menus_AnyFullScreenVisible()))
-					x += 40;
-#endif
 				RE_StretchPic ( x, // float x
 								y,	// float y
 								24.0f,	// float w
@@ -1582,10 +1574,6 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 								//lastcolour.c, 
 								hShader							// qhandle_t hShader
 								);
-#ifdef _XBOX
-				if(glw_state->isWidescreen && cls.state == CA_ACTIVE && !(Menus_AnyFullScreenVisible()))
-					x -= 40;
-#endif
 
 				x += 24;
 			}
@@ -1639,22 +1627,6 @@ void RE_Font_DrawString(int ox, int oy, const char *psText, const float *rgba, c
 					y+=3;	// I'm sick and tired of going round in circles trying to do this legally, so bollocks to it
 				}
 
-#ifdef _XBOX
-				extern int Menus_AnyFullScreenVisible();
-				if(glw_state->isWidescreen && cls.state == CA_ACTIVE && !(Menus_AnyFullScreenVisible()))
-					RE_StretchPic ( x + Round(pLetter->horizOffset * fScale) + 40, // float x
-								(uiLetter > g_iNonScaledCharRange) ? y - iAsianYAdjust : y,	// float y
-								curfont->mbRoundCalcs ? Round(pLetter->width * fThisScale) : pLetter->width * fThisScale,	// float w
-								curfont->mbRoundCalcs ? Round(pLetter->height * fThisScale) : pLetter->height * fThisScale, // float h
-								pLetter->s,						// float s1
-								pLetter->t,						// float t1
-								pLetter->s2,					// float s2
-								pLetter->t2,					// float t2
-								//lastcolour.c, 
-								hShader							// qhandle_t hShader
-								);
-				else
-#endif
 				RE_StretchPic ( x + Round(pLetter->horizOffset * fScale), // float x
 								(uiLetter > g_iNonScaledCharRange) ? y - iAsianYAdjust : y,	// float y
 								curfont->mbRoundCalcs ? Round(pLetter->width * fThisScale) : pLetter->width * fThisScale,	// float w

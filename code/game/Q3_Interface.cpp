@@ -9010,15 +9010,6 @@ void	CQuake3GameInterface::Set( int taskID, int entID, const char *type_name, co
 	case SET_SABERACTIVE:
 		if(!stricmp("true", ((char *)data)))
 		{
-#ifdef _XBOX
-			// Big fat hack to ensure the saber blades get bolted on correctly
-			// Amended - to only run on the PC, or it screws up tavion in kor2
-			if( !entID )
-			{
-				Q3_SetWeapon ( entID, "wp_blaster");
-				Q3_SetWeapon ( entID, "wp_saber");
-			}
-#endif
 			Q3_SetSaberActive( entID, qtrue );
 		}
 		else

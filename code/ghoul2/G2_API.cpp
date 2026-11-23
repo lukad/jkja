@@ -415,26 +415,6 @@ public:
 #endif
 	}
 
-#ifdef _XBOX
-	// I'm sorry, but I really don't trust this thing any other way.
-	void Clear()
-	{
-		mFreeIndecies.clear();
-		for (int i=0;i<MAX_G2_MODELS;i++)
-		{
-			mInfos[i].clear();
-		}
-	}
-	
-	void Reset()
-	{
-		for (int i=0;i<MAX_G2_MODELS;i++)
-		{
-			mIds[i]=MAX_G2_MODELS+i;
-			mFreeIndecies.push_back(i);
-		}
-	}
-#endif
 
 	int New()
 	{
@@ -534,17 +514,6 @@ IGhoul2InfoArray &TheGhoul2InfoArray()
 	return singleton;
 }
 
-#ifdef _XBOX
-void Ghoul2InfoArray_Free(void)
-{
-	((Ghoul2InfoArray *)(&TheGhoul2InfoArray()))->Clear();
-}
-
-void Ghoul2InfoArray_Reset(void)
-{
-	((Ghoul2InfoArray *)(&TheGhoul2InfoArray()))->Reset();
-}
-#endif
 
 #if G2API_DEBUG
 vector<CGhoul2Info> &DebugG2Info(int handle)

@@ -48,11 +48,6 @@ void SP_DrawTexture(void* pixels, float width, float height, float vShift)
 	// Reset every GL state we've got.  Who knows what state
 	// the renderer could be in when this function gets called.
 	qglColor3f(1.f, 1.f, 1.f);
-#ifdef _XBOX
-	if(glw_state->isWidescreen)
-		qglViewport(0, 0, 720, 480);
-	else
-#endif
 	qglViewport(0, 0, 640, 480);
 
 	GLboolean alpha = qglIsEnabled(GL_ALPHA_TEST);
@@ -89,11 +84,6 @@ void SP_DrawTexture(void* pixels, float width, float height, float vShift)
 	qglLoadIdentity();
 	qglMatrixMode(GL_PROJECTION);
 	qglLoadIdentity();
-#ifdef _XBOX
-	if(glw_state->isWidescreen)
-        qglOrtho(0, 720, 0, 480, 0, 1);
-	else
-#endif
 	qglOrtho(0, 640, 0, 480, 0, 1);
 	
 	qglMatrixMode(GL_TEXTURE0);
@@ -118,23 +108,10 @@ void SP_DrawTexture(void* pixels, float width, float height, float vShift)
 	}
 
 	float x1, x2, y1, y2;
-#ifdef _XBOX
-	if(glw_state->isWidescreen)
-	{
-		x1 = 0;
-		x2 = 720;
-		y1 = 0;
-		y2 = 480;
-	}
-	else {
-#endif
 	x1 = 0;
 	x2 = 640;
 	y1 = 0;
 	y2 = 480;
-#ifdef _XBOX
-	}
-#endif
 
 	y1 += vShift;
 	y2 += vShift;

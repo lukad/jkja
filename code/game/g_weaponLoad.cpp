@@ -597,9 +597,6 @@ void WPN_FiringFrc( const char **holdBuf )
 		gi.Printf(S_COLOR_YELLOW"WARNING: firingFrc too long in external WEAPONS.DAT '%s'\n", tokenStr);
 	}
 
-#ifdef _IMMERSION
-	Q_strncpyz( weaponData[wpnParms.weaponNum].firingFrc,tokenStr,len);
-#endif
 }
 
 //--------------------------------------------
@@ -622,9 +619,6 @@ void WPN_AltFiringFrc( const char **holdBuf )
 		gi.Printf(S_COLOR_YELLOW"WARNING: altFiringFrc too long in external WEAPONS.DAT '%s'\n", tokenStr);
 	}
 
-#ifdef _IMMERSION
-	Q_strncpyz( weaponData[wpnParms.weaponNum].altFiringFrc,tokenStr,len);
-#endif
 }
 
 //--------------------------------------------
@@ -647,9 +641,6 @@ void WPN_ChargeFrc( const char **holdBuf )
 		gi.Printf(S_COLOR_YELLOW"WARNING: chargeFrc too long in external WEAPONS.DAT '%s'\n", tokenStr);
 	}
 
-#ifdef _IMMERSION
-	Q_strncpyz( weaponData[wpnParms.weaponNum].chargeFrc,tokenStr,len);
-#endif
 }
 
 //--------------------------------------------
@@ -672,9 +663,6 @@ void WPN_AltChargeFrc( const char **holdBuf )
 		gi.Printf(S_COLOR_YELLOW"WARNING: altChargeFrc too long in external WEAPONS.DAT '%s'\n", tokenStr);
 	}
 
-#ifdef _IMMERSION
-	Q_strncpyz( weaponData[wpnParms.weaponNum].altChargeFrc,tokenStr,len);
-#endif
 }
 
 //--------------------------------------------
@@ -697,9 +685,6 @@ void WPN_StopFrc( const char **holdBuf )
 		gi.Printf(S_COLOR_YELLOW"WARNING: stopFrc too long in external WEAPONS.DAT '%s'\n", tokenStr);
 	}
 
-#ifdef _IMMERSION
-	Q_strncpyz( weaponData[wpnParms.weaponNum].stopFrc,tokenStr,len);
-#endif
 }
 
 //--------------------------------------------
@@ -722,9 +707,6 @@ void WPN_SelectFrc( const char **holdBuf )
 		gi.Printf(S_COLOR_YELLOW"WARNING: selectFrc too long in external WEAPONS.DAT '%s'\n", tokenStr);
 	}
 
-#ifdef _IMMERSION
-	Q_strncpyz( weaponData[wpnParms.weaponNum].selectFrc,tokenStr,len);
-#endif
 }
 
 //#endif // _IMMERSION

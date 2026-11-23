@@ -20,20 +20,6 @@ static DWORD WINAPI _BinkCopier(LPVOID)
 	OutputDebugString( "_BinkCopier starting.\n" );
 #endif
 
-#ifdef XBOX_DEMO
-	// Demo only has two planets, and needs to re-map paths.
-	// But we're in a thread, and va isn't thread-safe. Fuck.
-	char planetPath[64];
-	extern char demoBasePath[64];
-
-	strcpy( planetPath, demoBasePath );
-	strcat( planetPath, "\\base\\video\\tatooine.bik" );
-	CopyFile( planetPath, "Z:\\tatooine.bik", FALSE );
-
-	strcpy( planetPath, demoBasePath );
-	strcat( planetPath, "\\base\\video\\chandrila.bik" );
-	CopyFile( planetPath, "Z:\\chandrila.bik", FALSE );
-#else
 	CopyFile( "D:\\base\\video\\cos.bik", "Z:\\cos.bik", FALSE );
 	CopyFile( "D:\\base\\video\\bakura.bik", "Z:\\bakura.bik", FALSE );
 	CopyFile( "D:\\base\\video\\blenjeel.bik", "Z:\\blenjeel.bik", FALSE );
@@ -48,7 +34,6 @@ static DWORD WINAPI _BinkCopier(LPVOID)
 	CopyFile( "D:\\base\\video\\tatooine.bik", "Z:\\tatooine.bik", FALSE );
 	CopyFile( "D:\\base\\video\\yalara.bik", "Z:\\yalara.bik", FALSE );
 	CopyFile( "D:\\base\\video\\zonju.bik", "Z:\\zonju.bik", FALSE );
-#endif
 
 #ifndef FINAL_BUILD
 	OutputDebugString( "_BinkCopier exiting.\n" );

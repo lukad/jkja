@@ -66,20 +66,11 @@ XBSettings::XBSettings( void )
 
 	subtitles = 0;
 
-#ifdef XBOX_DEMO
-	// Demo has no foreign audio, so we turn subtitles on if Dash language is FR/GE
-	DWORD dwLang = XGetLanguage();
-	if( dwLang == XC_LANGUAGE_FRENCH || dwLang == XC_LANGUAGE_GERMAN )
-		subtitles = 1;
-#endif
 
 	voiceMode = 2;
 	voiceMask = 0;
 	appearOffline = 0;
 
-#ifdef XBOX_DEMO
-	Disable();	// Ensure that we never try to load/save settings in the demo
-#endif
 }
 
 // Write the current stored settings to the HD:
@@ -309,45 +300,6 @@ void XBSettings::SetAll( void )
 	Cvar_SetValue( "g_subtitles", subtitles );
 }
 
-#ifdef XBOX_DEMO
-void XBSettings::RestoreDefaults( void )
-{
-	version = SETTINGS_VERSION;
-
-	// Defaults:
-	invertAim[0]		= invertAim[1]		= false;
-
-	thumbstickMode[0]	= thumbstickMode[1]	= 0;
-	buttonMode[0]		= buttonMode[1]		= 0;
-	triggerMode[0]		= triggerMode[1]	= 0;
-
-	rumble[0]			= rumble[1]			= 1;
-	autolevel[0]		= autolevel[0]		= 0;
-	autoswitch[0]		= autoswitch[1]		= 1;
-	sensitivityX[0]		= sensitivityX[1]	= 2.0f;
-	sensitivityY[0]		= sensitivityY[1]	= 2.0f;
-
-	hotswapSP[0] = hotswapSP[1] = hotswapSP[2] = -1;
-	hotswapMP[0] = hotswapMP[1] = -1;
-	hotswapMP[2] = hotswapMP[3] = -1;
-
-	effectsVolume = 1.0f;
-	musicVolume = 0.25f;
-	voiceVolume = 1.0f;
-	brightness = 6.0f;
-
-	subtitles = 0;
-
-	// Demo has no foreign audio, so we turn subtitles on if Dash language is FR/GE
-	DWORD dwLang = XGetLanguage();
-	if( dwLang == XC_LANGUAGE_FRENCH || dwLang == XC_LANGUAGE_GERMAN )
-		subtitles = 1;
-
-	voiceMode = 2;
-	voiceMask = 0;
-	appearOffline = 0;
-}
-#endif
 
 // Utility - signs the current contents of this XBSettings into the supplied struct:
 bool XBSettings::Sign( XCALCSIG_SIGNATURE *pSig )

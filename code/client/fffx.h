@@ -44,13 +44,6 @@ typedef enum
 	fffx_PlasmaCannon1,
 	fffx_PlasmaCannon2,
 	fffx_Cannon,
-#ifdef _XBOX
-	fffx_FallingShort,
-	fffx_FallingMedium,
-	fffx_FallingFar,
-	fffx_StartConst,
-	fffx_StopConst,
-#endif
 	//
 	fffx_NUMBEROF,
 	fffx_NULL		// special use, ignore during array mallocs etc, use fffx_NUMBEROF instead
@@ -113,10 +106,6 @@ void FF_EnsurePlaying	(ffFX_e fffx);
 void FF_Stop			(ffFX_e fffx);
 void FF_StopAll			(void);
 
-#ifdef _XBOX
-void FF_XboxShake		(float intensity, int duration);
-void FF_XboxDamage		(int damage, float xpos);
-#endif
 
 #define MAX_CONCURRENT_FFFXs 4	// only for my code to use/read, do NOT alter!
 

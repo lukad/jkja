@@ -3,19 +3,12 @@
 
 #include "tr_types.h"
 
-#ifdef _XBOX
-// Get font functions with default arguments that we need below
-#include "tr_font.h"
-#endif
 
 #define	REF_API_VERSION		9
 
 //
 // these are the functions exported by the refresh module
 //
-#ifdef _XBOX
-template <class T> class SPARC;
-#endif
 typedef struct {
 	// called before the library is unloaded
 	// if the system is just reconfiguring, pass destroyWindow = qfalse,
@@ -46,11 +39,7 @@ typedef struct {
 
 	// the vis data is a large enough block of data that we go to the trouble
 	// of sharing it with the clipmodel subsystem
-#ifdef _XBOX
-	void	(*SetWorldVisData)( SPARC<byte> *vis );
-#else
 	void	(*SetWorldVisData)( const byte *vis );
-#endif
 
 	// EndRegistration will draw a tiny polygon with each texture, forcing
 	// them to be loaded into card memory
@@ -113,24 +102,9 @@ typedef struct {
 	void	(*WorldEffectCommand)(const char *command);
 
 	int		(*RegisterFont)(const char *name);
-#ifdef _XBOX	// No default arguments through function pointers.
-	int		Font_HeightPixels(const int index, const float scale = 1.0f)
-	{
-		return RE_Font_HeightPixels(index, scale);
-	}
-	int		Font_StrLenPixels(const char *s, const int index, const float scale = 1.0f)
-	{
-		return RE_Font_StrLenPixels(s, index, scale);
-	}
-	void	Font_DrawString(int x, int y, const char *s, const float *rgba, const int iFontHandle, int iMaxPixelWidth, const float scale = 1.0f)
-	{
-		return RE_Font_DrawString(x, y, s, rgba, iFontHandle, iMaxPixelWidth, scale);
-	}
-#else
 	int		(*Font_HeightPixels)(const int index, const float scale = 1.0f);
 	int		(*Font_StrLenPixels)(const char *s, const int index, const float scale = 1.0f);
 	void	(*Font_DrawString)(int x, int y, const char *s, const float *rgba, const int iFontHandle, int iMaxPixelWidth, const float scale = 1.0f);
-#endif
 	int		(*Font_StrLenChars) (const char *s);
 	qboolean (*Language_IsAsian) (void);
 	qboolean (*Language_UsesSpaces) (void);

@@ -8,26 +8,13 @@
 #include "client.h"
 #include "client_ui.h"
 #include <limits.h>
-#ifdef _IMMERSION
-#include "../ff/ff.h"
-#include "../ff/cl_ff.h"
-#else
 #include "fffx.h"
-#endif // _IMMERSION
 #include "../ghoul2/g2.h"
 
 #include "../qcommon/xb_settings.h"
 
 #include "../RMG/RM_Headers.h"
 
-#ifdef _XBOX
-#include "../ui/ui_splash.h"
-
-#ifndef FINAL_BUILD
-#include <d3d8perf.h>
-#endif
-
-#endif
 
 #define	RETRANSMIT_TIMEOUT	3000	// time between connection packet retransmits
 
@@ -53,9 +40,6 @@ cvar_t	*cl_endcredits;
 
 cvar_t	*cl_freelook;
 cvar_t	*cl_sensitivity;
-#ifdef _XBOX
-cvar_t	*cl_sensitivityY;
-#endif
 
 //cvar_t	*cl_mouseAccel;
 //cvar_t	*cl_showMouseRate;
@@ -70,11 +54,6 @@ cvar_t	*m_forward;
 cvar_t	*m_side;
 //cvar_t	*m_filter;
 
-#ifdef _XBOX
-//MAP HACK
-cvar_t	*cl_mapname;
-qboolean vidRestartReloadMap = qfalse;
-#endif
 
 cvar_t	*cl_activeAction;
 
@@ -187,10 +166,6 @@ void CL_FlushMemory( void ) {
 
 	cls.soundRegistered = qfalse;
 	cls.rendererStarted = qfalse;
-#ifdef _IMMERSION
-	CL_ShutdownFF();
-	cls.forceStarted = qfalse;
-#endif // _IMMERSION
 }
 
 /*
@@ -221,19 +196,11 @@ void CL_MapLoading( void ) {
 	} else {
 		// clear nextmap so the cinematic shutdown doesn't execute it
 		Cvar_Set( "nextmap", "" );
-#ifdef _XBOX	// This was done at E3 time - it's nasty, but we may just keep it.
-		connstate_t oldState = cls.state;
-		cls.state = CA_CHALLENGING;
-		SCR_UpdateScreen();
-		cls.state = oldState;
-#endif
 		CL_Disconnect();
 		Q_strncpyz( cls.servername, "localhost", sizeof(cls.servername) );
 		cls.state = CA_CHALLENGING;		// so the connect screen is drawn
 		cls.keyCatchers = 0;
-#ifndef _XBOX
 		SCR_UpdateScreen();
-#endif
 		clc.connectTime = -RETRANSMIT_TIMEOUT;
 		NET_StringToAdr( cls.servername, &clc.serverAddress);
 		// we don't need a challenge on the localhost
@@ -293,13 +260,6 @@ void CL_Disconnect( void ) {
 		return;
 	}
 
-#ifdef _XBOX
-	Cvar_Set("r_norefresh", "0");
-
-	// Make sure to stop all rumbling! - Prevents bug when quitting game during rumble:
-	extern void IN_KillRumbleScripts( void );
-	IN_KillRumbleScripts();
-#endif
 
 	if (cls.uiStarted)
 		UI_SetActiveMenu( NULL,NULL );
@@ -307,11 +267,6 @@ void CL_Disconnect( void ) {
 	SCR_StopCinematic ();
 	S_ClearSoundBuffer();
 
-#ifdef _XBOX
-//	extern qboolean RE_RegisterImages_LevelLoadEnd(void);
-//	RE_RegisterImages_LevelLoadEnd();
-	R_DeleteTextures();
-#endif
 
 	// send a disconnect message to the server
 	// send it a few times in case one is dropped
@@ -442,14 +397,7 @@ void CL_Vid_Restart_f( void ) {
 	cls.cgameStarted = qfalse;
 	cls.soundRegistered = qfalse;
 
-#ifdef _IMMERSION
-	CL_ShutdownFF();
-	cls.forceStarted = qfalse;
-#endif // _IMMERSION
 
-#ifdef _XBOX
-	vidRestartReloadMap = qtrue;
-#endif
 
 	// unpause so the cgame definately gets a snapshot and renders a frame
 	Cvar_Set( "cl_paused", "0" );
@@ -482,34 +430,6 @@ void CL_Snd_Restart_f( void ) {
 	extern void AS_ParseSets(void);
 	AS_ParseSets();
 }
-#ifdef _IMMERSION
-/*
-=================
-CL_FF_Restart_f
-=================
-*/
-void CL_FF_Restart_f( void ) {
-
-	if ( FF_IsInitialized() )
-	{
-		// Apply cvar changes w/o losing registered effects
-		// Allows changing devices in-game without restarting the map
-		if ( !FF_Init() )
-			FF_Shutdown();	// error (shouldn't happen)
-	}
-	else if ( cls.state >= CA_PRIMED )	// maybe > CA_DISCONNECTED
-	{
-		// Restart map or menu
-		CL_Vid_Restart_f();
-	}
-	else if ( cls.uiStarted )
-	{
-		// Restart menu
-		CL_ShutdownUI();
-		cls.forceStarted = qfalse;
-	}
-}
-#endif // _IMMERSION
 /*
 ==================
 CL_Configstrings_f
@@ -846,66 +766,18 @@ void CL_Frame ( int msec,float fractionMsec ) {
 	// load the ref / cgame if needed
 	CL_StartHunkUsers();
 
-#if defined (_XBOX)// && !defined(_DEBUG)
-	// Play the intro movies once
-	extern bool Sys_QuickStart( void );
-	static bool firstRun = true;
-	if(firstRun)
-	{
-	//	SP_DoLicense();
-		SP_DisplayLogos();
-	}
-	
-#endif
 
-#if defined (_XBOX)	//xbox doesn't load ui in StartHunkUsers, so check it here
-	// load ui if needed
-	if ( !cls.uiStarted && cls.state != CA_CINEMATIC) {
-		cls.uiStarted = qtrue;
-		SCR_StopCinematic();
-		CL_InitUI();
-	}
-#endif
 
 	if ( cls.state == CA_DISCONNECTED && !( cls.keyCatchers & KEYCATCH_UI )
 		&& !com_sv_running->integer ) {		
 		// if disconnected, bring up the menu
-#ifdef _XBOX
-		if (firstRun && !Sys_QuickStart())
-		{
-			// Fresh boot
-			UI_SetActiveMenu("splashMenu", NULL);
-		}
-		else if (firstRun)
-		{
-			// Came from MP:
-			UI_SetActiveMenu("mainMenu", NULL);
-			extern void XB_Startup( XBStartupState startupState );
-			XB_Startup( STARTUP_LOAD_SETTINGS );
-		}
-		else
-		{
-#ifdef XBOX_DEMO
-			// Quitting the demo returns to the IIS, and restores settings:
-			Settings.RestoreDefaults();
-			Settings.SetAll();
-			UI_SetActiveMenu("splashMenu", NULL);
-#else
-			UI_SetActiveMenu("mainMenu", NULL);
-#endif
-		}
-#else
 		if (!CL_CheckPendingCinematic())	// this avoid having the menu flash for one frame before pending cinematics
 		{
 			UI_SetActiveMenu("mainMenu", NULL);
 		}
-#endif
 		S_StartBackgroundTrack("music/mp/MP_action4.mp3","",0);
 	}
 
-#ifdef _XBOX
-	firstRun = false;
-#endif
 
 
 	// if recording an avi, lock to a fixed fps
@@ -995,16 +867,10 @@ void CL_Frame ( int msec,float fractionMsec ) {
 		}
 		cls.realtimeFraction-=1.0f;
 	}
-#ifndef _XBOX
 	if ( cl_timegraph->integer ) {
 		SCR_DebugGraph ( cls.realFrametime * 0.25, 0 );
 	}
-#endif
 
-#ifdef _XBOX
-	//Check on the hot swappable button states.
-	CL_UpdateHotSwap();
-#endif
 
 	// see if we need to update any userinfo
 	CL_CheckUserinfo();
@@ -1048,17 +914,10 @@ void CL_Frame ( int msec,float fractionMsec ) {
 		// update the screen
 		SCR_UpdateScreen();
 
-#if defined(_XBOX) && !defined(FINAL_BUILD)
-		if (D3DPERF_QueryRepeatFrame())
-			SCR_UpdateScreen();
-#endif
 	}
 	// update audio
 	S_Update();
 
-#ifdef _IMMERSION
-	FF_Update();
-#endif // _IMMERSION
 	// advance local effects for next frame
 	SCR_RunCinematic();
 
@@ -1145,14 +1004,6 @@ void CL_StartHunkUsers( void ) {
 	}
 
 	if ( !cls.rendererStarted ) {
-#ifdef _XBOX
-		//if ((!com_sv_running->integer || com_errorEntered) && !vidRestartReloadMap)
-		//{
-		//	// free up some memory
-		//	extern void SV_ClearLastLevel(void);
-		//	SV_ClearLastLevel();
-		//}
-#endif
 
 		cls.rendererStarted = qtrue;
 		re.BeginRegistration( &cls.glconfig );
@@ -1164,7 +1015,6 @@ void CL_StartHunkUsers( void ) {
 //		cls.consoleShader = re.RegisterShader( "console" );
 		g_console_field_width = cls.glconfig.vidWidth / SMALLCHAR_WIDTH - 2;
 		kg.g_consoleField.widthInChars = g_console_field_width;
-#ifndef _IMMERSION
 		//-------
 		//	The latest Immersion Force Feedback system initializes here, not through
 		//	win32 input system. Therefore, the window handle is valid :)
@@ -1182,17 +1032,7 @@ void CL_StartHunkUsers( void ) {
 			Sys_In_Restart_f();
 		}
 
-#ifdef _XBOX
-		if (vidRestartReloadMap)
-		{
-			int checksum;
-			CM_LoadMap(va("maps/%s.bsp", cl_mapname->string), qfalse, &checksum);
-			RE_LoadWorldMap(va("maps/%s.bsp", cl_mapname->string));
-			vidRestartReloadMap = qfalse;
-		}
-#endif // _XBOX
 
-#endif // _IMMERSION
 	}
 
 	if ( !cls.soundStarted ) {
@@ -1205,20 +1045,12 @@ void CL_StartHunkUsers( void ) {
 		S_BeginRegistration();
 	}
 
-#ifdef _IMMERSION
-	if ( !cls.forceStarted ) {
-		cls.forceStarted = qtrue;
-		CL_InitFF();
-	}
-#endif // _IMMERSION
 
-#if !defined (_XBOX)	//i guess xbox doesn't want the ui loaded all the time?
 	//we require the ui to be loaded here or else it crashes trying to access the ui on command line map loads
 	if ( !cls.uiStarted ) {
 		cls.uiStarted = qtrue;
 		CL_InitUI();
 	}
-#endif
 
 //	if ( !cls.cgameStarted && cls.state > CA_CONNECTED && cls.state != CA_CINEMATIC ) {
 	if ( !cls.cgameStarted && cls.state > CA_CONNECTED && (cls.state != CA_CINEMATIC && !CL_IsRunningInGameCinematic()) ) 
@@ -1276,9 +1108,7 @@ void CL_Init( void ) {
 
 	CL_InitInput ();
 
-#ifndef _XBOX	// No terrain on Xbox
 	RM_InitTerrain();
-#endif
 
 	//
 	// register our variables
@@ -1309,9 +1139,6 @@ void CL_Init( void ) {
 	cl_run = Cvar_Get ("cl_run", "1", CVAR_ARCHIVE);
 	cl_sensitivity = Cvar_Get ("sensitivity", "2", CVAR_ARCHIVE);
 
-#ifdef _XBOX
-	cl_sensitivityY = Cvar_Get ("sensitivityY", "2", CVAR_ARCHIVE);
-#endif
 
 //	cl_mouseAccel = Cvar_Get ("cl_mouseAccel", "0", CVAR_ARCHIVE);
 	cl_freelook = Cvar_Get( "cl_freelook", "1", CVAR_ARCHIVE );
@@ -1330,9 +1157,6 @@ void CL_Init( void ) {
 	// if the cgame hasn't been started
 	Cvar_Get ("cg_autoswitch", "1", CVAR_ARCHIVE);
 //JLF
-#ifdef _XBOX
-	Cvar_Get ("cl_autolevel","0",CVAR_ARCHIVE);
-#endif
 
 	m_pitch = Cvar_Get ("m_pitch", "0.022", CVAR_ARCHIVE);
 	m_yaw = Cvar_Get ("m_yaw", "0.022", CVAR_ARCHIVE);
@@ -1340,9 +1164,6 @@ void CL_Init( void ) {
 	m_side = Cvar_Get ("m_side", "0.25", CVAR_ARCHIVE);
 //	m_filter = Cvar_Get ("m_filter", "0", CVAR_ARCHIVE);
 
-#ifdef _XBOX
-	cl_mapname = Cvar_Get ("cl_mapname", "t3_bounty", CVAR_TEMP);
-#endif
 
 	cl_updateInfoString = Cvar_Get( "cl_updateInfoString", "", CVAR_ROM );
 
@@ -1373,9 +1194,6 @@ void CL_Init( void ) {
 	Cmd_AddCommand ("uimenu", CL_GenericMenu_f);
 	Cmd_AddCommand ("datapad", CL_DataPad_f);
 	Cmd_AddCommand ("endscreendissolve", CL_EndScreenDissolve_f);
-#ifdef _IMMERSION
-	Cmd_AddCommand ("ff_restart", CL_FF_Restart_f);
-#endif // _IMMERSION
 
 	CL_InitRef();
 
@@ -1387,14 +1205,7 @@ void CL_Init( void ) {
 	
 	Cvar_Set( "cl_running", "1" );
 
-#ifdef _XBOX
-	Com_Printf( "Initializing Cinematics...\n");
-	CIN_Init();
-#endif
 //JLF MPMOVED
-#ifdef _XBOX
-//	initProfile();
-#endif
 
 	Cvar_Get("levelSelectCheat", "-1", CVAR_ARCHIVE | CVAR_SAVEGAME);
 
@@ -1429,9 +1240,6 @@ void CL_Shutdown( void ) {
 	S_Shutdown();
 	CL_ShutdownRef();
 
-#ifdef _IMMERSION
-	CL_ShutdownFF();
-#endif // _IMMERSION
 	Cmd_RemoveCommand ("cmd");
 	Cmd_RemoveCommand ("configstrings");
 	Cmd_RemoveCommand ("clientinfo");

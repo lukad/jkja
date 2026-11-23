@@ -6,9 +6,6 @@
 
 #include "tr_local.h"
 
-#ifdef _XBOX
-#include "../win32/glw_win_dx8.h"
-#endif
 
 
 /*
@@ -23,10 +20,6 @@ Used for cinematics.
 // param 'bDirty' should be true 99% of the time
 void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *data, int iClient, qboolean bDirty ) 
 {
-#ifdef _XBOX
-	assert( 0 );
-	return;
-#else
 
 	R_SyncRenderThread();
 
@@ -109,18 +102,6 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 	}
 	qglColor3f( tr.identityLight, tr.identityLight, tr.identityLight );
 
-#ifdef _XBOX
-	qglBeginEXT (GL_TRIANGLE_STRIP, 4, 0, 0, 4, 0);//, 0, 0);
-	qglTexCoord2f ( 0.5 / cols,  0.5 / rows );
-	qglVertex2f (x, y);
-	qglTexCoord2f ( ( cols - 0.5 ) / cols ,  0.5 / rows );
-	qglVertex2f (x+w, y);
-	qglTexCoord2f ( 0.5 / cols, ( rows - 0.5 ) / rows );
-	qglVertex2f (x, y+h);
-	qglTexCoord2f ( ( cols - 0.5 ) / cols, ( rows - 0.5 ) / rows );
-	qglVertex2f (x+w, y+h);
-	qglEnd ();
-#else
 	qglBegin (GL_QUADS);
 	qglTexCoord2f ( 0.5 / cols,  0.5 / rows );
 	qglVertex2f (x, y);
@@ -131,9 +112,7 @@ void RE_StretchRaw (int x, int y, int w, int h, int cols, int rows, const byte *
 	qglTexCoord2f ( 0.5 / cols, ( rows - 0.5 ) / rows );
 	qglVertex2f (x, y+h);
 	qglEnd ();
-#endif
 
-#endif	// _XBOX
 }
 
 
@@ -146,11 +125,7 @@ void RE_UploadCinematic (int cols, int rows, const byte *data, int client, qbool
 	if ( cols != tr.scratchImage[client]->width || rows != tr.scratchImage[client]->height ) {
 		tr.scratchImage[client]->width = cols;
 		tr.scratchImage[client]->height = rows;
-#ifdef _XBOX
-		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, cols, rows, 0, GL_LIN_RGBA, GL_UNSIGNED_BYTE, data );
-#else
 		qglTexImage2D( GL_TEXTURE_2D, 0, GL_RGB8, cols, rows, 0, GL_RGBA, GL_UNSIGNED_BYTE, data );
-#endif
 
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		qglTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
@@ -208,7 +183,6 @@ void RE_GetScreenShot(byte *data, int w, int h)
 
 void RE_GetScreenShot(byte *buffer, int w, int h)
 {
-#ifndef _XBOX
 	byte		*source;
 	byte		*src, *dst;
 	int			x, y;
@@ -251,7 +225,6 @@ void RE_GetScreenShot(byte *buffer, int w, int h)
 
 	assert(count == w * h);
 	Z_Free(source);
-#endif
 }
 
 #endif
@@ -353,7 +326,6 @@ static byte *RE_ReSample(byte *pbLoadedPic,			int iLoadedWidth,	int iLoadedHeigh
 //
 byte* pbLoadedPic = NULL;
 
-#ifndef _XBOX
 byte* RE_TempRawImage_ReadFromFile(const char *psLocalFilename, int *piWidth, int *piHeight, byte *pbReSampleBuffer, qboolean qbVertFlip)
 {
 	RE_TempRawImage_CleanUp();	// jic
@@ -394,7 +366,6 @@ byte* RE_TempRawImage_ReadFromFile(const char *psLocalFilename, int *piWidth, in
 
 	return pbReturn;
 }
-#endif // _XBOX
 
 void RE_TempRawImage_CleanUp(void)
 {
@@ -482,11 +453,7 @@ static void RE_Blit(float fX0, float fY0, float fX1, float fY1, float fX2, float
 
 	qglColor3f( 1.0f, 1.0f, 1.0f );
 
-#ifdef _XBOX
-	qglBeginEXT(GL_QUADS,4,0,0,4,0);
-#else
 	qglBegin (GL_QUADS);
-#endif // _XBOX
 	{
 		// TL...
 		//
@@ -519,14 +486,12 @@ static void RE_KillDissolve(void)
 {
 	Dissolve.iStartTime = 0;
 
-#ifndef _XBOX
 	// Xbox reuses tr.screenImage for the dissolve, so killing here is not necessary
 	if (Dissolve.pImage)
 	{
 		R_Images_DeleteImage(	Dissolve.pImage );
 								Dissolve.pImage = NULL;
 	}
-#endif
 }
 // Draw the dissolve pic to the screen, over the top of what's already been rendered.
 //
@@ -569,14 +534,6 @@ qboolean RE_ProcessDissolve(void)
 			qglClear( GL_DEPTH_BUFFER_BIT );
 			
 			float fXScaleFactor;
-#ifdef _XBOX
-			if(glw_state->isWidescreen)
-			{
-				Dissolve.iWidth = 720;
-				fXScaleFactor = 720.0f / (float)Dissolve.iWidth;
-			}
-			else
-#endif
 			fXScaleFactor = (float)SCREEN_WIDTH / (float)Dissolve.iWidth;
 			float fYScaleFactor = (float)SCREEN_HEIGHT/ (float)Dissolve.iHeight;
 			float x0,y0, x1,y1,	x2,y2, x3,y3;	
@@ -804,20 +761,10 @@ qboolean RE_ProcessDissolve(void)
 				//
 				x0 = 0.0f;
 				y0 = 0.0f;
-#ifdef _XBOX
-				x1 = 640;
-				if(glw_state->isWidescreen)
-					x1 = 720;
-#else
 				x1 = fXScaleFactor * Dissolve.pImage->width;
-#endif
 				y1 = y0;
 				x2 = x1;
-#ifdef _XBOX
-				y2 = 480;
-#else
 				y2 = fYScaleFactor * Dissolve.pImage->height;
-#endif
 				x3 = x0;
 				y3 = y2;
 
@@ -834,35 +781,6 @@ qboolean RE_ProcessDissolve(void)
 	return qfalse;
 }
 
-#ifdef _XBOX
-
-/**********
-RE_GetCompressedBackbuffer
-Creates a 256x256 DXT1 texture that contains the backbuffer
-**********/
-static void RE_GetCompressedBackbuffer()
-{
-	byte*	data = (byte*)Z_Malloc(256*256*4,TAG_TEMP_WORKSPACE,qtrue);
-
-	Dissolve.pImage = R_CreateImage(	"*DissolveImage",		// const char *name
-										data,					// const byte *pic
-										256,					// int width
-										256,					// int height
-										GL_RGBA,					//GL_COMPRESSED_RGB_S3TC_DXT1_EXT,
-										qfalse,					// qboolean mipmap
-										qfalse,					// qboolean allowPicmip
-										GL_CLAMP				// int glWrapClampMode
-										);
-	Z_Free(data);
-
-	GL_Bind(Dissolve.pImage);
-
-	/*if(glw_state->isWidescreen)
-		qglCopyBackBufferToTexEXT(256.0f, 256.0f, 0.0f, 0.0f, 720.0f, 480.0f);
-	else*/
-	qglCopyBackBufferToTexEXT(256.0f, 256.0f, 2.0f, 2.0f, 640.0f, 480.0f);
-}
-#endif
 
 // return = qtrue(success) else fail, for those interested...
 //
@@ -880,20 +798,6 @@ qboolean RE_InitDissolve(qboolean bForceCircularExtroWipe)
 	{
 		RE_KillDissolve();	// kill any that are already running
 
-#ifdef _XBOX	// Things are much simpler on Xbox, and use far less RAM
-
-		if (1)
-		{ // Silly if(1) to match up with control flow below, as the #ifdef ends inside the block
-
-			GL_Bind(tr.screenImage);
-			qglCopyBackBufferToTexEXT(512.0f, 256.0f, 1.0f, 1.0f, 640.0f, 480.0f);
-			Dissolve.pImage = tr.screenImage;
-
-//			RE_GetCompressedBackbuffer();
-			Dissolve.iWidth			= glConfig.vidWidth;
-			Dissolve.iHeight		= glConfig.vidHeight;
-
-#else	// _XBOX
 
 		int iPow2VidWidth	= PowerOf2( glConfig.vidWidth );
 		int iPow2VidHeight	= PowerOf2( glConfig.vidHeight);
@@ -1010,7 +914,6 @@ qboolean RE_InitDissolve(qboolean bForceCircularExtroWipe)
 											GL_CLAMP				// int glWrapClampMode
 											);
 
-#endif	// _XBOX
 
 			static byte bBlack[8*8*4]={0};
 			for (int j=0; j<8*8*4; j+=4)	// itu?
@@ -1023,19 +926,15 @@ qboolean RE_InitDissolve(qboolean bForceCircularExtroWipe)
 											GL_RGBA,
 											qfalse,				// qboolean mipmap
 											qfalse,				// qboolean allowPicmip
-#ifndef _XBOX
 											qfalse,				// qboolean allowTC
-#endif // _XBOX
 											GL_CLAMP			// int glWrapClampMode
 											);
 
-#ifndef _XBOX
 			if (pbReSampleBuffer)
 			{
 				Z_Free(pbReSampleBuffer);
 			}
 			Z_Free(pBuffer);
-#endif
 
 			// pick dissolve type...
 			//
@@ -1069,7 +968,6 @@ qboolean RE_InitDissolve(qboolean bForceCircularExtroWipe)
 			//	level doesn't stall on loading the image. So I'll load it here anyway - to prime the image - 
 			//	then allow the random wiper to overwrite the ptr if needed. This way the end of level call
 			//	will be instant.  Downside: every level has one extra 256x256 texture.
-#ifndef _XBOX	// Trying to decipher these comments - looks like no problem taking this out. I want the RAM.
 			{
 					Dissolve.pDissolve = R_FindImageFile(	"gfx/2d/iris_mono_rev",		// const char *name
 															qfalse,						// qboolean mipmap
@@ -1078,7 +976,6 @@ qboolean RE_InitDissolve(qboolean bForceCircularExtroWipe)
 															GL_CLAMP					// int glWrapClampMode 
 														);
 			}
-#endif
 
 			extern cvar_t *com_buildScript;
 			if (com_buildScript->integer)

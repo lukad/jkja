@@ -9,22 +9,14 @@
 #include "../qcommon/sstring.h"
 #include <algorithm>
 
-#ifdef _XBOX
-#include "snd_local_console.h"
-#include <xtl.h>
-#else
 #include "snd_local.h"
 #include "cl_mp3.h"
-#endif
 
 //
 #include "snd_music.h"
 
 extern qboolean S_FileExists( const char *psFilename );
 
-#ifdef _XBOX
-extern void Z_SetNewDeleteTemporary(bool bTemp);
-#endif
 
 #define sKEY_MUSICFILES	"musicfiles"
 #define sKEY_ENTRY		"entry"
@@ -91,20 +83,10 @@ sstring_t	gsLevelNameForBossLoad;	// eg "kejim_base', special case for enabling 
 
 void Music_Free(void)
 {
-#ifdef _XBOX
-	// Prevents pending state changes from crashing the game after
-	// level loads, but before new music data has been parsed.
-	extern void S_AvertMusicDisaster(void);
-	S_AvertMusicDisaster();
-#endif
 
 	if (MusicData)
 	{
-#ifdef _XBOX
-		delete MusicData;
-#else
 		MusicData->clear();
-#endif
 	}
 	MusicData = NULL;
 }
@@ -179,13 +161,7 @@ static qboolean Music_ParseMusic(CGenericParser2 &Parser, MusicData_t *MusicData
 {
 	qboolean bReturn = qfalse;
 
-#ifdef _XBOX
-	Z_SetNewDeleteTemporary(true);
-#endif
 	MusicFile_t MusicFile;
-#ifdef _XBOX
-	Z_SetNewDeleteTemporary(false);
-#endif
 
 	CGPGroup *pgMusicFile = pgMusicFiles->FindSubGroup(psMusicName);
 	if (pgMusicFile)
@@ -269,24 +245,12 @@ static qboolean Music_ParseMusic(CGenericParser2 &Parser, MusicData_t *MusicData
 						}
 						if (!bTooCloseToEntryPoint)
 						{
-#ifdef _XBOX
-							Z_SetNewDeleteTemporary(true);
-#endif
 							MusicFile.MusicExitTimes.push_back(MusicExitTime);
-#ifdef _XBOX
-							Z_SetNewDeleteTemporary(false);
-#endif
 						}
 					}
 				}
 
-#ifdef _XBOX
-				Z_SetNewDeleteTemporary(true);
-#endif
 				MusicFile.MusicExitPoints.push_back(MusicExitPoint);
-#ifdef _XBOX
-				Z_SetNewDeleteTemporary(false);
-#endif
 				int iNumExitPoints = MusicFile.MusicExitPoints.size();
 
 				// error checking...
@@ -361,9 +325,6 @@ static qboolean Music_ParseMusic(CGenericParser2 &Parser, MusicData_t *MusicData
 //
 static char *StripTrailingWhiteSpaceOnEveryLine(char *pText)
 {
-#ifdef _XBOX
-	Z_SetNewDeleteTemporary(true);
-#endif
 	string strNewText;
 
 	while (*pText)
@@ -411,9 +372,6 @@ static char *StripTrailingWhiteSpaceOnEveryLine(char *pText)
 								TAG_TEMP_WORKSPACE,
 								qfalse);
 	strcpy(pNewText, strNewText.c_str());
-#ifdef _XBOX
-	Z_SetNewDeleteTemporary(false);
-#endif
 	return pNewText;
 }
 
@@ -434,13 +392,9 @@ static qboolean Music_ParseLeveldata(const char *psLevelName)
 
 	if (MusicData == NULL)
 	{
-#ifdef _XBOX
-		MusicData = new MusicData_t;
-#else
 		// sorry vv, false leaks make it hard to find true leaks
 		static MusicData_t singleton;
 		MusicData = &singleton;
-#endif
 	}
 	
 	// already got this data?

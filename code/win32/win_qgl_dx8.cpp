@@ -32,18 +32,6 @@
 
 #include "xbox_texture_man.h"
 
-#ifdef _XBOX
-#include <xgraphics.h>
-//#include "win_flareeffect.h"
-#include "win_lighteffects.h"
-#include "win_highdynamicrange.h"
-#include "win_stencilshadow.h"
-
-#ifndef FINAL_BUILD
-#include <d3d8perf.h>
-#endif
-
-#endif
 
 // Global texture allocator (we only use one in SP):
 //SwappingTextureAllocator	gTextures;
@@ -55,11 +43,7 @@ extern void Z_SetNewDeleteTemporary(bool);
 
 #define GLW_USE_TRI_STRIPS 1
 
-#ifdef _XBOX
-#define GLW_MAX_DRAW_PACKET_SIZE 2040
-#else
 #define GLW_MAX_DRAW_PACKET_SIZE (SHADER_MAX_VERTEXES*12)
-#endif
 
 #define MEMORY_PROFILE 1
 
@@ -554,17 +538,11 @@ static void _fixupScreenCoords(GLint& x, GLint& y, GLsizei& width, GLsizei& heig
 	if (y < 0)
 	{
 		
-#ifdef _XBOX
-		height += y;
-#endif
 		y = 0;
 	}
 	else if (y > glConfig.vidHeight) y = glConfig.vidHeight;
 	
 	if (width < 0) width = 0;
-#ifdef _XBOX
-	else if (x + width > glConfig.vidWidth) width = glConfig.vidWidth - x;
-#endif
 //	else if (x + width > glConfig.vidWidth) width = glConfig.vidWidth - x;
 	if (height < 0) height = 0;
 	else if (y + height > glConfig.vidHeight) height = glConfig.vidHeight - y;
@@ -640,13 +618,8 @@ static D3DPRIMITIVETYPE _convertPrimMode(GLenum mode)
 	case GL_TRIANGLES: return D3DPT_TRIANGLELIST;
 	case GL_TRIANGLE_STRIP: return D3DPT_TRIANGLESTRIP;
 	case GL_TRIANGLE_FAN: return D3DPT_TRIANGLEFAN;
-#ifdef _XBOX
-	case GL_QUADS: return D3DPT_QUADLIST;
-	case GL_QUAD_STRIP: return D3DPT_QUADSTRIP;
-#else
 	case GL_QUADS: return D3DPT_TRIANGLELIST;
 	case GL_QUAD_STRIP: return D3DPT_TRIANGLESTRIP;
-#endif
 	case GL_POLYGON: return D3DPT_TRIANGLEFAN;
 	default: assert(0); return D3DPT_TRIANGLEFAN;
 	}
@@ -873,79 +846,6 @@ static int _getMaxIndices(void)
 	return max;
 }
 
-#ifdef _XBOX
-/*
-=================
-_restartDrawPacket
-
-Encode a new draw packet header into the draw array.
-=================
-*/
-inline static DWORD* _restartDrawPacket(DWORD* packet, int verts)
-{
-	packet[0] = D3DPUSH_ENCODE(D3DPUSH_SET_BEGIN_END, 1);
-	packet[1] = glw_state->primitiveMode;
-	packet[2] = D3DPUSH_ENCODE(
-		D3DPUSH_NOINCREMENT_FLAG|D3DPUSH_INLINE_ARRAY, 
-		glw_state->drawStride * verts);
-	return packet + 3;
-}
-
-/*
-=================
-_terminateDrawPacket
-
-Finish up the last draw packet.
-=================
-*/
-inline static DWORD* _terminateDrawPacket(DWORD* packet)
-{
-	packet[0] = D3DPUSH_ENCODE(D3DPUSH_SET_BEGIN_END, 1);
-	packet[1] = 0;
-	return packet + 2;
-}
-
-#define CMD_DRAW_INDEX_BATCH 0x1800
-inline static DWORD* _restartIndexPacket(DWORD* packet, int numIndices)
-{
-	packet[0] = D3DPUSH_ENCODE(D3DPUSH_SET_BEGIN_END, 1);
-	packet[1] = glw_state->primitiveMode;
-	packet[2] = D3DPUSH_ENCODE(	D3DPUSH_NOINCREMENT_FLAG | CMD_DRAW_INDEX_BATCH, numIndices / 2 );
-	return packet + 3;
-}
-
-inline static DWORD* _terminateIndexPacket(DWORD* packet)
-{
-	packet[0] = D3DPUSH_ENCODE(D3DPUSH_SET_BEGIN_END, 1);
-	packet[1] = 0;
-	return packet + 2;
-}
-
-
-/*
-=================
-_handleDrawOverflow
-
-Prevent a draw packet from getting too
-big for the hardware by restarting it as needed.
-=================
-*/
-static void _handleDrawOverflow(void)
-{
-	if (glw_state->numVertices >= glw_state->maxVertices)
-	{
-		glw_state->drawArray += glw_state->numVertices *
-			glw_state->drawStride;
-		
-		glw_state->totalVertices -= glw_state->numVertices;
-		glw_state->maxVertices = _getMaxVerts();
-		glw_state->numVertices = 0;
-
-		glw_state->drawArray = _restartDrawPacket(
-			glw_state->drawArray, glw_state->maxVertices);
-	}
-}
-#else _XBOX
 inline static DWORD* _restartDrawPacket(DWORD* packet, int verts)
 {
 	return packet;
@@ -959,7 +859,6 @@ inline static DWORD* _terminateDrawPacket(DWORD* packet)
 static void _handleDrawOverflow(void)
 {
 }
-#endif _XBOX
 
 
 /*
@@ -1534,24 +1433,6 @@ static void dllBeginEXT(GLenum mode, GLint verts, GLint colors, GLint normals, G
 	glw_state->totalVertices = verts;
 	glw_state->maxVertices = _getMaxVerts();	
 
-#ifdef _XBOX
-	// open a draw packet
-	//int num_packets = ((verts * glw_state->drawStride) / GLW_MAX_DRAW_PACKET_SIZE) + 1;
-	int num_packets;
-	if(glw_state->maxVertices == 0) {
-		num_packets = 1;
-	} else {
-		num_packets = (verts / glw_state->maxVertices) + (!!(verts % glw_state->maxVertices));
-	}
-	int cmd_size = num_packets * 3;
-	int vert_size = glw_state->drawStride * verts;
-	
-	glw_state->device->BeginPush(vert_size + cmd_size + 2, 
-		&glw_state->drawArray);
-	
-	glw_state->drawArray = _restartDrawPacket(
-		glw_state->drawArray, glw_state->maxVertices);
-#endif
 }
 
 static void dllBegin(GLenum mode)
@@ -1614,13 +1495,7 @@ static void dllClear(GLbitfield mask)
 	if (mask & GL_COLOR_BUFFER_BIT) m |= D3DCLEAR_TARGET;
 	if (mask & GL_STENCIL_BUFFER_BIT) m |= D3DCLEAR_STENCIL;
 
-#ifdef _XBOX
-	// Clearing stencil when clearing depth buffer
-	// is faster on Xbox than just clearing depth alone.
-	if (mask & GL_DEPTH_BUFFER_BIT) m |= D3DCLEAR_ZBUFFER|D3DCLEAR_STENCIL;
-#else
 	if (mask & GL_DEPTH_BUFFER_BIT) m |= D3DCLEAR_ZBUFFER;
-#endif
 	
 	glw_state->device->Clear(0, NULL, m, glw_state->clearColor, 
 		glw_state->clearDepth, glw_state->clearStencil);
@@ -1982,35 +1857,6 @@ static void dllDepthRange(GLclampd zNear, GLclampd zFar)
 	glw_state->device->SetViewport(&glw_state->viewport);
 }
 
-#ifdef _XBOX
-static void setPresent(bool vsync)
-{
-	//extern void ShowOSMemory();
-	//ShowOSMemory();
-
-	D3DPRESENT_PARAMETERS pp;
-	pp.BackBufferWidth = glConfig.vidWidth;
-	pp.BackBufferHeight = glConfig.vidHeight;
-	pp.BackBufferFormat = D3DFMT_X8R8G8B8;
-	pp.BackBufferCount = 1;
-	pp.MultiSampleType  = D3DMULTISAMPLE_NONE; //D3DMULTISAMPLE_4_SAMPLES_SUPERSAMPLE_LINEAR;
-	pp.SwapEffect = D3DSWAPEFFECT_DISCARD;
-	pp.hDeviceWindow = 0;
-	pp.Windowed  = FALSE;
-	pp.EnableAutoDepthStencil = TRUE;
-	pp.AutoDepthStencilFormat = D3DFMT_D24S8;
-	pp.Flags = 0;
-	pp.FullScreen_RefreshRateInHz = D3DPRESENT_RATE_DEFAULT;
-	pp.FullScreen_PresentationInterval = 
-		vsync ? D3DPRESENT_INTERVAL_DEFAULT : D3DPRESENT_INTERVAL_IMMEDIATE;
-	pp.BufferSurfaces[0] = pp.BufferSurfaces[1] = pp.BufferSurfaces[2] = 0;
-	pp.DepthStencilSurface = 0;
-	glw_state->device->PersistDisplay();
-	glw_state->device->Reset(&pp);
-
-	//ShowOSMemory();
-}
-#endif
 
 static void setCap(GLenum cap, bool flag)
 {
@@ -2025,21 +1871,6 @@ static void setCap(GLenum cap, bool flag)
 		break;
 	case GL_DEPTH_TEST: glw_state->device->SetRenderState(D3DRS_ZENABLE, flag); break;
 	case GL_LIGHTING: glw_state->device->SetRenderState(D3DRS_LIGHTING, flag); break;
-#ifdef _XBOX
-	case GL_POLYGON_OFFSET_POINT:
-		glw_state->device->SetRenderState(D3DRS_POINTOFFSETENABLE, flag);
-		break;
-	case GL_POLYGON_OFFSET_LINE:
-		glw_state->device->SetRenderState(D3DRS_WIREFRAMEOFFSETENABLE, flag);
-		break;
-	case GL_POLYGON_OFFSET_FILL:
-		glw_state->device->SetRenderState(D3DRS_SOLIDOFFSETENABLE, flag);
-		break;
-	case GL_SCISSOR_TEST:
-		glw_state->scissorEnable = flag;
-		glw_state->device->SetScissors(flag ? 1 : 0, FALSE, &glw_state->scissorBox);
-		break;
-#endif
 	case GL_STENCIL_TEST: glw_state->device->SetRenderState(D3DRS_STENCILENABLE, flag); break;
 	case GL_TEXTURE_2D: 
 		glw_state->textureStageEnable[glw_state->serverTU] = flag;
@@ -2048,11 +1879,6 @@ static void setCap(GLenum cap, bool flag)
 	case GL_FOG:
 		glw_state->device->SetRenderState(D3DRS_FOGENABLE, flag);
 		break;
-#ifdef _XBOX
-	case GL_VSYNC:
-		setPresent(flag);
-		break;
-#endif
 	default: break;
 	}
 }
@@ -2236,9 +2062,7 @@ static void dllDrawArrays(GLenum mode, GLint first, GLsizei count)
 	// get the draw function we need
 	drawarrayfunc_t func = _drawArrayFuncTable[_getDrawFunc()];
 
-#ifndef _XBOX
 	DWORD* base = glw_state->drawArray;
-#endif
 
 	int inc = glw_state->maxVertices;
 	// loop taking care not to draw too much at a time
@@ -2264,9 +2088,7 @@ static void dllDrawArrays(GLenum mode, GLint first, GLsizei count)
 			glw_state->drawArray, glw_state->maxVertices); 
 	}
 	
-#ifndef _XBOX
 	glw_state->drawArray = base;
-#endif
 
 #ifdef _WINDOWS
 	if (mode == GL_QUADS)
@@ -2640,14 +2462,6 @@ static void dllEnd(void)
 {
 	assert(glw_state->inDrawBlock);
 	glw_state->inDrawBlock = false;
-#ifdef _XBOX
-	// on Xbox, just close the draw packet
-	DWORD* push = _terminateDrawPacket(
-		&glw_state->drawArray[glw_state->numVertices * 
-		glw_state->drawStride]);
-	
-	glw_state->device->EndPush(push);
-#else
 	// on the PC, use DrawPrimitiveUp (a little slow)
 	int num = 0;
 	switch (glw_state->primitiveMode)
@@ -2663,7 +2477,6 @@ static void dllEnd(void)
 	glw_state->device->DrawPrimitiveUP(
 		glw_state->primitiveMode, num, 
 		glw_state->drawArray, glw_state->drawStride * sizeof(DWORD));
-#endif
 }
 
 #if YELLOW_MODE
@@ -2825,16 +2638,10 @@ static void dllFeedbackBuffer(GLsizei size, GLenum type, GLfloat *buffer)
 
 static void dllFinish(void)
 {
-#ifdef _XBOX
-	glw_state->device->BlockUntilIdle();
-#endif
 }
 
 static void dllFlush(void)
 {
-#ifdef _XBOX
-	glw_state->device->BlockUntilIdle();
-#endif
 }
 
 // EXTENSION: Draw the shadow
@@ -3182,408 +2989,6 @@ static void buildStrips(GLuint* len, GLsizei* num_lens, GLushort* dest, GLsizei*
 	assert(num_strips <= GLW_MAX_STRIPS);
 }
 
-#ifdef _XBOX
-void renderObject_Light( int numIndexes, const glIndex_t *indexes )
-{
-	int i;
-
-	// start the draw mode
-	assert(!glw_state->inDrawBlock);
-
-	glw_state->inDrawBlock = true;
-	glw_state->primitiveMode = D3DPT_TRIANGLELIST;
-
-	glw_state->drawStride = 14;
-
-	glw_state->numIndices = 0;
-	glw_state->totalIndices = numIndexes;
-	glw_state->maxIndices = _getMaxIndices();
-
-	glw_state->device->SetStreamSource(0, NULL, glw_state->drawStride * 4);	
-
-	int vert_size;
-	if(!tess.pNormal)
-		vert_size = 8 * tess.numVertexes;
-	else
-		vert_size = 4 * tess.numVertexes;
-
-	int index_size = numIndexes / 2;
-	
-	glw_state->device->BeginPush(vert_size + index_size + 60, &glw_state->drawArray);
-
-	glw_state->drawArray = (DWORD*)*((DWORD*)glw_state->device);
-
-	DWORD *jumpaddress = 0, *stream = 0;
-
-	// Determine where the end of the vertex data is gonna be,
-	// that's where we're going to jump to
-	jumpaddress = (DWORD*)*((DWORD*)glw_state->device) + (vert_size + 1);
-
-	// Write the jump address
-	*glw_state->drawArray++ = ((DWORD)jumpaddress & 0x7fffffff) | 1;
-
-	// Set up our own fake vertex buffer
-	stream = glw_state->drawArray;
-
-	if(!tess.pNormal)
-	{
-        memcpy(glw_state->drawArray, tess.normal, sizeof(vec4_t) * tess.numVertexes);
-		glw_state->drawArray += tess.numVertexes * 4;
-	}
-
-	memcpy(glw_state->drawArray, tess.tangent, sizeof(vec4_t) * tess.numVertexes);
-	glw_state->drawArray += tess.numVertexes * 4;
-
-	// Write the vertex shader
-#define CMD_STREAM_STRIDEANDTYPE0 0x1760
-	*glw_state->drawArray++ = D3DPUSH_ENCODE(CMD_STREAM_STRIDEANDTYPE0, 16);
-
-	// Position
-	*glw_state->drawArray++ = (16 << 8)|D3DVSDT_FLOAT3;
-
-	// Normal
-	*glw_state->drawArray++ = (16 << 8) | D3DVSDT_FLOAT3;
-
-	// Tex Coord
-	*glw_state->drawArray++ = (8 << 8) | D3DVSDT_FLOAT2;
-
-	// Tangent
-	*glw_state->drawArray++ = (16 << 8) | D3DVSDT_FLOAT3;
-
-	for(i = 0; i < 12; i++)
-	{
-		*glw_state->drawArray++ = ((glw_state->drawStride * 4) << 8) | D3DVSDT_NONE;
-	}
-
-	//	 Write the indicator to our vertex stream
-	*glw_state->drawArray++ = D3DPUSH_ENCODE(0x1720, 1);
-	*glw_state->drawArray++ = (DWORD)tess.pXyz & 0x7fffffff;
-
-	*glw_state->drawArray++ = D3DPUSH_ENCODE(0x1724, 1);
-	if(!tess.pNormal)
-	{
-        *glw_state->drawArray++ = (DWORD)stream & 0x7fffffff;
-		stream += tess.numVertexes * 4;
-	}
-	else
-		*glw_state->drawArray++ = (DWORD)tess.pNormal & 0x7fffffff;
-
-	*glw_state->drawArray++ = D3DPUSH_ENCODE(0x1728, 1);
-	*glw_state->drawArray++ = (DWORD)tess.pTex1 & 0x7fffffff;
-
-	*glw_state->drawArray++ = D3DPUSH_ENCODE(0x172c, 1);
-	*glw_state->drawArray++ = (DWORD)stream & 0x7fffffff;
-
-	// Send thru the index data
-	PushIndices(numIndexes, (GLushort*)indexes);
-
-	// finish up the draw
-	glw_state->inDrawBlock = false;
-
-	DWORD* push = _terminateIndexPacket(glw_state->drawArray);
-
-	glw_state->device->EndPush(push);
-}
-
-
-void renderObject_Shadow( int primType, int numIndexes, const unsigned short *indexes )
-{
-	int i;
-
-	// start the draw mode
-	assert(!glw_state->inDrawBlock);
-
-	glw_state->inDrawBlock = true;
-	glw_state->primitiveMode = (D3DPRIMITIVETYPE)primType;
-
-	glw_state->drawStride = 5;
-
-	glw_state->numIndices = 0;
-	glw_state->totalIndices = numIndexes;
-	glw_state->maxIndices = _getMaxIndices();
-
-	glw_state->device->SetStreamSource(0, NULL, glw_state->drawStride * 4);	
-
-	int vert_size = glw_state->drawStride * (tess.numVertexes * 2);
-	int index_size = numIndexes / 2;
-	
-	glw_state->device->BeginPush(vert_size + index_size + 60, &glw_state->drawArray);
-
-	glw_state->drawArray = (DWORD*)*((DWORD*)glw_state->device);
-
-	DWORD *jumpaddress = 0, *stream = 0;
-
-	if(!StencilShadower.pVerts)
-	{
-		// Determine where the end of the vertex data is gonna be,
-		// that's where we're going to jump to
-		jumpaddress = (DWORD*)*((DWORD*)glw_state->device) + (vert_size + 1);
-
-		// Write the jump address
-		*glw_state->drawArray++ = ((DWORD)jumpaddress & 0x7fffffff) | 1;
-
-		// Set up our own fake vertex buffer
-		stream = glw_state->drawArray;
-
-        memcpy(glw_state->drawArray, tess.xyz, sizeof(vec4_t) * (tess.numVertexes * 2));
-		glw_state->drawArray += (tess.numVertexes * 2) * 4;
-
-		// Write the extrusion indicators
-		memset(glw_state->drawArray, 0x0, sizeof(float) * tess.numVertexes);
-		glw_state->drawArray += tess.numVertexes;
-		memcpy(glw_state->drawArray, StencilShadower.m_extrusionIndicators, sizeof(float) * tess.numVertexes);
-		glw_state->drawArray += tess.numVertexes;
-	}
-	
-	// Write the vertex shader
-#define CMD_STREAM_STRIDEANDTYPE0 0x1760
-	*glw_state->drawArray++ = D3DPUSH_ENCODE(CMD_STREAM_STRIDEANDTYPE0, 16);
-
-	// Position
-	*glw_state->drawArray++ = (16 << 8)|D3DVSDT_FLOAT3;
-
-	// Extrusion determinant
-	*glw_state->drawArray++ = (4 << 8)|D3DVSDT_FLOAT1;
-
-	for(i = 0; i < 14; i++)
-	{
-		*glw_state->drawArray++ = ((glw_state->drawStride * 4) << 8) | D3DVSDT_NONE;
-	}
-
-	//	 Write the indicator to our vertex stream
-	*glw_state->drawArray++ = D3DPUSH_ENCODE(0x1720, 1);
-	if(!StencilShadower.pVerts)
-	{
-        *glw_state->drawArray++ = (DWORD)stream & 0x7fffffff;
-		StencilShadower.pVerts = stream;
-		stream += (tess.numVertexes * 2) * 4;
-	}
-	else
-	{
-		*glw_state->drawArray++ = (DWORD)StencilShadower.pVerts & 0x7fffffff;
-	}
-
-	*glw_state->drawArray++ = D3DPUSH_ENCODE(0x1724, 1);
-	if(!StencilShadower.pExtrusions)
-	{
-        *glw_state->drawArray++ = (DWORD)stream & 0x7fffffff;
-		StencilShadower.pExtrusions = stream;
-		stream += (tess.numVertexes * 2);
-	}
-	else
-	{
-		*glw_state->drawArray++ = (DWORD)StencilShadower.pExtrusions & 0x7fffffff;
-	}
-
-	// Send thru the index data
-	PushIndices(numIndexes, (GLushort*)indexes);
-
-	// finish up the draw
-	glw_state->inDrawBlock = false;
-
-	DWORD* push = _terminateIndexPacket(glw_state->drawArray);
-
-	glw_state->device->EndPush(push);
-}
-
-
-void renderObject_Bump()
-{
-	// start the draw mode
-	assert(!glw_state->inDrawBlock);
-
-	glw_state->inDrawBlock = true;
-	glw_state->primitiveMode = D3DPT_TRIANGLELIST;
-
-	glw_state->drawStride = 16;
-
-	glw_state->numIndices = 0;
-	glw_state->totalIndices = tess.numIndexes;
-	glw_state->maxIndices = _getMaxIndices();
-
-	glw_state->device->SetStreamSource(0, NULL, glw_state->drawStride * 4);	
-
-	int vert_size = glw_state->drawStride * tess.numVertexes;
-	int index_size = tess.numIndexes / 2;
-
-	glw_state->device->BeginPush(vert_size + index_size + 60, &glw_state->drawArray);
-
-	glw_state->drawArray = (DWORD*)*((DWORD*)glw_state->device);
-
-	DWORD *jumpaddress = 0, *stream = 0;
-
-	// Determine where the end of the vertex data is gonna be,
-	// that's where we're going to jump to
-	jumpaddress = (DWORD*)*((DWORD*)glw_state->device) + (vert_size + 1);
-
-	// Write the jump address
-	*glw_state->drawArray++ = ((DWORD)jumpaddress & 0x7fffffff) | 1;
-
-	// Set up our own fake vertex buffer
-	stream = glw_state->drawArray;
-
-	memcpy(glw_state->drawArray, tess.xyz, sizeof(vec4_t) * tess.numVertexes);
-	glw_state->drawArray += tess.numVertexes * 4;
-
-	memcpy(glw_state->drawArray, tess.normal, sizeof(vec4_t) * tess.numVertexes);
-	glw_state->drawArray += tess.numVertexes * 4;
-
-	memcpy(glw_state->drawArray, tess.svars.texcoords[0], sizeof(vec2_t) * tess.numVertexes);
-	glw_state->drawArray += tess.numVertexes * 2;
-
-	memcpy(glw_state->drawArray, tess.svars.texcoords[1], sizeof(vec2_t) * tess.numVertexes);
-	glw_state->drawArray += tess.numVertexes * 2;
-
-	memcpy(glw_state->drawArray, tess.tangent, sizeof(vec4_t) * tess.numVertexes);
-	glw_state->drawArray += tess.numVertexes * 4;
-
-	// Write the vertex shader
-#define CMD_STREAM_STRIDEANDTYPE0 0x1760
-	*glw_state->drawArray++ = D3DPUSH_ENCODE(CMD_STREAM_STRIDEANDTYPE0, 16);
-
-	// Position
-	*glw_state->drawArray++ = (16 << 8)|D3DVSDT_FLOAT3;
-
-	// Normal
-	*glw_state->drawArray++ = (16 << 8) | D3DVSDT_FLOAT3;
-
-	// Tex Coord 0
-	*glw_state->drawArray++ = (8 << 8) | D3DVSDT_FLOAT2;
-
-	// Tex Coord 1
-	*glw_state->drawArray++ = (8 << 8) | D3DVSDT_FLOAT2;
-
-	// Tangent
-	*glw_state->drawArray++ = (16 << 8) | D3DVSDT_FLOAT3;
-
-	for(int i = 0; i < 11; i++)
-	{
-		*glw_state->drawArray++ = ((glw_state->drawStride * 4) << 8) | D3DVSDT_NONE;
-	}
-
-	//	 Write the indicator to our vertex stream
-	*glw_state->drawArray++ = D3DPUSH_ENCODE(0x1720, 1);
-	*glw_state->drawArray++ = (DWORD)stream & 0x7fffffff;
-	tess.pXyz = stream;
-	stream += tess.numVertexes * 4;
-
-	*glw_state->drawArray++ = D3DPUSH_ENCODE(0x1724, 1);
-	*glw_state->drawArray++ = (DWORD)stream & 0x7fffffff;
-	tess.pNormal = stream;
-	stream += tess.numVertexes * 4;
-
-	*glw_state->drawArray++ = D3DPUSH_ENCODE(0x1728, 1);
-	*glw_state->drawArray++ = (DWORD)stream & 0x7fffffff;
-	stream += tess.numVertexes * 2;
-
-	*glw_state->drawArray++ = D3DPUSH_ENCODE(0x172c, 1);
-	*glw_state->drawArray++ = (DWORD)stream & 0x7fffffff;
-	stream += tess.numVertexes * 2;
-
-	*glw_state->drawArray++ = D3DPUSH_ENCODE(0x1730, 1);
-	*glw_state->drawArray++ = (DWORD)stream & 0x7fffffff;
-	stream += tess.numVertexes * 4;
-
-	// Send thru the index data
-	PushIndices(tess.numIndexes, (GLushort*)tess.indexes);
-
-	// finish up the draw
-	glw_state->inDrawBlock = false;
-
-	DWORD* push = _terminateIndexPacket(glw_state->drawArray);
-
-	glw_state->device->EndPush(push);
-}
-
-void renderObject_Env()
-{
-	// start the draw mode
-	assert(!glw_state->inDrawBlock);
-
-	glw_state->inDrawBlock = true;
-	glw_state->primitiveMode = D3DPT_TRIANGLELIST;
-
-	glw_state->drawStride = 9;
-	_updateTextures();
-
-	glw_state->numIndices = 0;
-	glw_state->totalIndices = tess.numIndexes;
-	glw_state->maxIndices = _getMaxIndices();
-
-	glw_state->device->SetStreamSource(0, NULL, glw_state->drawStride * 4);	
-
-	int vert_size = glw_state->drawStride * tess.numVertexes;
-	int index_size = tess.numIndexes / 2;
-
-	glw_state->device->BeginPush(vert_size + index_size + 60, &glw_state->drawArray);
-
-	glw_state->drawArray = (DWORD*)*((DWORD*)glw_state->device);
-
-	DWORD *jumpaddress = 0, *stream = 0;
-
-	// Determine where the end of the vertex data is gonna be,
-	// that's where we're going to jump to
-	jumpaddress = (DWORD*)*((DWORD*)glw_state->device) + (vert_size + 1);
-
-	// Write the jump address
-	*glw_state->drawArray++ = ((DWORD)jumpaddress & 0x7fffffff) | 1;
-
-	// Set up our own fake vertex buffer
-	stream = glw_state->drawArray;
-
-	memcpy(glw_state->drawArray, tess.xyz, sizeof(vec4_t) * tess.numVertexes);
-	glw_state->drawArray += tess.numVertexes * 4;
-
-	memcpy(glw_state->drawArray, tess.normal, sizeof(vec4_t) * tess.numVertexes);
-	glw_state->drawArray += tess.numVertexes * 4; 
-
-	memcpy(glw_state->drawArray, tess.svars.colors, sizeof(D3DCOLOR) * tess.numVertexes);
-	glw_state->drawArray += tess.numVertexes;
- 
-	// Write the vertex shader
-#define CMD_STREAM_STRIDEANDTYPE0 0x1760
-	*glw_state->drawArray++ = D3DPUSH_ENCODE(CMD_STREAM_STRIDEANDTYPE0, 16);
-
-	// Position
-	*glw_state->drawArray++ = (16 << 8)|D3DVSDT_FLOAT3;
-
-	// Normal
-	*glw_state->drawArray++ = (16 << 8) | D3DVSDT_FLOAT3;
-
-	// Color
-	*glw_state->drawArray++ = (4 << 8) | D3DVSDT_D3DCOLOR;
-
-	for(int i = 0; i < 13; i++)
-	{
-		*glw_state->drawArray++ = ((glw_state->drawStride * 4) << 8) | D3DVSDT_NONE;
-	}
-
-	//	 Write the indicator to our vertex stream
-	*glw_state->drawArray++ = D3DPUSH_ENCODE(0x1720, 1);
-	*glw_state->drawArray++ = (DWORD)stream & 0x7fffffff;
-	tess.pXyz = stream;
-	stream += tess.numVertexes * 4;
-
-	*glw_state->drawArray++ = D3DPUSH_ENCODE(0x1724, 1);
-	*glw_state->drawArray++ = (DWORD)stream & 0x7fffffff;
-	tess.pNormal = stream;
-	stream += tess.numVertexes * 4;
-
-	*glw_state->drawArray++ = D3DPUSH_ENCODE(0x1728, 1);
-	*glw_state->drawArray++ = (DWORD)stream & 0x7fffffff;
-	stream += tess.numVertexes;
-
-	// Send thru the index data
-	PushIndices(tess.numIndexes, (GLushort*)tess.indexes);
-
-	// finish up the draw
-	glw_state->inDrawBlock = false;
-
-	DWORD* push = _terminateIndexPacket(glw_state->drawArray);
-
-	glw_state->device->EndPush(push);
-}
-#endif
 
 // EXTENSION: Take an array of triangle indices and draw
 // the appropriate triangle strips.  Virtually ALL geometry
@@ -3629,33 +3034,6 @@ static void dllIndexedTriToStrip(GLsizei count, const GLushort *indices)
 			return;
 	}
 
-#ifdef _XBOX
-	glw_state->primitiveMode = D3DPT_TRIANGLESTRIP;
-
-	// get the necessary draw function
-	drawelemfunc_t func = _drawElementFuncTable[_getDrawFunc()];
-	int stride = glw_state->drawStride;
-	
-	int index = 0;
-	for (int l = 0; l < glw_state->num_strip_lengths; ++l)
-	{
-		int cur_len = glw_state->strip_lengths[l];
-		
-		// start a draw packet
-		DWORD* push;
-		glw_state->device->BeginPush(stride * cur_len + 5, &push);
-		push = _restartDrawPacket(push, cur_len);
-		
-		// draw the geometry
-		glw_state->drawArray = push;
-		func(cur_len, &glw_state->strip_dest[index]);
-		index += cur_len;
-		
-		// finish the draw packet
-		push = _terminateDrawPacket(&push[stride * cur_len]);
-		glw_state->device->EndPush(push);
-	}
-#else _XBOX
 	// simplified render on the PC
 	int index = 0;
 	for (int l = 0; l < glw_state->num_strip_lengths; ++l)
@@ -3664,7 +3042,6 @@ static void dllIndexedTriToStrip(GLsizei count, const GLushort *indices)
 			GL_UNSIGNED_SHORT, &glw_state->strip_dest[index]);
 		index += glw_state->strip_lengths[l];
 	}
-#endif _XBOX
 
 #else GLW_USE_TRI_STRIPS
 	// just render simple triangles
@@ -3754,11 +3131,7 @@ GLboolean dllIsEnabled(GLenum cap)
 	case GL_DEPTH_TEST: glw_state->device->GetRenderState(D3DRS_ZENABLE, &flag); break;
 	case GL_FOG: glw_state->device->GetRenderState(D3DRS_FOGENABLE, &flag); break;
 	case GL_LIGHTING: glw_state->device->GetRenderState(D3DRS_LIGHTING, &flag); break;
-#ifdef _XBOX
-	case GL_POLYGON_OFFSET_FILL: glw_state->device->GetRenderState(D3DRS_SOLIDOFFSETENABLE, &flag); break;
-#else
 	case GL_POLYGON_OFFSET_FILL: return FALSE;
-#endif
 	case GL_SCISSOR_TEST: return glw_state->scissorEnable;
 	case GL_STENCIL_TEST: glw_state->device->GetRenderState(D3DRS_STENCILENABLE, &flag); break;
 	case GL_TEXTURE_2D: return glw_state->textureStageEnable[glw_state->serverTU];
@@ -4009,10 +3382,6 @@ static void dllMatrixMode(GLenum mode)
 	{
 	case GL_MODELVIEW: glw_state->matrixMode = glwstate_t::MatrixMode_Model; break;
 	case GL_PROJECTION: glw_state->matrixMode = glwstate_t::MatrixMode_Projection; break;
-#ifdef _XBOX
-	case GL_TEXTURE0: glw_state->matrixMode = glwstate_t::MatrixMode_Texture0; break;
-	case GL_TEXTURE1: glw_state->matrixMode = glwstate_t::MatrixMode_Texture1; break;
-#endif
 	default: assert(false); break;
 	}
 }
@@ -4181,25 +3550,15 @@ static void dllPolygonMode(GLenum face, GLenum mode)
 		glw_state->device->SetRenderState(D3DRS_FILLMODE, m);
 		break;
 	case GL_BACK:
-#ifdef _XBOX
-		glw_state->device->SetRenderState(D3DRS_BACKFILLMODE, m);
-#endif
 		break;
 	case GL_FRONT_AND_BACK:
 		glw_state->device->SetRenderState(D3DRS_FILLMODE, m);
-#ifdef _XBOX
-		glw_state->device->SetRenderState(D3DRS_BACKFILLMODE, m);
-#endif
 		break;
 	}
 }
 
 static void dllPolygonOffset(GLfloat factor, GLfloat units)
 {
-#ifdef _XBOX
-	glw_state->device->SetRenderState(D3DRS_POLYGONOFFSETZOFFSET, *((DWORD*)&factor));
-	glw_state->device->SetRenderState(D3DRS_POLYGONOFFSETZSLOPESCALE, *((DWORD*)&units));
-#endif
 }
 
 static void dllPolygonStipple(const GLubyte *mask)
@@ -4692,19 +4051,6 @@ static void dllScalef(GLfloat x, GLfloat y, GLfloat z)
 
 static void dllScissor(GLint x, GLint y, GLsizei width, GLsizei height)
 {
-#ifdef _XBOX
-	_fixupScreenCoords(x, y, width, height);
-
-	glw_state->scissorBox.x1 = x;
-	glw_state->scissorBox.y1 = y;
-	glw_state->scissorBox.x2 = x + width;
-	glw_state->scissorBox.y2 = y + height;
-	
-	if (glw_state->scissorEnable)
-	{
-		glw_state->device->SetScissors(1, FALSE, &glw_state->scissorBox);
-	}
-#endif
 }
 
 static void dllSelectBuffer(GLsizei size, GLuint *buffer)
@@ -6631,15 +5977,6 @@ D3DPRESENT_PARAMETERS present;
 	//glw_state->drawArray = new DWORD[SHADER_MAX_VERTEXES * 12];
 	glw_state->drawArray = NULL;
 
-#ifdef _XBOX
-#ifdef VV_LIGHTING
-//	glw_state->flareEffect = new FlareEffect;
-//	glw_state->flareEffect->Initialize();
-	glw_state->lightEffects = new LightEffects;
-	StencilShadower.Initialize();
-#endif // VV_LIGHTING
-//	HDREffect.Initialize();
-#endif
 
 #ifndef FINAL_BUILD
 	Cmd_AddCommand("d3d_autoperf", D3D_AutoPerfData_f);
@@ -6652,11 +5989,6 @@ D3DPRESENT_PARAMETERS present;
 
 void GLW_Shutdown(void)
 {
-#ifdef _XBOX
-#ifdef VV_LIGHTING
-	delete glw_state->lightEffects;
-#endif
-#endif
 
 	for (int m = 0; m < glwstate_t::Num_MatrixModes; ++m)
 	{
@@ -6665,9 +5997,6 @@ void GLW_Shutdown(void)
 
 	glw_state->device->Release();
 
-#ifdef _XBOX
-//	delete glw_state->flareEffect;
-#endif
 
 	delete glw_state;
 }

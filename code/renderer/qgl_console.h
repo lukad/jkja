@@ -10,15 +10,7 @@
 #include <gl/gl.h>
 #endif
 
-#ifdef _XBOX
 
-#include <Xtl.h>
-#endif
-
-#ifdef _GAMECUBE
-#include <dolphin/gx.h>
-#include <dolphin/mtx.h>
-#endif
 
 typedef unsigned int GLenum;
 typedef unsigned char GLboolean;

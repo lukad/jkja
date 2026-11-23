@@ -30,9 +30,7 @@
 #endif
 
 //rww - conveniently toggle "gore" code, for model decals and stuff.
-#ifndef _XBOX
 #define _G2_GORE
-#endif
 
 #ifndef FINAL_BUILD
 #define G2_PERFORMANCE_ANALYSIS
@@ -47,25 +45,6 @@
 #include <time.h>
 #include <ctype.h>
 
-#ifdef _XBOX
-#define tvector(T) std::vector< T >
-#define tdeque(T) std::deque< T >
-
-#define tlist(T) std::list< T >
-#define tslist(T) std::slist< T >
-
-#define tset(T) std::set< T, std::less< T > >
-#define tmultiset(T) std::multiset< T, std::less< T > >
-
-#define tcset(T,C) std::set< T, C >
-#define tcmultiset(T,C) std::multiset< T, C >
-
-#define tmap(K,T) std::map< K, T, std::less< K > >
-#define tmultimap(K,T) std::multimap< K, T, std::less< K > >
-
-#define tcmap(K,T,C) std::map< K, T, C >
-#define tcmultimap(K,T,C) std::multimap< K, T, C >
-#endif // _XBOX
 
 
 // this is the define for determining if we have an asm version of a C function
@@ -213,11 +192,7 @@ typedef int		clipHandle_t;
 
 
 #define	MAX_QPATH			64		// max length of a quake game pathname
-#ifdef _XBOX
-#define	MAX_OSPATH			128		// max length of a filesystem pathname
-#else
 #define	MAX_OSPATH			260		// max length of a filesystem pathname
-#endif
 
 #define	MAX_NAME_LENGTH		32		// max length of a client name
 
@@ -511,27 +486,6 @@ extern	const vec3_t	axisDefault[3];
 
 #define	IS_NAN(x) (((*(int *)&x)&nanmask)==nanmask)
 
-#ifdef _XBOX
-inline void Q_CastShort2Float(float *f, const short *s)
-{
-	*f = ((float)*s);
-}
-
-inline void Q_CastUShort2Float(float *f, const unsigned short *s)
-{
-	*f = ((float)*s);
-}
-
-inline void Q_CastShort2FloatScale(float *f, const short *s, float scale)
-{
-	*f = ((float)*s) * scale;
-}
-
-inline void Q_CastUShort2FloatScale(float *f, const unsigned short *s, float scale)
-{
-	*f = ((float)*s) * scale;
-}
-#endif
 
 float Q_fabs( float f );
 float Q_rsqrt( float f );		// reciprocal square root
@@ -567,15 +521,6 @@ inline void VectorMA( const vec3_t veca, float scale, const vec3_t vecb, vec3_t 
 	vecc[2] = veca[2] + scale*vecb[2];
 }
 
-#ifdef _XBOX
-inline void VectorMA( const vec3_t veca, float scale, const short vecb[3], vec3_t vecc) {
-	// The only time this overload gets used is with normals, so
-	// (I think) it's safe to do this....
-	vecc[0] = veca[0] + scale * ((float)vecb[0] / 32767.0f);
-	vecc[1] = veca[1] + scale * ((float)vecb[1] / 32767.0f);
-	vecc[2] = veca[2] + scale * ((float)vecb[2] / 32767.0f);
-}
-#endif
 
 inline vec_t DotProduct( const vec3_t v1, const vec3_t v2 ) {
 #ifdef _XBOX1		/// use SSE
@@ -607,11 +552,6 @@ inline vec_t DotProduct( const vec3_t v1, const vec3_t v2 ) {
 #endif
 }
 
-#ifdef _XBOX
-inline vec_t DotProduct( const short v1[3], const vec3_t v2 ) {
-	return v1[0]*v2[0] + v1[1]*v2[1] + v1[2]*v2[2];
-}
-#endif
 
 inline void CrossProduct( const vec3_t v1, const vec3_t v2, vec3_t cross ) {
 	cross[0] = v1[1]*v2[2] - v1[2]*v2[1];
@@ -643,25 +583,6 @@ inline void VectorSubtract( const vec3_t veca, const vec3_t vecb, vec3_t o ) {
 #endif
 }
 
-#ifdef _XBOX
-inline void VectorSubtract( const short veca[3], const vec3_t vecb, vec3_t o ) {
-	o[0] = veca[0]-vecb[0];
-	o[1] = veca[1]-vecb[1];
-	o[2] = veca[2]-vecb[2];
-}
-
-inline void VectorSubtract( const vec3_t veca, const short vecb[3], vec3_t o ) {
-	o[0] = veca[0]-vecb[0];
-	o[1] = veca[1]-vecb[1];
-	o[2] = veca[2]-vecb[2];
-}
-
-inline void VectorSubtract( const short veca[3], const short vecb[3], vec3_t o ) {
-	o[0] = veca[0]-vecb[0];
-	o[1] = veca[1]-vecb[1];
-	o[2] = veca[2]-vecb[2];
-}
-#endif
 
 inline void VectorAdd( const vec3_t veca, const vec3_t vecb, vec3_t o ) {
 #ifdef _XBOX1
@@ -693,13 +614,6 @@ inline void VectorCopy( const vec3_t in, vec3_t out ) {
 	out[2] = in[2];
 }
 
-#ifdef _XBOX
-inline void VectorCopy( const short in[3], vec3_t out ) {
-	out[0] = (float)in[0];
-	out[1] = (float)in[1];
-	out[2] = (float)in[2];
-}
-#endif
 
 inline void VectorScale( const vec3_t i, vec_t scale, vec3_t o ) {
 #ifdef _XBOX1
@@ -734,30 +648,6 @@ float RadiusFromBounds( const vec3_t mins, const vec3_t maxs );
 
 void ClearBounds( vec3_t mins, vec3_t maxs );
 
-#ifdef _XBOX
-inline void AddPointToBounds( const short v[3], vec3_t mins, vec3_t maxs ) {
-	if ( v[0] < mins[0] ) {
-		mins[0] = v[0];
-	}
-	if ( v[0] > maxs[0]) {
-		maxs[0] = v[0];
-	}
-
-	if ( v[1] < mins[1] ) {
-		mins[1] = v[1];
-	}
-	if ( v[1] > maxs[1]) {
-		maxs[1] = v[1];
-	}
-
-	if ( v[2] < mins[2] ) {
-		mins[2] = v[2];
-	}
-	if ( v[2] > maxs[2]) {
-		maxs[2] = v[2];
-	}
-}
-#endif
 
 inline void AddPointToBounds( const vec3_t v, vec3_t mins, vec3_t maxs ) {
 	if ( v[0] < mins[0] ) {
@@ -936,26 +826,6 @@ inline vec_t VectorNormalize2( const vec3_t v, vec3_t out) {
 	return length;
 }
 
-#ifdef _XBOX
-inline vec_t VectorNormalize2( const vec3_t v, short out[3]) {
-	float	length, ilength;
-
-	length = v[0]*v[0] + v[1]*v[1] + v[2]*v[2];
-	length = sqrt (length);
-
-	if (length)
-	{
-		ilength = 1/length;
-		out[0] = (short)(v[0]*ilength * 32767.0f);
-		out[1] = (short)(v[1]*ilength * 32767.0f);
-		out[2] = (short)(v[2]*ilength * 32767.0f);
-	} else {
-		VectorClear( out );
-	}
-
-	return length;
-}
-#endif
 
 int Q_log2(int val);
 
@@ -1132,9 +1002,6 @@ inline float AngleDelta ( float angle1, float angle2 ) {
 }
 
 qboolean PlaneFromPoints( vec4_t plane, const vec3_t a, const vec3_t b, const vec3_t c );
-#ifdef _XBOX
-qboolean PlaneFromPoints( vec4_t plane, const short a[3], const short b[3], const short c[3] );
-#endif
 void ProjectPointOnPlane( vec3_t dst, const vec3_t p, const vec3_t normal );
 void RotatePointAroundVector( vec3_t dst, const vec3_t dir, const vec3_t point, float degrees );
 void RotateAroundDirection( vec3_t axis[3], float yaw );
@@ -1157,11 +1024,7 @@ void	COM_StripExtension( const char *in, char *out );
 void	COM_DefaultExtension( char *path, int maxSize, const char *extension );
 
 //JLFCALLOUT include MPNOTUSED
-#ifdef _XBOX
-void	 COM_BeginParseSession( bool nested = false );
-#else
 void	 COM_BeginParseSession( void );
-#endif
 
 int		 COM_GetCurrentParseLine( void );
 char	*COM_Parse( const char **data_p );
@@ -1469,9 +1332,6 @@ typedef struct {
 
 #define MAX_SUB_BSP			32
 
-#ifdef _IMMERSION
-#define MAX_FORCES			96
-#endif // _IMMERSION
 #define	MAX_SUBMODELS		512		// nine bits
 
 #define MAX_FX				128
@@ -1509,12 +1369,7 @@ Ghoul2 Insert End
 #define	CS_SKYBOXORG		(CS_MODELS+MAX_MODELS)		//rww - skybox info
 
 #define	CS_SOUNDS			(CS_SKYBOXORG+1)
-#ifdef _IMMERSION
-#define CS_FORCES			(CS_SOUNDS+MAX_SOUNDS)
-#define CS_PLAYERS			(CS_FORCES+MAX_FORCES)
-#else
 #define	CS_PLAYERS			(CS_SOUNDS+MAX_SOUNDS)
-#endif // _IMMERSION
 #define	CS_LIGHT_STYLES		(CS_PLAYERS+MAX_CLIENTS)
 #define CS_TERRAINS			(CS_LIGHT_STYLES + (MAX_LIGHT_STYLES*3))
 #define CS_BSP_MODELS		(CS_TERRAINS + MAX_TERRAINS)
@@ -2418,8 +2273,5 @@ typedef enum
 
 #include "../game/genericparser2.h"
 
-#ifdef _IMMERSION
-#include "../ff/ff_public.h"
-#endif // _IMMERSION
 
 #endif	// __Q_SHARED_H

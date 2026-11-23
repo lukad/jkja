@@ -1163,9 +1163,6 @@ static void CG_PlayerAnimEvents( int animFileIndex, qboolean torso, int oldFrame
 		}
 	}
 
-#ifdef _XBOX
-	using dllNamespace::hstring;
-#endif
 	hstring myModel = g_entities[entNum].NPC_type;		//apparently NPC_type is always the same as the model name???
 
 
@@ -4527,9 +4524,6 @@ void CG_AddRefEntityWithPowerups( refEntity_t *ent, int powerups, centity_t *cen
 		cgi_R_AddRefEntityToScene( ent );
 		return;
 	}
-#ifdef _XBOX
-	ent->number = cent->currentState.number;
-#endif
 	gentity_t *gent  = cent->gent;
 	if ( !gent )
 	{
@@ -5371,39 +5365,6 @@ static void CG_GetPlayerLightLevel( centity_t *cent )
 	}
 }
 
-#ifdef _IMMERSION
-static int CG_SaberHumForceForEnt( gentity_t *gent )
-{
-	//now: based on saber type and npc, pick correct hum sound
-	int	saberHumForce = cgi_FF_Register( "fffx/weapons/saber/saberhum1", FF_CHANNEL_WEAPON );
-	if ( gent && gent->client )
-	{
-		if ( gent->client->NPC_class == CLASS_DESANN )
-		{//desann
-			saberHumForce = cgi_FF_Register( "fffx/weapons/saber/saberhum2", FF_CHANNEL_WEAPON );
-		}
-		else if ( gent->client->NPC_class == CLASS_LUKE )
-		{//luke
-			saberHumForce = cgi_FF_Register( "fffx/weapons/saber/saberhum5", FF_CHANNEL_WEAPON );
-		}
-		else if ( gent->client->NPC_class == CLASS_PLAYER
-					|| gent->client->NPC_class == CLASS_KYLE )
-		{//Kyle NPC and player
-			saberHumForce = cgi_FF_Register( "fffx/weapons/saber/saberhum4", FF_CHANNEL_WEAPON );
-		}
-		else if ( gent->client->playerTeam == TEAM_ENEMY )//NPC_class == CLASS_TAVION )
-		{//reborn, shadowtroopers, tavion
-			saberHumForce = cgi_FF_Register( "fffx/weapons/saber/saberhum3", FF_CHANNEL_WEAPON );
-		}
-		else
-		{//allies
-			//use default
-			//saberHumSound = cgi_S_RegisterSound( "sound/weapons/saber/saberhum1.wav" );
-		}
-	}
-	return saberHumForce;
-}
-#endif // _IMMERSION
 /*
 ===============
 CG_StopWeaponSounds
@@ -5436,12 +5397,6 @@ static void CG_StopWeaponSounds( centity_t *cent )
 			cent->lerpOrigin, 
 			vec3_origin, 
 			cgs.sound_precache[g_entities[cent->currentState.clientNum].client->ps.saber[0].soundLoop] );
-#ifdef _IMMERSION
-		cgi_FF_AddLoopingForce
-		(	CG_SaberHumForceForEnt( &g_entities[cent->currentState.clientNum] )
-		,	cent->currentState.number
-		);
-#endif // _IMMERSION
 		return;
 	}
 
@@ -5463,12 +5418,6 @@ static void CG_StopWeaponSounds( centity_t *cent )
 				cgi_S_StartSound( cent->lerpOrigin, cent->currentState.number, CHAN_WEAPON, weapon->stopSound );
 			}
 
-#ifdef _IMMERSION
-			if ( weapon->stopForce )
-			{
-				cgi_FF_Start( weapon->stopForce, cent->currentState.number );
-			}
-#endif // _IMMERSION
 			cent->pe.lightningFiring = qfalse;
 		}
 		return;
@@ -5480,12 +5429,6 @@ static void CG_StopWeaponSounds( centity_t *cent )
 		{
 			cgi_S_AddLoopingSound( cent->currentState.number, cent->lerpOrigin, vec3_origin, weapon->altFiringSound );
 		}
-#ifdef _IMMERSION
-		if ( weapon->altFiringForce )
-		{
-			cgi_FF_AddLoopingForce( weapon->altFiringForce, cent->currentState.number );
-		}
-#endif // _IMMERSION
 		cent->pe.lightningFiring = qtrue;
 	}
 }
@@ -6269,12 +6212,6 @@ Ghoul2 Insert End
 					*/
 					if ( !Q_irand( 0, 10 ) )
 					{//FIXME: don't do this this way.... :)
-#ifdef _IMMERSION
-						if ( !cent->gent->client->ps.saberInFlight || saberNum != 0 )
-						{
-							cgi_FF_Start( cgi_FF_Register( "fffx/weapons/saber/hitwater", FF_CHANNEL_WEAPON ), cent->currentState.number );
-						}
-#endif // _IMMERSION
 						vec3_t	spot;
 						VectorCopy( trace.endpos, spot );
 						spot[2] += 4;
@@ -6312,16 +6249,7 @@ Ghoul2 Insert End
 								if ( cg.time - cent->gent->client->ps.saberHitWallSoundDebounceTime >= 100 )
 								{//ugh, need to have a real sound debouncer... or do this game-side
 									cent->gent->client->ps.saberHitWallSoundDebounceTime = cg.time;
-	#ifdef _IMMERSION
-									int index = Q_irand( 1, 3 );
-									cgi_S_StartSound ( cent->lerpOrigin, cent->currentState.clientNum, CHAN_WEAPON, cgi_S_RegisterSound( va ( "sound/weapons/saber/saberhitwall%d.wav", index ) ) );
-									if ( !cent->gent->client->ps.saberInFlight || saberNum == 1 )
-									{
-										cgi_FF_Start( cgi_FF_Register( va( "fffx/weapons/saber/saberhitwall%d", index ), FF_CHANNEL_WEAPON ), cent->currentState.clientNum );
-									}
-	#else
 									cgi_S_StartSound ( cent->lerpOrigin, cent->currentState.clientNum, CHAN_ITEM, cgi_S_RegisterSound( va ( "sound/weapons/saber/saberhitwall%d.wav", Q_irand( 1, 3 ) ) ) );
-	#endif // _IMMERSION
 								}
 							}
 						}
@@ -7138,17 +7066,6 @@ extern vmCvar_t	cg_thirdPersonAlpha;
 							if ( !cent->gent->client->ps.saber[saberNum].blade[bladeNum].length )
 							{
 								qhandle_t saberOnSound = cgs.sound_precache[g_entities[cent->currentState.clientNum].client->ps.saber[saberNum].soundOn];
-	#ifdef _IMMERSION
-								ffHandle_t saberOnForce;
-								if ( cent->gent->client->playerTeam == TEAM_PLAYER )
-								{
-									saberOnForce = cgi_FF_Register( "fffx/weapons/saber/saberon", FF_CHANNEL_WEAPON );
-								}
-								else
-								{
-									saberOnForce = cgi_FF_Register( "fffx/weapons/saber/enemy_saber_on", FF_CHANNEL_WEAPON );
-								}
-	#endif // _IMMERSION
 								if ( !cent->gent->client->ps.weaponTime 
 									&& !saberNum//first saber only
 									&& !bladeNum )//first blade only
@@ -7171,9 +7088,6 @@ extern vmCvar_t	cg_thirdPersonAlpha;
 									{
 										cgi_S_StartSound (NULL, cent->currentState.number, CHAN_AUTO, saberOnSound );
 										cg_saberOnSoundTime[cent->currentState.number] = cg.time;//so we don't play multiple on sounds at one time
-#ifdef _IMMERSION
-										cgi_FF_Start( saberOnForce, cent->currentState.number );
-#endif // _IMMERSION
 									}
 								}
 							}

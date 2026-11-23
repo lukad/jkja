@@ -6,9 +6,6 @@
 
 #include "tr_local.h"
 
-#ifdef VV_LIGHTING
-#include "tr_lightmanager.h"
-#endif
 
 int			r_firstSceneDrawSurf;
 
@@ -41,9 +38,6 @@ void R_ToggleSmpFrame( void ) {
 	r_numdlights = 0;
 	r_firstSceneDlight = 0;
 
-#ifdef VV_LIGHTING
-	VVLightMan.num_dlights = 0;
-#endif
 
 	r_numentities = 0;
 	r_firstSceneEntity = 0;
@@ -206,9 +200,6 @@ void RE_AddRefEntityToScene( const refEntity_t *ent ) {
 
 	backEndData->entities[r_numentities].e = *ent;
 	backEndData->entities[r_numentities].lightingCalculated = qfalse;
-#ifdef _XBOX
-	backEndData->entities[r_numentities].visible = -1;
-#endif
 
 	r_numentities++;
 }
@@ -221,7 +212,6 @@ RE_AddLightToScene
 =====================
 */
 void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, float b ) {
-#ifndef VV_LIGHTING
 	dlight_t	*dl;
 
 	if ( !tr.registered ) {
@@ -239,7 +229,6 @@ void RE_AddLightToScene( const vec3_t org, float intensity, float r, float g, fl
 	dl->color[0] = r;
 	dl->color[1] = g;
 	dl->color[2] = b;
-#endif // VV_LIGHTING
 }
 
 
@@ -343,22 +332,18 @@ void RE_RenderScene( const refdef_t *fd ) {
 	tr.refdef.num_entities = r_numentities - r_firstSceneEntity;
 	tr.refdef.entities = &backEndData->entities[r_firstSceneEntity];
 
-#ifndef VV_LIGHTING
 	tr.refdef.num_dlights = r_numdlights - r_firstSceneDlight;
 	tr.refdef.dlights = &backEndData->dlights[r_firstSceneDlight];
-#endif
 
 	tr.refdef.numPolys = r_numpolys - r_firstScenePoly;
 	tr.refdef.polys = &backEndData->polys[r_firstScenePoly];
 
 	// turn off dynamic lighting globally by clearing all the
 	// dlights if it needs to be disabled or if vertex lighting is enabled
-#ifndef VV_LIGHTING
 	if ( r_dynamiclight->integer == 0 ||
 		 r_vertexLight->integer == 1 ) {
 		tr.refdef.num_dlights = 0;
 	}
-#endif
 
 	// a single frame may have multiple scenes draw inside it --
 	// a 3D game view, 3D status bar renderings, 3D menus, etc.

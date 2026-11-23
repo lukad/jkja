@@ -73,9 +73,6 @@ struct XBSettings
 	// Has the user turned off saving (by choosing "Continue Without Saving")?
 	bool IsDisabled( void );
 
-#ifdef XBOX_DEMO
-	void RestoreDefaults( void );
-#endif
 
 private:
 	bool Sign( XCALCSIG_SIGNATURE *pSig );

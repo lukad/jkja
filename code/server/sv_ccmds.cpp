@@ -60,7 +60,6 @@ static void SV_Map_( ForceReload_e eForceReload )
 		return;
 	}
 
-#ifndef _XBOX	// Could check for maps/%s/brushes.mle or something...
 	Com_sprintf (expanded, sizeof(expanded), "maps/%s.bsp", map);
 	if ( FS_ReadFile (expanded, NULL) == -1 ) {
 		Com_Printf ("Can't find map %s\n", expanded);
@@ -71,7 +70,6 @@ static void SV_Map_( ForceReload_e eForceReload )
 		}
 		return;
 	}
-#endif
 
 	if (map[0]!='_')
 	{
@@ -259,11 +257,7 @@ static void SV_Map_f( void )
 	if ( !Q_stricmpn( Cmd_Argv(0), "devmap", 6 ) ) {
 		Cvar_Set( "helpUsObi", "1" );
 	} else {
-#ifdef _XBOX
-		Cvar_Set( "helpUsObi", "1" );
-#else
 		Cvar_Set( "helpUsObi", "0" );
-#endif
 	}
 }
 

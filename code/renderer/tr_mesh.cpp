@@ -10,17 +10,7 @@
 #include "tr_local.h"
 #include "MatComp.h"
 
-#ifdef VV_LIGHTING
-#include "tr_lightmanager.h"
-#endif
 
-#ifdef _XBOX
-#include "../win32/glw_win_dx8.h"
-#include "../win32/win_stencilshadow.h"
-#include <xgraphics.h>
-#include <xgmath.h>
-#include "../win32/shader_constants.h"
-#endif
 
 float ProjectRadius( float r, vec3_t location )
 {
@@ -52,9 +42,6 @@ float ProjectRadius( float r, vec3_t location )
 				   tr.viewParms.projectionMatrix[15];
 
 	pr = width / depth;
-#if defined (_XBOX)
-	pr = -pr;
-#endif
 
 	if ( pr > 1.0f )
 		pr = 1.0f;
@@ -182,11 +169,7 @@ R_ComputeLOD
 
 =================
 */
-#ifdef _XBOX
-int R_ComputeLOD( trRefEntity_t *ent ) {
-#else
 static int R_ComputeLOD( trRefEntity_t *ent ) {
-#endif
 	float radius;
 	float flod;
 	float projectedRadius;
@@ -362,13 +345,8 @@ void R_AddMD3Surfaces( trRefEntity_t *ent ) {
 	//
 	// set up lighting now that we know we aren't culled
 	//
-#ifdef VV_LIGHTING
-	if ( !personalModel ) {
-		VVLightMan.R_SetupEntityLighting( &tr.refdef, ent );
-#else
 	if ( !personalModel || r_shadows->integer > 1 ) {
 		R_SetupEntityLighting( &tr.refdef, ent );
-#endif
 	}
 
 	//
@@ -411,7 +389,6 @@ void R_AddMD3Surfaces( trRefEntity_t *ent ) {
 
 
 		// we will add shadows even if the main object isn't visible in the view
-#ifndef _XBOX // No MD3 shadows on Xbox
 		// stencil shadows can't do personal models unless I polyhedron clip
 		if ( !personalModel
 			&& r_shadows->integer == 2 
@@ -428,16 +405,10 @@ void R_AddMD3Surfaces( trRefEntity_t *ent ) {
 			&& shader->sort == SS_OPAQUE ) {
 			R_AddDrawSurf( (surfaceType_t *)surface, tr.projectionShadowShader, 0, qfalse );
 		}
-#endif
 
 		// don't add third_person objects if not viewing through a portal
 		if ( !personalModel ) {
-#ifdef VV_LIGHTING
-			int dlightBits = ( ent->dlightBits != 0 );
-			R_AddDrawSurf( (surfaceType_t *)surface, shader, fogNum, dlightBits );
-#else
 			R_AddDrawSurf( (surfaceType_t *)surface, shader, fogNum, qfalse );
-#endif
 		}
 
 		surface = (md3Surface_t *)( (byte *)surface + surface->ofsEnd );

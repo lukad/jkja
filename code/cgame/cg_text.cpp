@@ -244,20 +244,10 @@ void CG_CaptionText( const char *str, int sound, int y )
 	cg.captionTextTime = cg.time;
 	if (in_camera) {
 		cg.captionTextY = SCREEN_HEIGHT - (client_camera.bar_height_dest/2)- TEXT_CUTSCENE_Y_BOOST;	// ths is now a centre'd Y, not a start Y
-#ifdef _XBOX
-		if(cg.widescreen)
-			lineWidth = 720 *  TEXT_SCREEN_WIDTH_FRACTION_CUTSCENE ;
-		else
-#endif
 		lineWidth = SCREEN_WIDTH *  TEXT_SCREEN_WIDTH_FRACTION_CUTSCENE ;
 
 	} else {	//get above the hud
 		cg.captionTextY = (int) (TEXT_SCREEN_HEIGHT_INGAME * ((float)SCREEN_HEIGHT - (float)fontHeight * 1.5f));	// do NOT move this, it has to fit in between the weapon HUD and the datapad update.
-#ifdef _XBOX
-		if(cg.widescreen)
-			lineWidth = 720 * TEXT_SCREEN_WIDTH_FRACTION_INGAME ;
-		else
-#endif
 		lineWidth = SCREEN_WIDTH * TEXT_SCREEN_WIDTH_FRACTION_INGAME ;
 	}
 	cg.captionTextCurrentLine = 0;

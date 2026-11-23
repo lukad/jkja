@@ -1275,11 +1275,6 @@ qboolean CG_CalcFOVFromX( float fov_x )
 	cg.refdef.fov_x = fov_x;
 	cg.refdef.fov_y = fov_y;
 
-#ifdef _XBOX
-	if(cg.widescreen)
-//		cg.refdef.fov_x = fov_y * 1.5;//1.77777f;
-		cg.refdef.fov_x *= 1.125f;
-#endif
 
 	return (inwater);
 }
@@ -1404,30 +1399,18 @@ static qboolean	CG_CalcFov( void ) {
 					if ( zoomSoundTime < cg.time )
 					{
 						sfxHandle_t snd;
-#ifdef _IMMERSION
-//						ffHandle_t ff;
-#endif // _IMMERSION
 						
 						if ( cg.zoomMode == 1 )
 						{
 							snd = cgs.media.zoomLoop;
-#ifdef _IMMERSION
-//							ff = cgs.media.zoomLoopForce;
-#endif // _IMMERSION
 						}
 						else
 						{
 							snd = cgs.media.disruptorZoomLoop;
-#ifdef _IMMERSION
-//							ff = cgs.media.disruptorZoomLoopForce;
-#endif // _IMMERSION
 						}
 
 						// huh?  This could probably just be added as a looping sound??
 						cgi_S_StartSound( cg.refdef.vieworg, ENTITYNUM_WORLD, CHAN_LOCAL, snd );
-#ifdef _IMMERSION
-//						cgi_FF_Start( ff, cg.snap->ps.clientNum );
-#endif // _IMMERSION
 						zoomSoundTime = cg.time + 150; 
 					}
 				}

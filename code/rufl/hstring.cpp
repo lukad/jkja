@@ -52,17 +52,6 @@ TStrPool&	Pool()
 
 
 
-#ifdef _XBOX
-
-// Utility for clearing the pool between levels
-void ClearHStringPool( void )
-{
-	Pool().clear();
-}
-
-namespace dllNamespace
-{
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // Constructor
@@ -187,6 +176,3 @@ int			hstring::total_finds()		{return Pool().total_finds();}
 int			hstring::total_collisions()	{return Pool().total_collisions();}
 #endif
 
-#ifdef _XBOX
-} // dllNamespace
-#endif

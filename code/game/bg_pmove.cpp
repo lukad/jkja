@@ -24,9 +24,6 @@
 #include "g_vehicles.h"
 #include <float.h>
 
-#ifdef _XBOX
-#include "../client/fffx.h"
-#endif
 
 extern qboolean G_DoDismemberment( gentity_t *self, vec3_t point, int mod, int damage, int hitLoc, qboolean force = qfalse );
 extern qboolean G_EntIsUnlockedDoor( int entityNum );
@@ -5374,157 +5371,6 @@ void PM_HoverTrace( void )
 	PM_GroundTraceMissed();
 }
 
-#ifdef _XBOX
-
-short	npcsToUpdate[MAX_NPC_WATER_UPDATE];		// queue of npcs
-short	npcsToUpdateTop = 0;					// top of the queue
-short	npcsToUpdateCount = 0;					// number of npcs in the queue
-
-
-/*
-=============
-PM_SetWaterLevelAtPoint2
-Xbox version does not depend on a pmove structure
-This function is used to update AI waterlevels every few
-frames.
-=============
-*/
-static void PM_SetWaterLevelAtPoint2( vec3_t org, int *waterlevel, int *watertype, int clientNum, int viewHeight ) 
-{
-	vec3_t		point;
-	int			cont;
-	int			sample1;
-	int			sample2;
-
-	// use the server fucntion directly, we don't have a pmove ptr to work with right now
-	extern int SV_PointContents( const vec3_t p, int passEntityNum );
-
-	//
-	// get waterlevel, accounting for ducking
-	//
-	*waterlevel = 0;
-	*watertype = 0;
-
-	point[0] = org[0];
-	point[1] = org[1];
-	point[2] = org[2] + DEFAULT_MINS_2 + 1;	
-	cont = SV_PointContents( point, clientNum );
-
-	if ( cont & (MASK_WATER|CONTENTS_LADDER) ) 
-	{
-		sample2 = viewHeight - DEFAULT_MINS_2;
-		sample1 = sample2 / 2;
-
-		*watertype = cont;
-		*waterlevel = 1;
-		point[2] = org[2] + DEFAULT_MINS_2 + sample1;
-		cont = SV_PointContents( point, clientNum );
-		if ( cont & (MASK_WATER|CONTENTS_LADDER) ) 
-		{
-			*waterlevel = 2;
-			point[2] = org[2] + DEFAULT_MINS_2 + sample2;
-			cont = SV_PointContents( point, clientNum );
-			if ( cont & (MASK_WATER|CONTENTS_LADDER) )
-			{
-				*waterlevel = 3;
-			}
-		}
-	}
-}
-
-/*
-=============
-AddNPCToWaterUpdate
-This function adds an AI to the water level update queue
-=============
-*/
-static void AddNPCToWaterUpdate(int num)
-{
-	// get an entity pointer
-	gentity_t *ent = g_entities + num;
-
-	// only add this client if it isn't already queued
-	if(ent->wupdate == 0)
-	{
-		// check to make sure we don't have too many NPCs in the queue
-		if((npcsToUpdateCount + 1) < MAX_NPC_WATER_UPDATE)
-		{
-			// figure out where to place this npc in the queue
-			int spot = npcsToUpdateTop + npcsToUpdateCount;
-
-			if(spot < MAX_NPC_WATER_UPDATE)
-			{
-				npcsToUpdate[spot] = num;
-			}
-			else
-			{
-				npcsToUpdate[spot - MAX_NPC_WATER_UPDATE] = num;
-			}
-
-			// set the water update flag
-			ent->wupdate = 1;
-
-			// update the queue count
-			npcsToUpdateCount++;
-		}
-		else
-		{
-			// the queue isn't big enough
-			assert(0);
-		}
-	}
-}
-
-/*
-=============
-UpdateNPCWaterLevels
-This function updates the water level for MAX_NPC_WATER_UPDATES_PER_FRAME NPCs
-=============
-*/
-void UpdateNPCWaterLevels(void)
-{
-	int i;
-	gentity_t *ent;
-
-	// update the maxium number per frame
-	for(i = 0; i < MAX_NPC_WATER_UPDATES_PER_FRAME; i++)
-	{
-		// make sure we have something to update
-		if(npcsToUpdateCount)
-		{
-			// if the clientnum is -1, we've got some serious problems
-			assert(npcsToUpdate[npcsToUpdateTop] != -1);
-
-			// get an enitiy pointer
-			ent	= g_entities + npcsToUpdate[npcsToUpdateTop];
-
-			// make sure this client isn't in Jedi heaven
-			if(ent->client)
-			{
-				// set the previous water level... this is used later to update the water state
-				ent->prev_waterlevel = ent->waterlevel;
-				// get our new state
-				PM_SetWaterLevelAtPoint2( ent->currentOrigin, &ent->waterlevel, &ent->watertype, npcsToUpdate[npcsToUpdateTop], ent->client->ps.viewheight );
-				// flag this client as updated
-				ent->wupdate = 0;
-			}
-
-			// clear this client from the queue
-			npcsToUpdate[npcsToUpdateTop] = -1;
-			// move our queue ptr and decr our count
-			npcsToUpdateTop++;
-			npcsToUpdateCount--;
-
-			// if the top is pointing to the end wrap it around the the start
-			if(npcsToUpdateTop == MAX_NPC_WATER_UPDATE)
-			{
-				npcsToUpdateTop = 0;
-			}
-		}
-	}
-}
-
-#endif // _XBOX
 
 /*
 =============
@@ -8953,9 +8799,6 @@ static void PM_BeginWeaponChange( int weapon ) {
 			if ( pm->gent )
 			{
 				G_SoundOnEnt( pm->gent, CHAN_WEAPON, "sound/weapons/saber/saberoffquick.wav" );
-#ifdef _IMMERSION
-				G_Force( pm->gent, G_ForceIndex( "fffx/weapons/saber/saberoffquick", FF_CHANNEL_WEAPON ) );
-#endif // _IMMERSION
 			}
 			if (!G_IsRidingVehicle(pm->gent))
 			{
@@ -12789,16 +12632,7 @@ static bool PM_DoChargedWeapons( void )
 				{
 					charging = qtrue;
 					altFire = qtrue; // believe it or not, it really is an alt-fire in this case!
-#ifndef _XBOX
 				}
-#else
-					cgi_FF_StartFX( fffx_StartConst );
-				}
-				else
-				{
-					cgi_FF_StartFX( fffx_StopConst );
-				}
-#endif
 
 			}
 		}
@@ -12891,12 +12725,6 @@ static bool PM_DoChargedWeapons( void )
 				{
 					G_SoundOnEnt( pm->gent, CHAN_WEAPON, weaponData[pm->ps->weapon].altChargeSnd );
 				}
-#ifdef _IMMERSION
-				if ( cg_weapons[pm->ps->weapon].altChargeForce )
-				{
-					G_Force( pm->gent, G_ForceIndex( weaponData[pm->ps->weapon].altChargeFrc, FF_CHANNEL_WEAPON ) );
-				}
-#endif // _IMMERSION
 			}
 		}
 		else
@@ -12915,25 +12743,10 @@ static bool PM_DoChargedWeapons( void )
 				pm->ps->weaponstate = WEAPON_CHARGING;
 				pm->ps->weaponChargeTime = level.time;
 
-#ifdef _IMMERSION
-				if ( pm->gent && !pm->gent->NPC ) // HACK: !NPC mostly for bowcaster and weequay
-				{
-					if ( cg_weapons[pm->ps->weapon].chargeSound )
-					{
-						G_SoundOnEnt( pm->gent, CHAN_WEAPON, weaponData[pm->ps->weapon].chargeSnd );
-					}
-
-					if ( cg_weapons[pm->ps->weapon].chargeForce )
-					{
-						G_Force( pm->gent, G_ForceIndex( weaponData[pm->ps->weapon].chargeFrc, FF_CHANNEL_WEAPON ) );
-					}
-				}
-#else
 				if ( cg_weapons[pm->ps->weapon].chargeSound && pm->gent && !pm->gent->NPC ) // HACK: !NPC mostly for bowcaster and weequay
 				{
 					G_SoundOnEnt( pm->gent, CHAN_WEAPON, weaponData[pm->ps->weapon].chargeSnd );
 				}
-#endif // _IMMERSION
 			}
 		}
 
@@ -12948,11 +12761,6 @@ static bool PM_DoChargedWeapons( void )
 		// dumb, but since we shoot a charged weapon on button-up, we need to repress this button for now
 		pm->cmd.buttons |= BUTTON_ATTACK;
 		pm->ps->eFlags |= EF_FIRING;
-#ifdef _IMMERSION
-		// HACKHACKHACK - charging sound effect stops when button released,
-		// but I can't find the place where this stop occurs... it's here for now...
-		G_ForceStop( pm->gent, G_ForceIndex( weaponData[pm->ps->weapon].chargeFrc, FF_CHANNEL_WEAPON ) );
-#endif // _IMMERSION
 	}
 	else if ( pm->ps->weaponstate == WEAPON_CHARGING_ALT )
 	{
@@ -12960,11 +12768,6 @@ static bool PM_DoChargedWeapons( void )
 		// dumb, but since we shoot a charged weapon on button-up, we need to repress this button for now
 		pm->cmd.buttons |= BUTTON_ALT_ATTACK;
 		pm->ps->eFlags |= (EF_FIRING|EF_ALT_FIRING);
-#ifdef _IMMERSION
-		// HACKHACKHACK - charging sound effect stops when button released,
-		// but I can't find the place where this stop occurs... it's here for now...
-		G_ForceStop( pm->gent, G_ForceIndex( weaponData[pm->ps->weapon].altChargeFrc, FF_CHANNEL_WEAPON ) );
-#endif // _IMMERSION
 	}
 
 	return false; // continue with the rest of the weapon code
@@ -14366,9 +14169,6 @@ void PM_AdjustAttackStates( pmove_t *pm )
 			if ( cg.zoomMode == 0 || cg.zoomMode == 3 )
 			{
 				G_SoundOnEnt( pm->gent, CHAN_AUTO, "sound/weapons/disruptor/zoomstart.wav" );
-#ifdef _IMMERSION
-				G_Force( pm->gent, G_ForceIndex( "fffx/weapons/disruptor/zoomstart", FF_CHANNEL_WEAPON ) );
-#endif // _IMMERSION
 				// not already zooming, so do it now
 				cg.zoomMode = 2;
 				cg.zoomLocked = qfalse;
@@ -14377,9 +14177,6 @@ void PM_AdjustAttackStates( pmove_t *pm )
 			else if ( cg.zoomMode == 2 )
 			{
 				G_SoundOnEnt( pm->gent, CHAN_AUTO, "sound/weapons/disruptor/zoomend.wav" );
-#ifdef _IMMERSION
-				G_Force( pm->gent, G_ForceIndex( "fffx/weapons/disruptor/zoomend", FF_CHANNEL_WEAPON ) );
-#endif // _IMMERSION
 				// already zooming, so must be wanting to turn it off
 				cg.zoomMode = 0;
 				cg.zoomTime = cg.time;
@@ -14637,10 +14434,8 @@ void Pmove( pmove_t *pmove )
 
 	// clear results
 	pm->numtouch = 0;
-#ifndef _XBOX
 	pm->watertype = 0;
 	pm->waterlevel = 0;
-#endif
 
 	// Clear the blocked flag
 	//pm->ps->pm_flags &= ~PMF_BLOCKED;
@@ -14755,45 +14550,14 @@ void Pmove( pmove_t *pmove )
 	}
 
 	// set watertype, and waterlevel
-#ifdef _XBOX
-	// if the client is the player do a normal water test
-	// if it's an npc add the client to the npc water test queue
-	// we don't want to update too many npcs in one frame
-	if(pm->ps->clientNum == 0)
-	{
-		PM_SetWaterLevelAtPoint( pm->ps->origin, &pm->waterlevel, &pm->watertype );
-	}
-	else
-	{
-		AddNPCToWaterUpdate(pm->ps->clientNum);
-	}
-#else
 	PM_SetWaterLevelAtPoint( pm->ps->origin, &pm->waterlevel, &pm->watertype );
-#endif
 
 	PM_SetWaterHeight();
 
-#ifdef _XBOX
-	if ( !(pm->watertype & CONTENTS_LADDER) )
-	{//Don't want to remember this for ladders, is only for waterlevel change events (sounds)
-
-		// if we're the player set the water test from the pmove
-		// otherwise set it from the entitity structure
-		if(pm->ps->clientNum == 0 )
-		{
-			pml.previous_waterlevel = pmove->waterlevel;
-		}
-		else
-		{
-			pml.previous_waterlevel = (g_entities + pm->ps->clientNum)->prev_waterlevel;
-		}
-	}
-#else
 	if ( !(pm->watertype & CONTENTS_LADDER) )
 	{//Don't want to remember this for ladders, is only for waterlevel change events (sounds)
 		pml.previous_waterlevel = pmove->waterlevel;
 	}
-#endif
 
 
 	waterForceJump = qfalse;
@@ -14926,15 +14690,7 @@ void Pmove( pmove_t *pmove )
 	// Note: ok, so long as we don't have water levels that change.
 	if(!(VectorCompare(pm->ps->origin,pml.previous_origin)))
 	{
-#ifdef _XBOX
-		// only do this on xbox if it's a player not an npc
-		if(pm->ps->clientNum == 0)
-		{
-			PM_SetWaterLevelAtPoint( pm->ps->origin, &pm->waterlevel, &pm->watertype );
-		}
-#else
 		PM_SetWaterLevelAtPoint( pm->ps->origin, &pm->waterlevel, &pm->watertype );
-#endif
 		PM_SetWaterHeight();
 	}
 

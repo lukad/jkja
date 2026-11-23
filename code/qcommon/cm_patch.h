@@ -47,38 +47,6 @@ typedef struct {
 	int		signbits;		// signx + (signy<<1) + (signz<<2), used as lookup during collision
 } patchPlane_t;
 
-#ifdef _XBOX
-//Facets are now two structures - a maximum sized version that's used
-//temporarily during load time, and smaller version that only allocates
-//as much memory as needed.  The load version is copied into the small
-//version after it's been assembled.
-#pragma pack(push, 1)
-typedef struct {
-	int			surfacePlane;
-	int			numBorders;		// 3 or four + 6 axial bevels + 4 or 3 * 4 edge bevels
-	short	borderPlanes[4+6+16];
-	unsigned char	borderInward[4+6+16];
-	unsigned char  borderNoAdjust[4+6+16];
-} facetLoad_t;
-
-typedef struct {
-	int			surfacePlane;
-	int			numBorders;		// 3 or four + 6 axial bevels + 4 or 3 * 4 edge bevels
-	char *data;
-
-	short *GetBorderPlanes(void) { return (short*)data; }
-	char *GetBorderInward(void) { return data + (numBorders * 2); }
-	char *GetBorderNoAdjust(void) 
-			{ return data + (numBorders * 2) + numBorders; }
-
-	const short *GetBorderPlanes(void) const { return (short*)data; }
-	const char *GetBorderInward(void) const { return data + (numBorders * 2); }
-	const char *GetBorderNoAdjust(void) const 
-			{ return data + (numBorders * 2) + numBorders; }
-} facet_t;
-#pragma pack(pop)
-
-#else // _XBOX
 
 typedef struct {
 	int			surfacePlane;
@@ -88,7 +56,6 @@ typedef struct {
 	qboolean	borderNoAdjust[4+6+16];
 } facet_t;
 
-#endif // _XBOX
 
 typedef struct patchCollide_s {
 	vec3_t	bounds[2];
@@ -113,9 +80,4 @@ typedef struct {
 #define	PLANE_TRI_EPSILON	0.1
 #define	WRAP_POINT_EPSILON	0.1
 
-#ifdef _XBOX
-struct patchCollide_s	*CM_GeneratePatchCollide( int width, int height, vec3_t *points,
-												 facetLoad_t *facetbuf, int *gridbuf );
-#else
 struct patchCollide_s	*CM_GeneratePatchCollide( int width, int height, vec3_t *points );
-#endif // _XBOX

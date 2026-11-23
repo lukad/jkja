@@ -44,18 +44,11 @@
 #include "qcommon.h"
 #include "../renderer/qgl_console.h"
 
-#ifdef _GAMECUBE
-#include <dolphin/os.h>
-#endif
 
 #ifdef _WINDOWS
 #include <windows.h>
 #endif
 
-#ifdef _XBOX
-#include <Xtl.h>
-#include "../win32/xbox_texture_man.h"
-#endif
 
 // Used to mark the start and end of blocks in debug mode
 #define ZONE_MAGIC 0xfe
@@ -188,9 +181,7 @@ static bool s_Initialized = false;
 static memtag_t s_newDeleteTagStack[32] = { TAG_NEWDEL };
 static int s_newDeleteTagStackTop = 0;
 
-#ifndef _GAMECUBE
 static HANDLE s_Mutex = INVALID_HANDLE_VALUE;
-#endif
 
 static void Z_Stats_f(void);
 void Z_Details_f(void);
@@ -209,21 +200,6 @@ void Z_PopNewDeleteTag( void )
 	--s_newDeleteTagStackTop;
 }
 
-#ifdef _XBOX
-void ShowOSMemory(void)
-{
-	MEMORYSTATUS stat;
-	GlobalMemoryStatus(&stat);
-	Com_Printf("     total mem: %d, free mem: %d\n", stat.dwTotalPhys / 1024,
-			stat.dwAvailPhys / 1024);
-	FILE *out = fopen("d:\\osmem.txt", "a");
-	if(out) {
-		fprintf(out, "total mem: %d, free mem: %d\n", stat.dwTotalPhys / 1024,
-				stat.dwAvailPhys / 1024);
-		fclose(out);
-	}
-}
-#endif
 
 
 int Z_MemFree(void)
@@ -317,9 +293,7 @@ void Com_InitZoneMemory(void)
 	Cmd_AddCommand("zone_memmap",	Z_DumpMemMap_f);
 	Cmd_AddCommand("zone_cstats",	Z_CompactStats);
 
-#ifndef _GAMECUBE
 	s_Mutex = CreateMutex(NULL, FALSE, NULL);
-#endif
 
 	// Super-size my hack. With fries. We allocate enough space for g_entities at the
 	// end of the zone now. If it turns out (somehow) that there is no persisted surface,
@@ -354,10 +328,8 @@ void Com_ShutdownZoneMemory(void)
 	s_LinkBase = NULL;
 
 	// Free the pool
-#ifndef _GAMECUBE
 	GlobalFree(s_PoolBase);
 	CloseHandle(s_Mutex);
-#endif
 
 	s_PoolBase = NULL;
 	s_Initialized = false;
@@ -764,9 +736,7 @@ void *Z_Malloc(int iSize, memtag_t eTag, qboolean bZeroit, int iAlign)
 		return NULL;
 	}
 
-#ifndef _GAMECUBE
 	WaitForSingleObject(s_Mutex, INFINITE);
-#endif
 	
 	// Make new/delete memory temporary if requested
 	if (eTag == TAG_NEWDEL )
@@ -806,9 +776,7 @@ void *Z_Malloc(int iSize, memtag_t eTag, qboolean bZeroit, int iAlign)
 	// Did we actually find some memory?
 	if (!fblock)
 	{
-#ifndef _GAMECUBE
 		ReleaseMutex(s_Mutex);
-#endif
 //		if(eTag == TAG_TEMP_SND_RAWDATA) {
 		if(eTag == TAG_SND_RAWDATA) {
 			return NULL;
@@ -940,9 +908,7 @@ void *Z_Malloc(int iSize, memtag_t eTag, qboolean bZeroit, int iAlign)
 	}
 	*/
 
-#ifndef _GAMECUBE
 	ReleaseMutex(s_Mutex);
-#endif
 
 	return ablock;
 }
@@ -1110,9 +1076,7 @@ int Z_Free(void *pvAddress)
 
 	if (tag != TAG_STATIC)
 	{
-#ifndef _GAMECUBE
 		WaitForSingleObject(s_Mutex, INFINITE);
-#endif
 
 		// Determine size of header and footer
 		int header_size = sizeof(ZoneHeader);
@@ -1198,9 +1162,7 @@ int Z_Free(void *pvAddress)
 
 		// Coalesce any adjacent free blocks
 		Z_Coalasce(nblock);
-#ifndef _GAMECUBE
 		ReleaseMutex(s_Mutex);
-#endif
 	}
 
 	Z_FREE_RETURN( 0 );
@@ -1306,9 +1268,7 @@ void Z_TagPointers(memtag_t eTag)
 {
 	assert(s_Initialized);
 
-#ifndef _GAMECUBE
 	WaitForSingleObject(s_Mutex, INFINITE);
-#endif
 
 	Sys_Log( "pointers.txt", va("Pointers for tag %d:\n", eTag) );
 
@@ -1333,9 +1293,7 @@ void Z_TagPointers(memtag_t eTag)
 		}
 	}
 
-#ifndef _GAMECUBE
 	ReleaseMutex(s_Mutex);
-#endif
 }
 
 void Z_TagFree(memtag_t eTag)
@@ -1405,12 +1363,8 @@ int Z_GetMiscMemory(void)
 		s_Stats.m_SizesPerTag[TAG_SND_RAWDATA]);
 }
 
-#ifdef _GAMECUBE
-static int texMemSize = 0;
-#else
 extern int texMemSize;
 //extern unsigned long texturePoint;
-#endif
 void Z_CompactStats(void)
 {
 	// New and improved, super version of CompactStats:
@@ -1535,14 +1489,7 @@ void Z_DisplayLevelMemory(int size, int surf, int block)
 
 void Z_DisplayLevelMemory(void)
 {
-#ifdef _GAMECUBE
-	extern void R_SurfMramUsed(int &surface, int &block);
-	int surface, block;
-	R_SurfMramUsed(surface, block);
-	Z_DisplayLevelMemory(Z_GetLevelMemory(), surface, block);
-#else
 	Z_DisplayLevelMemory(Z_GetLevelMemory(), 0, 0);
-#endif
 }
 
 

@@ -108,52 +108,7 @@ Ghoul2 Insert End
 
 //===============================================================
 
-#if defined(_XBOX) && !defined(_TRACE_FUNCTOR_T_DEFINED_)
-// Function objects to replace the function pointers used for trace
-// We can't have default arguments on function pointers, but this allows us to
-// do the same thing with minimal impact elsewhere.
-struct Trace_Functor_t
-{
-	typedef void (*trace_func_t)(trace_t *, const vec3_t, const vec3_t, const vec3_t, const vec3_t,
-								 const int, const int, const EG2_Collision, const int);
-	trace_func_t trace_func;
-	void operator()( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, 
-						const int passEntityNum, const int contentMask, const EG2_Collision eG2TraceType = (EG2_Collision)0, const int useLod = 0 )
-		{ trace_func(results, start, mins, maxs, end, passEntityNum, contentMask, eG2TraceType, useLod); }
-	const Trace_Functor_t &operator=(trace_func_t traceRHS)
-	{
-		trace_func = traceRHS;
-		return *this;
-	}
-};
 
-// Always create this class exactly once
-#define _TRACE_FUNCTOR_T_DEFINED_
-#endif
-
-#ifdef _XBOX
-// Declare all the functions that we use in the inlined member functions
-/*
-extern int		G2API_InitGhoul2Model(CGhoul2Info_v &ghoul2, const char *fileName, int modelIndex, qhandle_t customSkin = NULL,
-									  qhandle_t customShader = NULL, int modelFlags = 0, int lodBias = 0);
-extern qboolean	G2API_SetSkin(CGhoul2Info *ghlInfo, qhandle_t customSkin, qhandle_t renderSkin = 0);
-extern qboolean	G2API_SetBoneAnim(CGhoul2Info *ghlInfo, const char *boneName, const int startFrame, const int endFrame,
-								  const int flags, const float animSpeed, const int currentTime, const float setFrame = -1, const int blendTime = -1);
-extern qboolean	G2API_SetBoneAngles(CGhoul2Info *ghlInfo, const char *boneName, const vec3_t angles, const int flags,
-									const Eorientations up, const Eorientations right, const Eorientations forward, qhandle_t *modelList,
-									int blendTime = 0, int currentTime = 0);
-extern qboolean	G2API_SetBoneAnglesMatrix(CGhoul2Info *ghlInfo, const char *boneName, const mdxaBone_t &matrix, const int flags,
-										  qhandle_t *modelList, int blendTime = 0, int currentTime = 0);
-extern void		G2API_CopyGhoul2Instance(CGhoul2Info_v &Ghoul2From, CGhoul2Info_v &Ghoul2To, int modelIndex = -1);
-extern qboolean	G2API_SetBoneAnglesIndex(CGhoul2Info *ghlInfo, const int index, const vec3_t angles, const int flags,
-										 const Eorientations yaw, const Eorientations pitch, const Eorientations roll,
-										 qhandle_t *modelList, int blendTime, int currentTime);
-extern qboolean	G2API_SetBoneAnimIndex(CGhoul2Info *ghlInfo, const int index, const int startFrame, const int endFrame, const int flags, const float animSpeed, const int currentTime, const float setFrame, const int blendTime);
-*/
-#include "../ghoul2/g2.h"
-extern int		SG_Read			(unsigned long chid, void *pvAddress, int iLength, void **ppvAddressPtr);
-extern int		SG_ReadOptional	(unsigned long chid, void *pvAddress, int iLength, void **ppvAddressPtr);
-#endif
 
 //
 // functions provided by the main engine
@@ -204,20 +159,8 @@ typedef struct {
 	// Savegame handling
 	//
 	qboolean	(*AppendToSaveGame)(unsigned long chid, const void *data, int length);
-#ifdef _XBOX	// No default arguments through function pointers
-	int			ReadFromSaveGame(unsigned long chid, void *pvAddress, int iLength, void **ppvAddressPtr = NULL)
-	{
-		return SG_Read(chid, pvAddress, iLength, ppvAddressPtr);
-	}
-
-	int			ReadFromSaveGameOptional(unsigned long chid, void *pvAddress, int iLength, void **ppvAddressPtr = NULL)
-	{
-		return SG_ReadOptional(chid, pvAddress, iLength, ppvAddressPtr);
-	}
-#else
 	int			(*ReadFromSaveGame)(unsigned long chid, void *pvAddress, int iLength, void **ppvAddressPtr = NULL);
 	int			(*ReadFromSaveGameOptional)(unsigned long chid, void *pvAddress, int iLength, void **ppvAddressPtr = NULL);
-#endif
 	// add commands to the console as if they were typed in
 	// for map changing, etc
 	void	(*SendConsoleCommand)( const char *text );
@@ -253,12 +196,8 @@ typedef struct {
 	void	(*SetBrushModel)( gentity_t *ent, const char *name );
 
 	// collision detection against all linked entities
-#ifdef _XBOX
-	Trace_Functor_t trace;
-#else
 	void	(*trace)( trace_t *results, const vec3_t start, const vec3_t mins, const vec3_t maxs, const vec3_t end, 
 			const int passEntityNum, const int contentmask , const EG2_Collision eG2TraceType = (EG2_Collision)0, const int useLod = 0);
-#endif
 
 	// point contents against all linked entities
 	int		(*pointcontents)( const vec3_t point, int passEntityNum );
@@ -296,55 +235,6 @@ Ghoul2 Insert Start
 */
 qhandle_t	(*G2API_PrecacheGhoul2Model)(const char *fileName);
 
-#ifdef _XBOX	// No default arguments through function pointers
-	int			G2API_InitGhoul2Model(CGhoul2Info_v &ghoul2, const char *fileName, int modelIndex, qhandle_t customSkin = NULL,
-								  qhandle_t customShader = NULL, int modelFlags = 0, int lodBias = 0)
-	{
-		return ::G2API_InitGhoul2Model(ghoul2, fileName, modelIndex, customSkin, customShader, modelFlags, lodBias);
-	}
-
-	qboolean	G2API_SetSkin(CGhoul2Info *ghlInfo, qhandle_t customSkin, qhandle_t renderSkin = 0 )
-	{
-		return ::G2API_SetSkin(ghlInfo, customSkin, renderSkin);
-	}
-
-	qboolean	G2API_SetBoneAnim(CGhoul2Info *ghlInfo, const char *boneName, const int startFrame, const int endFrame,
-							  const int flags, const float animSpeed, const int currentTime, const float setFrame = -1, const int blendTime = -1)
-	{
-		return ::G2API_SetBoneAnim(ghlInfo, boneName, startFrame, endFrame, flags, animSpeed, currentTime, setFrame, blendTime);
-	}
-
-	qboolean	G2API_SetBoneAngles(CGhoul2Info *ghlInfo, const char *boneName, const vec3_t angles,
-								   const int flags, const Eorientations up, const Eorientations right, const Eorientations forward,
-								   qhandle_t *modelList, int blendTime = 0, int blendStart = 0)
-	{
-		return ::G2API_SetBoneAngles(ghlInfo, boneName, angles, flags, up, right, forward, modelList, blendTime, blendStart);
-	}
-
-	qboolean	G2API_SetBoneAnglesMatrix(CGhoul2Info *ghlInfo, const char *boneName, const mdxaBone_t &matrix, const int flags,
-									  qhandle_t *modelList, int blendTime = 0, int currentTime = 0)
-	{
-		return ::G2API_SetBoneAnglesMatrix(ghlInfo, boneName, matrix, flags, modelList, blendTime, currentTime);
-	}
-
-	void		G2API_CopyGhoul2Instance(CGhoul2Info_v &ghoul2From, CGhoul2Info_v &ghoul2To, int modelIndex = -1)
-	{
-		::G2API_CopyGhoul2Instance(ghoul2From, ghoul2To, modelIndex);
-	}
-
-	qboolean	G2API_SetBoneAnglesIndex(CGhoul2Info *ghlInfo, const int index, const vec3_t angles, const int flags,
-							 const Eorientations yaw, const Eorientations pitch, const Eorientations roll,
-							 qhandle_t *modelList, int blendTime = 0, int currentTime = 0)
-	{
-		return ::G2API_SetBoneAnglesIndex(ghlInfo, index, angles, flags, yaw, pitch, roll, modelList, blendTime, currentTime);
-	}
-
-	qboolean	G2API_SetBoneAnimIndex(CGhoul2Info *ghlInfo, const int index, const int startFrame, const int endFrame, const int flags, const float animSpeed, const int currentTime, const float setFrame = -1, const int blendTime = -1)
-	{
-		return ::G2API_SetBoneAnimIndex(ghlInfo, index, startFrame, endFrame, flags, animSpeed, currentTime, setFrame, blendTime);
-	}
-
-#else
 
 int			(*G2API_InitGhoul2Model)(CGhoul2Info_v &ghoul2, const char *fileName, int modelIndex, qhandle_t customSkin = NULL,
 								  qhandle_t customShader = NULL, int modelFlags = 0, int lodBias = 0);
@@ -361,7 +251,6 @@ qboolean	(*G2API_SetBoneAnglesMatrix)(CGhoul2Info *ghlInfo, const char *boneName
 									  qhandle_t *modelList, int blendTime = 0, int currentTime = 0);
 void		(*G2API_CopyGhoul2Instance)(CGhoul2Info_v &ghoul2From, CGhoul2Info_v &ghoul2To, int modelIndex = -1);
 qboolean	(*G2API_SetBoneAnimIndex)(CGhoul2Info *ghlInfo, const int index, const int startFrame, const int endFrame, const int flags, const float animSpeed, const int currentTime, const float setFrame = -1, const int blendTime = -1);
-#endif
 
 qboolean	(*G2API_SetLodBias)(CGhoul2Info *ghlInfo, int lodBias);
 qboolean	(*G2API_SetShader)(CGhoul2Info *ghlInfo, qhandle_t customShader);
@@ -444,9 +333,7 @@ void		(*G2API_AddSkinGore)(CGhoul2Info_v &ghoul2,SSkinGoreData &gore);
 void		(*G2API_ClearSkinGore)( CGhoul2Info_v &ghoul2 );
 
 void		(*RMG_Init)(int terrainID);
-#ifndef _XBOX
 int			(*CM_RegisterTerrain)(const char *info);
-#endif
 const char	*(*SetActiveSubBSP)(int index);
 
 

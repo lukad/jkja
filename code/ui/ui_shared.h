@@ -97,17 +97,10 @@ typedef struct multiDef_s {
 #define CVAR_SUBSTRING	0x00000010	//when using enable or disable, just check for strstr instead of ==
 
 
-#ifdef _XBOX
-// Super small - doesn't need to be bigger yet, helps us get into 64 MB
-//#define STRING_POOL_SIZE 16*1024
-#define STRING_POOL_SIZE 128*1024
-
-#else
 #ifdef CGAME
 #define STRING_POOL_SIZE 128*1024
 #else
 #define STRING_POOL_SIZE 384*1024
-#endif
 #endif
 
 //#define	NUM_CROSSHAIRS			9
@@ -145,12 +138,6 @@ typedef struct {
 
 	sfxHandle_t nullSound;
 	
-#ifdef _IMMERSION
-	ffHandle_t	menuEnterForce;
-	ffHandle_t	menuExitForce;
-	ffHandle_t	menuBuzzForce;
-	ffHandle_t	itemFocusForce;
-#endif // _IMMERSION
 	float		fadeClamp;
 	int			fadeCycle;
 	float		fadeAmount;
@@ -217,21 +204,9 @@ typedef struct {
 	qhandle_t	(*registerSkin)( const char *name );
 
 	//rww - ghoul2 stuff. Add whatever you need here, remember to set it in _UI_Init or it will crash when you try to use it.
-#ifdef _XBOX	// No default arguments on function pointers
-	qboolean	g2_SetSkin(CGhoul2Info *ghlInfo, qhandle_t customSkin, qhandle_t renderSkin = 0)
-	{
-		return G2API_SetSkin(ghlInfo, customSkin, renderSkin);
-	}
-	qboolean	g2_SetBoneAnim(CGhoul2Info *ghlInfo, const char *boneName, const int startFrame, const int endFrame,
-					  const int flags, const float animSpeed, const int currentTime, const float setFrame = -1, const int blendTime = -1)
-	{
-		return G2API_SetBoneAnim(ghlInfo, boneName, startFrame, endFrame, flags, animSpeed, currentTime, setFrame, blendTime);
-	}
-#else
 	qboolean	(*g2_SetSkin)(CGhoul2Info *ghlInfo, qhandle_t customSkin, qhandle_t renderSkin = 0);
 	qboolean	(*g2_SetBoneAnim)(CGhoul2Info *ghlInfo, const char *boneName, const int startFrame, const int endFrame,
 					  const int flags, const float animSpeed, const int currentTime, const float setFrame = -1, const int blendTime = -1);
-#endif
 	qboolean	(*g2_RemoveGhoul2Model)(CGhoul2Info_v &ghlInfo, const int modelIndex);
 	int			(*g2_InitGhoul2Model)(CGhoul2Info_v &ghoul2, const char *fileName, int, qhandle_t customSkin, qhandle_t customShader, int modelFlags, int lodBias);
 	void		(*g2_CleanGhoul2Models)(CGhoul2Info_v &ghoul2);
@@ -243,10 +218,6 @@ typedef struct {
 	//Utility functions that don't immediately redirect to ghoul2 functions
 	int			(*g2hilev_SetAnim)(CGhoul2Info *ghlInfo, const char *boneName, int animNum, const qboolean freeze);
 
-#ifdef _IMMERSION
-	ffHandle_t	(*registerForce)(const char *name, int channel=FF_CHANNEL_MENU);
-	void		(*startForce)(ffHandle_t ff);
-#endif // _IMMERSION
 
 	float		yscale;
 	float		xscale;
@@ -411,9 +382,6 @@ typedef struct itemDef_s {
 	const char	*enableCvar;				// enable, disable, show, or hide based on value, this can contain a list
 	int			cvarFlags;					//	what type of action to take on cvarenables
 	sfxHandle_t focusSound;					//
-#ifdef _IMMERSION
-	ffHandle_t	focusForce;
-#endif // _IMMERSION
 //	int			numColors;					// number of color ranges
 //	colorRangeDef_t colorRanges[MAX_COLOR_RANGES];
 	float		special;					// used for feeder id's etc.. diff per type
@@ -513,11 +481,7 @@ qboolean	PC_ParseString(const char **tempStr);
 qboolean	PC_ParseStringMem(const char **out);
 void		PC_ParseWarning(const char *message);
 qboolean	PC_String_Parse(int handle, const char **out);
-#ifdef _XBOX	
-int			PC_StartParseSession(const char *fileName,char **buffer, bool nested = false);
-#else
 int			PC_StartParseSession(const char *fileName,char **buffer);
-#endif
 char		*PC_ParseExt(void);
 qboolean	PC_ParseInt(int *number);
 qboolean	PC_ParseFloat(float *number);

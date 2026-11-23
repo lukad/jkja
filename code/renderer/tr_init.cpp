@@ -121,9 +121,6 @@ cvar_t	*r_textureMode;
 cvar_t	*r_offsetFactor;
 cvar_t	*r_offsetUnits;
 cvar_t	*r_gamma;
-#ifdef _XBOX
-cvar_t  *s_brightness_volume;
-#endif
 cvar_t	*r_intensity;
 cvar_t	*r_lockpvs;
 cvar_t	*r_noportals;
@@ -152,14 +149,6 @@ cvar_t	*r_debugStyle;
 
 cvar_t	*r_modelpoolmegs;
 
-#ifdef _XBOX
-cvar_t	*r_hdreffect;
-cvar_t  *r_sundir_x;
-cvar_t  *r_sundir_y;
-cvar_t  *r_sundir_z;
-cvar_t  *r_hdrbloom;
-cvar_t	*r_hdrcutoff;
-#endif
 
 /*
 Ghoul2 Insert Start
@@ -207,7 +196,6 @@ void ( APIENTRY * qglPointParameterfvEXT)( GLenum, GLfloat *);
 void ( APIENTRY * qglPointParameteriNV)( GLenum, GLint);
 void ( APIENTRY * qglPointParameterivNV)( GLenum, const GLint *);
 
-#ifndef _XBOX	// GLOWXXX
 // Declare Register Combiners function pointers.
 PFNGLCOMBINERPARAMETERFVNV				qglCombinerParameterfvNV = NULL;
 PFNGLCOMBINERPARAMETERIVNV				qglCombinerParameterivNV = NULL;
@@ -260,7 +248,6 @@ PFNGLGETPROGRAMLOCALPARAMETERFVARBPROC qglGetProgramLocalParameterfvARB = NULL;
 PFNGLGETPROGRAMIVARBPROC qglGetProgramivARB = NULL;
 PFNGLGETPROGRAMSTRINGARBPROC qglGetProgramStringARB = NULL;
 PFNGLISPROGRAMARBPROC qglIsProgramARB = NULL;
-#endif
 
 void RE_SetLightStyle(int style, int color);
 
@@ -301,7 +288,6 @@ static void AssertCvarRange( cvar_t *cv, float minVal, float maxVal, qboolean sh
 
 void R_Splash()
 {
-#ifndef _XBOX
 	image_t *pImage;
 /*
 	const char* s = Cvar_VariableString("se_language");
@@ -344,7 +330,6 @@ void R_Splash()
 	qglEnd();
 
 	GLimp_EndFrame();
-#endif
 }
 
 /*
@@ -427,7 +412,6 @@ void GL_CheckErrors( void ) {
     Com_Error( ERR_FATAL, "GL_CheckErrors: %s", s );
 }
 
-#ifndef _XBOX
 
 /*
 ** R_GetModeInfo
@@ -495,7 +479,6 @@ static void R_ModeList_f( void )
 	VID_Printf( PRINT_ALL, "\n" );
 }
 
-#endif	// _XBOX
 
 /* 
 ============================================================================== 
@@ -514,7 +497,6 @@ R_TakeScreenshot
 //	note that if the last extension is ".jpg", then it'll save a JPG, else TGA
 //
 void R_TakeScreenshot( int x, int y, int width, int height, char *fileName ) {
-#ifndef _XBOX
 	byte		*buffer;
 	int			i, c, temp;
 
@@ -565,7 +547,6 @@ void R_TakeScreenshot( int x, int y, int width, int height, char *fileName ) {
 	}
 	
 	Z_Free( buffer );
-#endif
 }
 
 /* 
@@ -603,7 +584,6 @@ the menu system, sampled down from full screen distorted images
 */
 #define LEVELSHOTSIZE 256
 void R_LevelShot( void ) {
-#ifndef _XBOX
 	char		checkname[MAX_OSPATH];
 	byte		*buffer;
 	byte		*source;
@@ -660,7 +640,6 @@ void R_LevelShot( void ) {
 	Z_Free( source );
 
 	VID_Printf( PRINT_ALL, "Wrote %s\n", checkname );
-#endif
 }
 
 /* 
@@ -676,7 +655,6 @@ Doesn't print the pacifier message if there is a second arg
 ================== 
 */  
 void R_ScreenShot_f (void) {
-#ifndef _XBOX
 	char		checkname[MAX_OSPATH];
 	int			len;
 	static	int	lastNumber = -1;
@@ -729,7 +707,6 @@ void R_ScreenShot_f (void) {
 	if ( !silent ) {
 		VID_Printf (PRINT_ALL, "Wrote %s\n", checkname);
 	}
-#endif
 } 
 
 
@@ -747,7 +724,6 @@ Doesn't print the pacifier message if there is a second arg
 ================== 
 */  
 void R_ScreenShotTGA_f (void) {
-#ifndef _XBOX
 	char		checkname[MAX_OSPATH];
 	int			len;
 	static	int	lastNumber = -1;
@@ -800,7 +776,6 @@ void R_ScreenShotTGA_f (void) {
 	if ( !silent ) {
 		VID_Printf (PRINT_ALL, "Wrote %s\n", checkname);
 	}
-#endif
 } 
 
 
@@ -852,9 +827,6 @@ void GL_SetDefaultState( void )
 	qglDisable( GL_BLEND );
 	qglDisable( GL_ALPHA_TEST );
 	qglBlendFunc(GL_SRC_ALPHA,GL_ONE_MINUS_SRC_ALPHA);
-#ifdef _XBOX
-	qglDisable( GL_LIGHTING );
-#endif
 }
 
 
@@ -1148,11 +1120,7 @@ void R_Register( void )
 	r_flares = Cvar_Get ("r_flares", "1", CVAR_ARCHIVE );
 	r_lodscale = Cvar_Get( "r_lodscale", "10", CVAR_ARCHIVE );
 
-#ifdef _XBOX
-	r_znear = Cvar_Get( "r_znear", "2", CVAR_CHEAT );	//lose a lot of precision in the distance
-#else
 	r_znear = Cvar_Get( "r_znear", "4", CVAR_CHEAT );	//if set any lower, you lose a lot of precision in the distance
-#endif
 	AssertCvarRange( r_znear, 0.001f, 200, qfalse, qfalse );
 	r_ignoreGLErrors = Cvar_Get( "r_ignoreGLErrors", "1", CVAR_ARCHIVE );
 	r_fastsky = Cvar_Get( "r_fastsky", "0", CVAR_ARCHIVE );
@@ -1168,9 +1136,6 @@ void R_Register( void )
 	r_gamma = Cvar_Get( "r_gamma", "1", CVAR_ARCHIVE );
 #endif
 
-#ifdef _XBOX
-	s_brightness_volume = Cvar_Get( "s_brightness_volume", "1", CVAR_ARCHIVE );
-#endif
 	r_facePlaneCull = Cvar_Get ("r_facePlaneCull", "1", CVAR_ARCHIVE );
 
 	r_dlightStyle = Cvar_Get ("r_dlightStyle", "1", CVAR_TEMP);
@@ -1231,14 +1196,6 @@ void R_Register( void )
 	r_shadows = Cvar_Get( "cg_shadows", "1", 0 );
 	r_shadowRange = Cvar_Get( "r_shadowRange", "1000", CVAR_ARCHIVE );
 
-#ifdef _XBOX
-	r_hdreffect = Cvar_Get( "r_hdreffect", "0", 0 );
-	r_sundir_x = Cvar_Get( "r_sundir_x", "0.45", 0 );
-	r_sundir_y = Cvar_Get( "r_sundir_y", "0.3", 0 );
-	r_sundir_z = Cvar_Get( "r_sundir_z", "0.9", 0 );
-	r_hdrbloom = Cvar_Get( "r_hdrbloom", "1.0", 0 );
-	r_hdrcutoff = Cvar_Get( "r_hdrcutoff", "0.5", 0 );
-#endif
 /*
 Ghoul2 Insert Start
 */
@@ -1280,9 +1237,7 @@ extern qboolean Sys_LowPhysicalMemory();
 	Cmd_AddCommand( "shaderlist", R_ShaderList_f );
 	Cmd_AddCommand( "skinlist", R_SkinList_f );
 	Cmd_AddCommand( "modellist", R_Modellist_f );
-#ifndef _XBOX
 	Cmd_AddCommand( "modelist", R_ModeList_f );
-#endif
 	Cmd_AddCommand( "screenshot", R_ScreenShot_f );
 	Cmd_AddCommand( "screenshot_tga", R_ScreenShotTGA_f );
 	Cmd_AddCommand( "gfxinfo", GfxInfo_f );
@@ -1316,36 +1271,15 @@ void R_Init( void ) {
 	int i;
 
 	//VID_Printf( PRINT_ALL, "----- R_Init -----\n" );
-#ifdef _XBOX
-	extern qboolean vidRestartReloadMap;
-	if (!vidRestartReloadMap)
-	{
-		Hunk_Clear();
-		
-		extern void CM_Free(void);
-		CM_Free();
-		
-		void CM_CleanLeafCache(void);
-		CM_CleanLeafCache();
-	}
-#endif
 
 	ShaderEntryPtrs_Clear();
 
-#ifdef _XBOX
-	//Save visibility info as it has already been set.
-	SPARC<byte> *vis = tr.externalVisData;
-#endif
 
 	// clear all our internal state
 	memset( &tr, 0, sizeof( tr ) );
 	memset( &backEnd, 0, sizeof( backEnd ) );
 	memset( &tess, 0, sizeof( tess ) );
 
-#ifdef _XBOX
-	//Restore visibility info.
-	tr.externalVisData = vis;
-#endif
 
 	Swap_Init();
 
@@ -1402,9 +1336,7 @@ void R_Init( void ) {
 	R_InitImages();
 	R_InitShaders();
 	R_InitSkins();
-#ifndef _XBOX
 	R_TerrainInit();
-#endif
 	R_ModelInit();
 //	R_InitWorldEffects();
 	R_InitFonts();
@@ -1441,13 +1373,10 @@ void RE_Shutdown( qboolean destroyWindow ) {
 	Cmd_RemoveCommand ("r_reloadfonts");
 
 	R_ShutdownWorldEffects();
-#ifndef _XBOX
 	R_TerrainShutdown();
-#endif
 	R_ShutdownFonts();
 
 	if ( tr.registered ) {
-#ifndef _XBOX	// GLOWXXX
 		if ( r_DynamicGlow && r_DynamicGlow->integer )
 		{
 			// Release the Glow Vertex Shader.
@@ -1480,7 +1409,6 @@ void RE_Shutdown( qboolean destroyWindow ) {
 			// Release the blur texture.
 			qglDeleteTextures( 1, &tr.blurImage );
 		}
-#endif
 		R_SyncRenderThread();
 		R_ShutdownCommandBuffers();
 //#ifndef _XBOX
@@ -1509,9 +1437,7 @@ extern qboolean Sys_LowPhysicalMemory();
 void	RE_EndRegistration( void ) {
 	R_SyncRenderThread();
 	if (!Sys_LowPhysicalMemory()) {
-#ifndef _XBOX
 //		RB_ShowImages();
-#endif
 	}
 }
 
@@ -1606,9 +1532,7 @@ refexport_t *GetRefAPI ( int apiVersion ) {
 	re.Scissor = RE_Scissor;
 
 	re.GetScreenShot = RE_GetScreenShot;
-#ifndef _XBOX
 	re.TempRawImage_ReadFromFile = RE_TempRawImage_ReadFromFile;
-#endif
 	re.TempRawImage_CleanUp = RE_TempRawImage_CleanUp;
 
 	re.GetLightStyle = RE_GetLightStyle;
@@ -1618,11 +1542,9 @@ refexport_t *GetRefAPI ( int apiVersion ) {
 	re.GetBModelVerts = RE_GetBModelVerts;
 
 	re.RegisterFont = RE_RegisterFont;
-#ifndef _XBOX
 	re.Font_StrLenPixels = RE_Font_StrLenPixels;
 	re.Font_HeightPixels = RE_Font_HeightPixels;	
 	re.Font_DrawString = RE_Font_DrawString;
-#endif
 	re.Font_StrLenChars = RE_Font_StrLenChars;
 	re.Language_IsAsian = Language_IsAsian;
 	re.Language_UsesSpaces = Language_UsesSpaces;

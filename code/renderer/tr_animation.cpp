@@ -6,9 +6,6 @@
 #include "tr_local.h"
 #include "MatComp.h"
 
-#ifdef VV_LIGHTING
-#include "tr_lightmanager.h"
-#endif
 
 extern int R_ComputeLOD( trRefEntity_t *ent );
 
@@ -266,11 +263,7 @@ void R_AddAnimSurfaces( trRefEntity_t *ent ) {
 	// set up lighting now that we know we aren't culled
 	//
 	if ( !personalModel || r_shadows->integer > 1 ) {
-#ifdef VV_LIGHTING
-		VVLightMan.R_SetupEntityLighting( &tr.refdef, ent );
-#else
 		R_SetupEntityLighting( &tr.refdef, ent );
-#endif
 	}
 
 	//
@@ -312,9 +305,7 @@ void R_AddAnimSurfaces( trRefEntity_t *ent ) {
 		// stencil shadows can't do personal models unless I polyhedron clip
 		if ( !personalModel
 			&& r_shadows->integer == 2 
-#ifndef VV_LIGHTING
 			&& fogNum == 0
-#endif
 			&& (ent->e.renderfx & RF_SHADOW_PLANE )
 			&& !(ent->e.renderfx & ( RF_NOSHADOW | RF_DEPTHHACK ) ) 
 			&& shader->sort == SS_OPAQUE ) {

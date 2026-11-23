@@ -3,9 +3,6 @@
 
 bool IN_ControllersChanged(int inserted[], int removed[]);
 
-#if defined (_XBOX ) || defined (_GAMECUBE)
-#define _USE_RUMBLE
-#endif
 
 bool	IN_AnyButtonPressed(void);
 
@@ -31,28 +28,8 @@ void	IN_KillRumbleScripts( void );
 #define IN_CMD_DEC_ARG1		-9
 #define IN_CMD_INC_ARG1		-10
 
-#ifdef _XBOX
-	#define IN_CMD_DEC_LEFT		-70
-	#define IN_CMD_DEC_RIGHT	-71
-	#define IN_CMD_INC_LEFT		-72
-	#define IN_CMD_INC_RIGHT	-73
-#endif
 
 
-#if defined (_XBOX)			// ----- XBOX --------
-
-int IN_AddRumbleState(int whichScript, int leftSpeed, int rightSpeed, int timeInMs);
-int IN_AddEffectFade4(int whichScript, int startLeft, int startRight, int endLeft, int endRight, int timeInMs);
-int IN_AddEffectFadeExp6(int whichScript, int startLeft, int startRight, int endLeft, int endRight, char factor, int timeInMs);
-
-#elif defined (_GAMECUBE)	// ---- GAME CUBE ----
-
-#define IN_GCACTION_START		1
-#define IN_GCACTION_STOP		2
-#define IN_GCACTION_STOPHARD	3
-int IN_AddRumbleState(int whichScript, int action, int timeInMs, int arg = 0);
-
-#endif						// ------END IF-------
 
 int		IN_AddRumbleStateSpecial(int whichScript, int action, int arg1, int arg2);
 void	IN_KillRumbleState(int whichScript, int index);

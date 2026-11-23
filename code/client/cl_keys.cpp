@@ -1223,7 +1223,6 @@ Writes lines containing "bind key value"
 ============
 */
 void Key_WriteBindings( fileHandle_t f ) {
-#ifndef _XBOX
 	int		i;
 
 	FS_Printf (f, "unbindall\n" );
@@ -1232,7 +1231,6 @@ void Key_WriteBindings( fileHandle_t f ) {
 			FS_Printf (f, "bind %s \"%s\"\n", Key_KeynumToString(i), kg.keys[i].binding);
 		}
 	}
-#endif
 }
 
 

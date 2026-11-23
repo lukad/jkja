@@ -173,96 +173,6 @@ void SV_Startup( void ) {
 }
 
 
-#ifdef _XBOX
-//Xbox-only memory freeing.
-extern void R_ModelFree(void);
-extern void Sys_IORequestQueueClear(void);
-extern void Music_Free(void);
-extern void AS_FreePartial(void);
-extern void G_ASPreCacheFree(void);
-extern void Ghoul2InfoArray_Free(void);
-extern void Ghoul2InfoArray_Reset(void);
-extern void Menu_Reset(void);
-extern void G2_FreeRag(void);
-extern void ClearAllNavStructures(void);
-extern void ClearModelsAlreadyDone(void);
-extern void CL_FreeServerCommands(void);
-extern void CL_FreeReliableCommands(void);
-extern void CM_Free(void);
-extern void ShaderEntryPtrs_Clear(void);
-extern void G_FreeRoffs(void);
-extern void BG_ClearVehicles(void);
-extern void ClearHStringPool(void);
-extern void ClearTheBonePool(void);
-extern char cinematicSkipScript[64];
-extern HANDLE s_BCThread;
-extern void IN_HotSwap1Off(void);
-extern void IN_HotSwap2Off(void);
-extern void IN_HotSwap3Off(void);
-extern int	cg_saberOnSoundTime[MAX_GENTITIES];
-extern char current_speeders;
-extern int zfFaceShaders[3];
-extern int tfTorsoShader;
-extern bool dontPillarPush;
-
-void SV_ClearLastLevel(void)
-{
-	Menu_Reset();
-	Z_TagFree(TAG_G_ALLOC);
-	Z_TagFree(TAG_UI_ALLOC);
-	G_FreeRoffs();
-	R_ModelFree();
-	Music_Free();
-	Sys_IORequestQueueClear();
-	AS_FreePartial();
-	G_ASPreCacheFree();
-	Ghoul2InfoArray_Free();
-	G2_FreeRag();
-	ClearAllNavStructures();
-	ClearModelsAlreadyDone();
-	CL_FreeServerCommands();
-	CL_FreeReliableCommands();
-	CM_Free();
-	ShaderEntryPtrs_Clear();
-	ClearTheBonePool();
-	BG_ClearVehicles();
-
-	cinematicSkipScript[0] = 0;
-
-	if (svs.clients)
-	{
-		SV_FreeClient( svs.clients );
-	}
-
-	ClearHStringPool();
-
-	// The bink copier thread is so trivial as to not have any communication
-	// Rather than polling constantly to clean it up, we just check here.
-	// This code should only happen ONCE:
-	if (s_BCThread != INVALID_HANDLE_VALUE)
-	{
-		DWORD status;
-		if (GetExitCodeThread( s_BCThread, &status ) && (status != STILL_ACTIVE))
-		{
-			// Thread is done. Clean up after ourselves:
-			CloseHandle( s_BCThread );
-			s_BCThread = INVALID_HANDLE_VALUE;
-		}
-	}
-
-	IN_HotSwap1Off();
-	IN_HotSwap2Off();
-	IN_HotSwap3Off();
-
-	memset(&cg_saberOnSoundTime, 0, MAX_GENTITIES);
-	memset(zfFaceShaders, -1, sizeof(zfFaceShaders));
-	tfTorsoShader = -1;
-
-	current_speeders = 0;
-
-	dontPillarPush = false;
-}
-#endif
 
 qboolean CM_SameMap(char *server);
 qboolean CM_HasTerrain(void);
@@ -369,29 +279,8 @@ void SV_SpawnServer( char *iServer, ForceReload_e eForceReload, qboolean bAllowS
 
 	Q_strncpyz( server, iServer, sizeof(server), qtrue );
 
-#ifdef XBOX_DEMO
-	// Pause the timer if "someone is playing"
-	extern void Demo_TimerPause( bool bPaused );
-	Demo_TimerPause( true );
-#endif
 
 // The following fixes for potential issues only work on Xbox
-#ifdef _XBOX
-	extern qboolean stop_icarus;
-	stop_icarus = qfalse;
-
-	//Broken scripts may leave the player locked.  I think that's always bad.
-	extern qboolean player_locked;
-	player_locked = qfalse;
-
-	//If you quit while in Matrix Mode, this never gets cleared!
-	extern qboolean MatrixMode;
-	MatrixMode = qfalse;
-
-	// Failsafe to ensure that we don't have rumbling during level load
-	extern void IN_KillRumbleScripts( void );
-	IN_KillRumbleScripts();
-#endif
 
 	RE_RegisterMedia_LevelLoadBegin( server, eForceReload, bAllowScreenDissolve );
 
@@ -411,10 +300,6 @@ void SV_SpawnServer( char *iServer, ForceReload_e eForceReload, qboolean bAllowS
 //	Com_Printf ("Texture pool highwater mark: %u\n", texturePointMax);
 #endif
 
-#ifdef _XBOX
-	// disable vsync during load for speed
-	qglDisable(GL_VSYNC);
-#endif
 
 	// Hope this is correct - InitGame gets called later, which does this,
 	// but UI_DrawConnect (in CL_MapLoading) needs it now, to properly
@@ -429,20 +314,14 @@ void SV_SpawnServer( char *iServer, ForceReload_e eForceReload, qboolean bAllowS
 	{ //rww - only clear if not loading the same map
 		CM_ClearMap();
 	}
-#ifndef _XBOX
 	else if (CM_HasTerrain())
 	{ //always clear when going between maps with terrain
 		CM_ClearMap();
 	}
-#endif
 
 	// Miniheap never changes sizes, so I just put it really early in mem.
 	G2VertSpaceServer->ResetHeap();
 
-#ifdef _XBOX
-	// Deletes all textures
-	R_DeleteTextures();
-#endif
 	Hunk_Clear();
 
 	// Moved up from below to help reduce fragmentation
@@ -461,9 +340,6 @@ void SV_SpawnServer( char *iServer, ForceReload_e eForceReload, qboolean bAllowS
 		}
 	}
 
-#ifdef _XBOX
-	SV_ClearLastLevel();
-#endif
 
 	// Collect all the small allocations done by the cvar system
 	// This frees, then allocates. Make it the last thing before other
@@ -474,17 +350,6 @@ void SV_SpawnServer( char *iServer, ForceReload_e eForceReload, qboolean bAllowS
 		This is useful for debugging memory fragmentation.  Please don't
 	   remove it.
 */
-#ifdef _XBOX
-	// We've over-freed the info array above, this puts it back into a working state
-	Ghoul2InfoArray_Reset();
-
-	extern void Z_DumpMemMap_f(void);
-	extern void Z_Details_f(void);
-	extern void Z_TagPointers(memtag_t);
-	Z_DumpMemMap_f();
-//	Z_TagPointers(TAG_ALL);
-	Z_Details_f();
-#endif
 
 	InitLoadingAnimation();
 	UpdateLoadingAnimation();
@@ -525,17 +390,7 @@ void SV_SpawnServer( char *iServer, ForceReload_e eForceReload, qboolean bAllowS
 	sv.time = 1000;
 	G2API_SetTime(sv.time,G2T_SV_TIME);
 
-#ifdef _XBOX
-	UpdateLoadingAnimation();
-	CL_StartHunkUsers();
-	UpdateLoadingAnimation();
-	CM_LoadMap( va("maps/%s.bsp", server), qfalse, &checksum );
-	UpdateLoadingAnimation();
-	RE_LoadWorldMap(va("maps/%s.bsp", server));
-	UpdateLoadingAnimation();
-#else
 	CM_LoadMap( va("maps/%s.bsp", server), qfalse, &checksum, qfalse );
-#endif
 
 	// set serverinfo visible name
 	Cvar_Set( "mapname", server );
@@ -614,11 +469,9 @@ void SV_SpawnServer( char *iServer, ForceReload_e eForceReload, qboolean bAllowS
 	svs.nextHeartbeatTime = -9999999;
 
 	Hunk_SetMark();
-#ifndef _XBOX
 	Z_Validate();
 	Z_Validate();
 	Z_Validate();
-#endif
 
 	StopLoadingAnimation();
 

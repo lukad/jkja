@@ -9,9 +9,6 @@
 #include "..\client\vmachine.h"
 #include "cg_lights.h"
 
-#ifdef _IMMERSION
-#include "../ff/ff.h"
-#endif // _IMMERSION
 #include "../qcommon/sstring.h"
 //NOTENOTE: Be sure to change the mirrored code in g_shared.h
 typedef	map< sstring_t, unsigned char, less<sstring_t>, allocator< unsigned char >  >	namePrecache_m;
@@ -47,9 +44,6 @@ Ghoul2 Insert End
 */
 
 
-#ifdef _XBOX
-extern bool CL_ExtendSelectTime(void);
-#endif
 
 
 
@@ -418,11 +412,7 @@ static cvarTable_t cvarTable[] = {
 	{ &cg_smoothPlayerPlat, "cg_smoothPlayerPlat", "0.75", 0},
 	{ &cg_smoothPlayerPlatAccel, "cg_smoothPlayerPlatAccel", "3.25", 0},
 	{ &cg_g2Marks, "cg_g2Marks", "1", CVAR_ARCHIVE },
-#ifdef _XBOX	// Turn off expensive physics in FX system:
-	{ &fx_expensivePhysics, "fx_expensivePhysics", "0", CVAR_ARCHIVE },
-#else
 	{ &fx_expensivePhysics, "fx_expensivePhysics", "1", CVAR_ARCHIVE },
-#endif
 	{ &cg_debugHealthBars,	"cg_debugHealthBars",	"0", CVAR_CHEAT },
 };
 
@@ -628,54 +618,6 @@ void CG_RegisterItemSounds( int itemNum ) {
 	}
 }
 
-#ifdef _IMMERSION
-/*
-=================
-CG_RegisterItemForces
-
-The server says this item is used on this level
-=================
-*/
-void CG_RegisterItemForces( int itemNum ) {
-	gitem_t			*item;
-	char			data[MAX_QPATH];
-	char			*s, *start;
-	int				len;
-
-	item = &bg_itemlist[ itemNum ];
-
-	if (item->pickup_force)
-	{
-		cgi_FF_Register( item->pickup_force, FF_CHANNEL_TOUCH );
-	}
-
-	// parse the space seperated precache string for other media
-	s = item->forces;
-	if (!s || !s[0])
-		return;
-
-	while (*s) {
-		start = s;
-		while (*s && *s != ' ') {
-			s++;
-		}
-
-		len = s-start;
-		if (len >= MAX_QPATH) {
-			CG_Error( "PrecacheItem: %s has bad precache string", 
-				item->classname);
-			return;
-		}
-		memcpy (data, start, len);
-		data[len] = 0;
-		if ( *s ) {
-			s++;
-		}
-
-		cgi_FF_Register( data, FF_CHANNEL_TOUCH );
-	}
-}
-#endif // _IMMERSION
 
 /*
 ======================
@@ -875,69 +817,6 @@ static void CG_RegisterSounds( void ) {
 	}
 }
 
-#ifdef _IMMERSION
-extern qboolean CG_ConfigForce( int index, const char *&name, int &channel );
-/*
-=================
-CG_RegisterForces
-
-called during a precache command
-=================
-*/
-static void CG_RegisterForces( void )
-{
-	char name[512];
-	int i, channel;
-	const char *forceName;
-
-	cgs.media.selectForce = cgi_FF_Register( "fffx/weapons/change", FF_CHANNEL_WEAPON );
-
-	for (i=0 ; i<4 ; i++) {
-		Com_sprintf (name, sizeof(name), "fffx/player/footsteps/step%i", i+1);
-		cgs.media.footstepForces[FOOTSTEP_STONEWALK][i] = cgi_FF_Register( name, FF_CHANNEL_FOOT );
-
-		Com_sprintf (name, sizeof(name), "fffx/player/footsteps/splash%i", i+1);
-		cgs.media.footstepForces[FOOTSTEP_SPLASH][i] = cgi_FF_Register( name, FF_CHANNEL_FOOT );
-
-		Com_sprintf (name, sizeof(name), "fffx/player/footsteps/clank%i", i+1);
-		cgs.media.footstepForces[FOOTSTEP_METALWALK][i] = cgi_FF_Register( name, FF_CHANNEL_FOOT );
-	}
-
-	cgs.media.noAmmoForce = cgi_FF_Register( "fffx/weapons/noammo", FF_CHANNEL_WEAPON );
-	cgs.media.landForce = cgi_FF_Register( "fffx/player/land1", FF_CHANNEL_BODY );
-
-	cgs.media.watrInForce = cgi_FF_Register( "fffx/player/watr_in", FF_CHANNEL_BODY );
-	cgs.media.watrOutForce = cgi_FF_Register( "fffx/player/watr_out", FF_CHANNEL_BODY );
-	cgs.media.watrUnForce = cgi_FF_Register( "fffx/player/watr_un", FF_CHANNEL_BODY );
-
-	cgs.media.zoomStartForce = cgi_FF_Register( "fffx/interface/zoomstart", FF_CHANNEL_WEAPON );
-	cgs.media.zoomLoopForce = cgi_FF_Register( "fffx/interface/zoomloop", FF_CHANNEL_WEAPON );
-	cgs.media.zoomEndForce = cgi_FF_Register( "fffx/interface/zoomend", FF_CHANNEL_WEAPON );
-
-	cgs.media.grenadeBounce1Force = cgi_FF_Register( "fffx/weapons/thermal/bounce1", FF_CHANNEL_WEAPON );
-	cgs.media.grenadeBounce2Force = cgi_FF_Register( "fffx/weapons/thermal/bounce2", FF_CHANNEL_WEAPON );
-
-	for ( i = 1 ; i < bg_numItems ; i++ )
-	{
-		CG_RegisterItemForces( i );
-	}
-
-	for ( i = 1 ; i < MAX_FORCES ; i++ )
-	{
-		if ( !CG_ConfigForce( i, forceName, channel ) )
-			break;
-
-		if ( forceName[0] == '*' ) {
-			continue;	// custom force???
-		}
-		if (!(i&7)) {
-			CG_LoadingString( forceName );
-		}
-
-		cgs.force_precache[i] = cgi_FF_Register( forceName, channel );
-	}
-}
-#endif // _IMMERSION
 /*
 =============================================================================
 
@@ -1462,9 +1341,7 @@ static void CG_RegisterGraphics( void ) {
 	cg.loadLCARSStage = 3;
 	CG_LoadingString( cgs.mapname );
 
-#ifndef _XBOX // this gets handled elsewhere on Xbox
 	cgi_R_LoadWorldMap( cgs.mapname );
-#endif
 
 	cg.loadLCARSStage = 4;
 	CG_LoadingString( "game media shaders" );
@@ -1979,9 +1856,6 @@ static void CG_GameStateReceived( void ) {
 	extern void S_LoadCommonSounds( void );
 	S_LoadCommonSounds();
 
-#ifdef _IMMERSION
-	CG_RegisterForces();
-#endif // _IMMERSION
 	CG_RegisterGraphics();
 
 	//jfm: moved down to preinit
@@ -2025,21 +1899,11 @@ Ghoul2 Insert Start
 // initialise the cg_entities structure
 void CG_Init_CG(void)
 {
-#ifdef _XBOX
-	qboolean widescreen = cg.widescreen;
-#endif
 	memset( &cg, 0, sizeof(cg));
-#ifdef _XBOX
-	cg.widescreen = widescreen;
-#endif
 }
 
 
-#ifdef _XBOX	// Enough for all maps right now
-#define MAX_MISC_ENTS	1000
-#else
 #define MAX_MISC_ENTS	2000
-#endif
 
 typedef struct cgMiscEntData_s
 {
@@ -2138,9 +2002,6 @@ void CG_DrawMiscEnts(void)
 				VectorCopy(MiscEnt->origin, refEnt.origin);
 				VectorCopy(cullOrigin, refEnt.lightingOrigin);
 				ScaleModelAxis(&refEnt);
-#ifdef _XBOX
-				refEnt.number = i + MAX_GENTITIES;
-#endif
 				cgi_R_AddRefEntityToScene(&refEnt);
 			}
 		}
@@ -2191,10 +2052,6 @@ void CG_PreInit() {
 //moved from CG_GameStateReceived because it's loaded sooner now
 	CG_InitLocalEntities();
 
-#ifdef _XBOX	// I can't believe that this isn't necessary on PC, but I'll hold off
-	NumMiscEnts = 0;
-	memset( MiscEnts, 0, sizeof(MiscEnts) );
-#endif
 
 	CG_InitMarkPolys();
 
@@ -3468,13 +3325,7 @@ void CG_DrawInventorySelect( void )
 	const int bigIconSize = 80;
 	const int pad = 16;
 
-#ifdef _XBOX
-	int x = 320;
-	if(cg.widescreen)
-		x = 360;
-#else
 	const int x = 320;
-#endif
 	const int y = 410;
 
 	// Left side ICONS
@@ -3666,13 +3517,7 @@ void CG_DrawDataPadInventorySelect( void )
 	const int bigPad = 64;
 	const int pad = 32;
 
-#ifdef _XBOX
-	int centerXPos = 320;
-	if(cg.widescreen)
-		centerXPos = 360;
-#else
 	const int centerXPos = 320;
-#endif
 	const int graphicYPos = 340;
 
 
@@ -4001,13 +3846,6 @@ void CG_DrawForceSelect( void )
 		return;
 	}
 
-#ifdef _XBOX
-	if(CL_ExtendSelectTime()) {
-		cg.forcepowerSelectTime = cg.time;
-	}
-
-	yOffset = -36;
-#endif
 
 	// count the number of powers owned
 	count = 0;
@@ -4061,13 +3899,7 @@ void CG_DrawForceSelect( void )
 	const int bigIconSize = 60;
 	const int pad = 12;
 
-#ifdef _XBOX
-	int x = 320;
-	if(cg.widescreen)
-		x = 360;
-#else
 	const int x = 320;
-#endif
 	const int y = 425;
 
 	i = cg.forcepowerSelect - 1;

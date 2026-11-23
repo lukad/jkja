@@ -7,12 +7,6 @@
 #include "Q3_Interface.h"
 #include "g_local.h"
 #include "g_functions.h"
-#ifdef _XBOX
-#include "anims.h"
-#include "..\renderer\mdx_format.h"
-#include "..\qcommon\cm_public.h"
-#include "..\qcommon\cm_local.h"
-#endif
 
 #define ACT_ACTIVE		qtrue
 #define ACT_INACTIVE	qfalse
@@ -158,37 +152,6 @@ void G_PlayEffect( const char *name, int clientNum )
 	VectorScale( tent->maxs, -1, tent->mins );
 }
 
-#ifdef _IMMERSION
-// Play an effect at a position on an entity.
-// Mostly for G_MissileBounceEffect so we can play an effect on the bouncee.
-//-----------------------------
-void G_PlayEffect( int fxID, int clientNum, const vec3_t origin, const vec3_t fwd )
-{
-	gentity_t	*tent;
-	vec3_t	temp;
-
-	tent = G_TempEntity( origin, EV_PLAY_EFFECT );
-	tent->s.eventParm = fxID;
-	if ( clientNum != -1 )
-	{
-		tent->s.saberActive = 1;
-		tent->s.otherEntityNum = clientNum;
-	}
-	VectorSet( tent->maxs, FX_ENT_RADIUS, FX_ENT_RADIUS, FX_ENT_RADIUS );
-	VectorScale( tent->maxs, -1, tent->mins );
-	VectorCopy( fwd, tent->pos3 );
-
-	// Assume angles, we'll do a cross product on the other end to finish up
-	MakeNormalVectors( fwd, tent->pos4, temp );
-}
-
-//-----------------------------
-void G_PlayEffect( const char *name, int clientNum, const vec3_t origin, const vec3_t fwd )
-{
-	G_PlayEffect( G_EffectIndex( name ), clientNum, origin, fwd );
-}
-
-#endif // _IMMERSION
 //-----------------------------
 void G_PlayEffect( int fxID, const vec3_t origin, const vec3_t axis[3] )
 {
@@ -256,34 +219,6 @@ void G_StopEffect(const char *name, const int modelIndex, const int boltIndex, c
 	G_StopEffect( G_EffectIndex( name ), modelIndex, boltIndex, entNum );
 }
 
-#ifdef _XBOX
-//-----------------------------
-void G_EntityPosition( int i, vec3_t ret )
-{
-	if ( /*g_entities &&*/ i >= 0 && i < MAX_GENTITIES && g_entities[i].inuse)
-	{
-		gentity_t *ent = g_entities + i;
-
-		if (ent->bmodel)
-		{
-			vec3_t mins, maxs;
-			clipHandle_t h = CM_InlineModel( ent->s.modelindex );
-			CM_ModelBounds( cmg, h, mins, maxs );
-			ret[0] = (mins[0] + maxs[0]) / 2 + ent->currentOrigin[0];
-			ret[1] = (mins[1] + maxs[1]) / 2 + ent->currentOrigin[1];
-			ret[2] = (mins[2] + maxs[2]) / 2 + ent->currentOrigin[2];
-		}
-		else
-		{
-			VectorCopy(g_entities[i].currentOrigin, ret);
-		}
-	}
-	else
-	{
-		ret[0] = ret[1] = ret[2] = 0;
-	}
-}
-#endif
 
 //===Bypass network for sounds on specific channels====================
 
@@ -851,7 +786,6 @@ gentity_t *G_Spawn( int itr )
 	}
 	if ( i == ENTITYNUM_MAX_NORMAL )
 	{
-#ifndef _XBOX
 //#ifndef FINAL_BUILD
 		e = &g_entities[0];
 
@@ -881,7 +815,6 @@ gentity_t *G_Spawn( int itr )
 			}
 		}
 */
-#endif//FINAL_BUILD
 		if(itr)
 		{
 			G_MassFreeUselessThings();
@@ -1267,67 +1200,6 @@ void G_SoundBroadcast( gentity_t *ent, int soundIndex )
 
 //==============================================================================
 
-#ifdef _IMMERSION
-int G_ForceIndex( const char *name, int channel )
-{
-	if ( channel >= 0 && channel < FF_CHANNEL_MAX )
-	{
-		// no point in storing a name with a bogus channel
-		// (registering an effect on multiple channels will eat up memory)
-		char temp[512];
-		sprintf( temp, "%d,%s", channel, name );
-		return G_FindConfigstringIndex ( temp, CS_FORCES, MAX_FORCES, qtrue );
-	}
-
-	return 0;
-}
-
-gentity_t *G_OwnerClient( gentity_t *ent )
-{
-	// This test is not adequate... should check for the following...
-	// 1) owned entity is touching client entity
-	// 2) owned entity is a weapon being used by client
-	for
-	(
-	;	ent
-	&&	!ent->client
-	;	ent = ent->owner
-	);
-
-	return ent;
-}
-
-void G_Force( gentity_t *ent, int forceIndex ) 
-{
-	gentity_t *client = G_OwnerClient( ent );
-	if ( client )
-	{
-		G_AddEvent( client, EV_ENTITY_FORCE, forceIndex );
-	}
-}
-
-void G_ForceArea( gentity_t *ent, int forceIndex )
-{
-	gentity_t	*te;
-
-	te = G_TempEntity( ent->s.origin, EV_AREA_FORCE );
-	te->s.eventParm = forceIndex;
-}
-
-void G_ForceBroadcast( gentity_t *ent, int forceIndex )
-{
-	gentity_t	*te;
-
-	te = G_TempEntity( ent->s.origin, EV_GLOBAL_FORCE );
-	te->s.eventParm = forceIndex;
-	te->svFlags |= SVF_BROADCAST;
-}
-
-void G_ForceStop( gentity_t *ent, int forceIndex )
-{
-	G_AddEvent( ent, EV_FORCE_STOP, forceIndex );
-}
-#endif // _IMMERSION
 
 /*
 ================

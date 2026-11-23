@@ -5,10 +5,6 @@
 #include "../qcommon/sstring.h"	// to get Gil's string class, because MS's doesn't compile properly in here
 #include "stv_version.h"
 
-#ifdef _XBOX
-#include "../win32/win_file.h"
-#include "../ui/ui_splash.h"
-#endif
 
 #include "platform.h"
 
@@ -19,13 +15,11 @@
 int		com_argc;
 char	*com_argv[MAX_NUM_ARGVS+1];
 
-#ifndef _XBOX
 static fileHandle_t	logfile;
 static fileHandle_t	speedslog;
 static fileHandle_t	camerafile;
 fileHandle_t	com_journalFile;
 fileHandle_t	com_journalDataFile;		// config files are written here
-#endif
 
 // Global language setting - this should be used instead of the myriad language
 // cvars. Will be one of the Xbox values: XC_LANGUAGE_(ENGLISH|FRENCH|GERMAN)
@@ -78,7 +72,6 @@ void Com_WriteConfig_f( void );
 
 //============================================================================
 
-#ifndef _XBOX
 static char	*rd_buffer;
 static int	rd_buffersize;
 static void	(*rd_flush)( char *buffer );
@@ -107,7 +100,6 @@ void Com_EndRedirect (void)
 #ifndef FINAL_BUILD
 #define OUTPUT_TO_BUILD_WINDOW
 #endif
-#endif	//not xbox
 
 /*
 =============
@@ -128,7 +120,6 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 	vsprintf (msg,fmt,argptr);
 	va_end (argptr);
 
-#ifndef _XBOX
 	if ( rd_buffer ) {
 		if ((strlen (msg) + strlen(rd_buffer)) > (rd_buffersize - 1)) {
 			rd_flush(rd_buffer);
@@ -137,7 +128,6 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 		strcat (rd_buffer, msg);
 		return;
 	}
-#endif
 
 	CL_ConsolePrint( msg );
 
@@ -148,7 +138,6 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 	OutputDebugString(msg);
 #endif
 
-#ifndef _XBOX
 	// logfile
 	if ( com_logfile && com_logfile->integer ) {
 		if ( !logfile ) {
@@ -164,7 +153,6 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 		}
 	}
 #endif
-#endif
 }
 
 void QDECL Com_PrintfAlways( const char *fmt, ... ) {
@@ -175,7 +163,6 @@ void QDECL Com_PrintfAlways( const char *fmt, ... ) {
 	vsprintf (msg,fmt,argptr);
 	va_end (argptr);
 
-#ifndef _XBOX
 	if ( rd_buffer ) {
 		if ((strlen (msg) + strlen(rd_buffer)) > (rd_buffersize - 1)) {
 			rd_flush(rd_buffer);
@@ -184,7 +171,6 @@ void QDECL Com_PrintfAlways( const char *fmt, ... ) {
 		strcat (rd_buffer, msg);
 		return;
 	}
-#endif
 
 	CL_ConsolePrint( msg );
 
@@ -197,7 +183,6 @@ void QDECL Com_PrintfAlways( const char *fmt, ... ) {
 #endif
 #endif
 
-#ifndef _XBOX
 	// logfile
 	if ( com_logfile && com_logfile->integer ) {
 		if ( !logfile ) {
@@ -212,7 +197,6 @@ void QDECL Com_PrintfAlways( const char *fmt, ... ) {
 			FS_Write(msg, strlen(msg), logfile);
 		}
 	}
-#endif
 }
 
 
@@ -241,7 +225,6 @@ void QDECL Com_DPrintf( const char *fmt, ...) {
 
 void Com_WriteCam ( const char *text )
 {
-#ifndef _XBOX
 	static	char	mapname[MAX_QPATH];
 	// camerafile
 	if ( !camerafile ) 
@@ -259,12 +242,10 @@ void Com_WriteCam ( const char *text )
 	}
 
 	Com_Printf( "%s\n", mapname );
-#endif
 }
 
 void Com_FlushCamFile()
 {
-#ifndef _XBOX
 	if (!camerafile)
 	{
 		// nothing to flush, right?
@@ -279,7 +260,6 @@ void Com_FlushCamFile()
 	extern	cvar_t	*sv_mapname;
 	sprintf( flushedMapname, "maps/%s_cam.map", sv_mapname->string );
 	Com_Printf("flushed all cams to %s\n", flushedMapname);
-#endif
 }
 
 /*
@@ -1021,23 +1001,6 @@ void Com_Init( char *commandLine ) {
 
 		Com_InitZoneMemory();
 
-#ifdef _XBOX
-		WF_Init();
-		// set up ri
-		extern void CL_InitRef( void );
-		CL_InitRef();
-
-		// register renderer cvars
-		extern void R_Register(void);
-		R_Register();
-
-		// start the gl render layer
-		extern void GLimp_Init(void);
-		GLimp_Init();
-
-		// put up the license screen
-		SP_DoLicense();
-#endif
 
 		Cmd_Init ();
 		Cvar_Init ();
@@ -1048,20 +1011,6 @@ void Com_Init( char *commandLine ) {
 		// done early so bind command exists
 		CL_InitKeyCommands();
 
-#ifdef _XBOX
-		extern void Sys_FilecodeScan_f();
-		Sys_InitFileCodes();
-		Cmd_AddCommand("filecodes", Sys_FilecodeScan_f);
-
-		extern void Sys_StreamInit();
-		Sys_StreamInit();
-
-		// This just forces the static singleton in the function to call
-		// its constructor, which allocates a stupid 12 byte block of
-		// memory that never gets freed. Otherwise, it ends up stranded in
-		// the middle of the zone:
-		TheGhoul2InfoArray();
-#endif
 
 		FS_InitFilesystem ();	//uses z_malloc
 		R_InitWorldEffects();   // this doesn't do much but I want to be sure certain variables are intialized.
@@ -1131,14 +1080,6 @@ void Com_Init( char *commandLine ) {
 		inSplashMenu = Cvar_Get( "inSplashMenu", "1", 0 );
 		controllerOut= Cvar_Get( "ControllerOutNum", "-1", 0);
 
-#ifdef XBOX_DEMO
-		// Cvar used to hide "QUIT TO DEMOS MENU" options if we weren't started by CDX
-		extern bool demoLaunchDataValid;
-		if( demoLaunchDataValid )
-			Cvar_SetValue( "ui_allowDemoQuit", 1 );
-		else
-			Cvar_SetValue( "ui_allowDemoQuit", 0 );
-#endif
 
 		SE_Init();	// Initialize StringEd
 	
@@ -1150,12 +1091,6 @@ void Com_Init( char *commandLine ) {
 		
 		CL_Init();
 
-#ifdef _XBOX
-		// Experiment. Sound memory never gets freed, move it earlier. This
-		// will also let us play movies sooner, if we need to.
-		extern void CL_StartSound(void);
-		CL_StartSound();
-#endif
 
 		Sys_ShowConsole( com_viewlog->integer, qfalse );
 		
@@ -1165,7 +1100,6 @@ void Com_Init( char *commandLine ) {
 		com_frameTime = Com_Milliseconds();
 
 		// add + commands from command line
-#ifndef _XBOX
 		if ( !Com_AddStartupCommands() ) {
 #ifdef NDEBUG
 			// if the user didn't give any commands, run default action
@@ -1179,7 +1113,6 @@ void Com_Init( char *commandLine ) {
 			}
 #endif	
 		}
-#endif
 		com_fullyInitialized = qtrue;
 		Com_Printf ("--- Common Initialization Complete ---\n");
 
@@ -1199,19 +1132,12 @@ void Com_Init( char *commandLine ) {
 		Sys_Error ("Error during initialization %s", reason);
 	}
 
-#ifdef _XBOX
-	//Load these early to keep them at the beginning of memory.  Perhaps
-	//here is too early though.  After the license screen would be better.
-	extern void SE_CheckForLanguageUpdates(void);
-	SE_CheckForLanguageUpdates();
-#endif
 
 }
 
 //==================================================================
 
 void Com_WriteConfigToFile( const char *filename ) {
-#ifndef _XBOX
 	fileHandle_t	f;
 
 	f = FS_FOpenFileWrite( filename );
@@ -1224,7 +1150,6 @@ void Com_WriteConfigToFile( const char *filename ) {
 	Key_WriteBindings (f);
 	Cvar_WriteVariables (f);
 	FS_FCloseFile( f );
-#endif
 }
 
 
@@ -1353,7 +1278,6 @@ try
 	static int	lastTime;
 
 	// write config file if anything changed
-#ifndef _XBOX
 	Com_WriteConfiguration(); 
 
 	// if "viewlog" has been modified, show or hide the log console
@@ -1361,7 +1285,6 @@ try
 		Sys_ShowConsole( com_viewlog->integer, qfalse );
 		com_viewlog->modified = qfalse;
 	}
-#endif
 
 	//
 	// main event loop
@@ -1405,14 +1328,6 @@ try
 	//
 	// client system
 	//
-#ifdef _XBOX
-	extern bool TestDemoTimer();
-	extern void PlayDemo();
-	if ( TestDemoTimer())
-	{
-		PlayDemo();
-	}
-#endif
 //	if ( !com_dedicated->integer ) 
 	{
 		//
@@ -1457,7 +1372,6 @@ try
 		Com_Printf("fr:%i all:%3i sv:%3i ev:%3i cl:%3i gm:%3i tr:%3i pvs:%3i rf:%3i bk:%3i\n", 
 					com_frameNumber, all, sv, ev, cl, time_game, timeInTrace, timeInPVSCheck, time_frontend, time_backend);
 
-#ifndef _XBOX
 		// speedslog
 		if ( com_speedslog && com_speedslog->integer )
 		{
@@ -1493,7 +1407,6 @@ try
 				bComma=true;
 			}
 		}
-#endif
 
 		timeInTrace = timeInPVSCheck = 0;
 	}
@@ -1537,11 +1450,6 @@ try
 
 	Cvar_Get("levelSelectCheat", "-1", CVAR_SAVEGAME | CVAR_ARCHIVE);
 
-#ifdef XBOX_DEMO
-	// This is for the code that auto-reboots back to CDX after a timeout:
-	extern void Demo_TimerUpdate( void );
-	Demo_TimerUpdate();
-#endif
 }
 
 #pragma warning (default: 4701)	//local may have been used without init
@@ -1555,7 +1463,6 @@ extern void CM_FreeShaderText(void);
 void Com_Shutdown (void) {
 	CM_ClearMap();
 
-#ifndef _XBOX
 	CM_FreeShaderText();
 
 	if (logfile) {
@@ -1578,13 +1485,7 @@ void Com_Shutdown (void) {
 		FS_FCloseFile( com_journalFile );
 		com_journalFile = 0;
 	}
-#endif
 
-#ifdef _XBOX
-	extern void Sys_StreamShutdown();
-	Sys_StreamShutdown();
-	Sys_ShutdownFileCodes();
-#endif
 
 //	SE_ShutDown();//close the string packages
 

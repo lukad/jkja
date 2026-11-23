@@ -165,10 +165,6 @@ struct glwstate_t
 	GLuint strip_lengths[GLW_MAX_STRIPS];
 	GLsizei num_strip_lengths;
 
-#ifdef _XBOX
-//	class FlareEffect*	flareEffect;
-	class LightEffects* lightEffects;
-#endif
 };
 
 extern glwstate_t *glw_state;

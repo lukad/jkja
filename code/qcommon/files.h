@@ -9,14 +9,8 @@
 
 
 
-#ifdef _XBOX
-#include "../goblib/goblib.h"
-
-typedef int wfhandle_t;
-#else
 #include "../zlib32/zip.h"
 #include "unzip.h"
-#endif
 
 
 #define MAX_ZPATH			256
@@ -32,9 +26,7 @@ typedef struct fileInPack_s {
 
 typedef struct {
 	char			pakFilename[MAX_OSPATH];	// c:\quake3\base\asset0.pk3
-#ifndef _XBOX
 	unzFile			handle;
-#endif
 	int				checksum;
 	int				numfiles;
 	int				hashSize;					// hash table size (power of 2)
@@ -59,9 +51,7 @@ typedef struct searchpath_s {
 
 typedef union qfile_gus {
 	FILE*		o;
-#ifndef _XBOX
 	unzFile		z;
-#endif
 } qfile_gut;
 
 typedef struct qfile_us {
@@ -78,12 +68,6 @@ typedef struct {
 	qboolean	zipFile;
 	char		name[MAX_QPATH];
 
-#ifdef _XBOX
-	GOBHandle	ghandle;
-	qboolean	gob;
-	qboolean	used;
-	wfhandle_t  whandle;
-#endif
 } fileHandleData_t;
 
 

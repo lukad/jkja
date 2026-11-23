@@ -30,11 +30,7 @@ extern void	*Sys_GetGameAPI( void *parms);
 extern void Com_WriteCam ( const char *text );
 extern void Com_FlushCamFile();
 
-#ifdef _XBOX
-extern int	*s_entityWavVol;
-#else
 extern int	s_entityWavVol[MAX_GENTITIES];
-#endif
 
 
 // these functions must be used instead of pointer arithmetic, because
@@ -214,11 +210,7 @@ qboolean SV_inPVS (const vec3_t p1, const vec3_t p2)
 	int		leafnum;
 	int		cluster;
 	int		area1, area2;
-#ifdef _XBOX 
-	const byte *mask;
-#else
 	byte	*mask;
-#endif
 	int		start=0;
 
 	if ( com_speeds->integer ) {
@@ -265,11 +257,7 @@ qboolean SV_inPVSIgnorePortals( const vec3_t p1, const vec3_t p2)
 	int		leafnum;
 	int		cluster;
 	int		area1, area2;
-#ifdef _XBOX
-	const byte *mask;
-#else
 	byte	*mask;
-#endif
 	int		start=0;
 
 	if ( com_speeds->integer ) {
@@ -406,13 +394,7 @@ void SV_ShutdownGameProgs (qboolean shutdownCin) {
 	}
 	ge->Shutdown ();
 	
-#ifdef _XBOX
-	if(shutdownCin) {
-		SCR_StopCinematic();
-	}
-#else
 	SCR_StopCinematic();
-#endif
 	CL_ShutdownCGame();	//we have cgame burried in here.
 	
 	Sys_UnloadGame ();	//this kills cgame as well.
@@ -444,7 +426,6 @@ qboolean G2API_IKMove(CGhoul2Info_v &ghoul2, int time, sharedIKMoveParams_t *par
 //rww - RAGDOLL_END
 
 //This is as good a place as any I guess.
-#ifndef _XBOX	// Removing terrain from Xbox
 void RMG_Init(int terrainID)
 {
 	if (!TheRandomMissionManager)
@@ -466,7 +447,6 @@ int InterfaceCM_RegisterTerrain (const char *info)
 {
 	return CM_RegisterTerrain(info, false)->GetTerrainId();
 }
-#endif	// _XBOX
 
 /*
 ===============
@@ -484,12 +464,10 @@ void SV_InitGameProgs (void) {
 		SV_ShutdownGameProgs (qtrue);
 	}
 
-#ifndef _XBOX
 	if ( !Cvar_VariableIntegerValue("fs_restrict") && !Sys_CheckCD() ) 
 	{
 		Com_Error( ERR_NEED_CD, SE_GetString("CON_TEXT_NEED_CD") ); //"Game CD not in drive" );		
 	}
-#endif
 
 	// load a new game dll
 	import.Printf = Com_Printf;
@@ -542,10 +520,8 @@ void SV_InitGameProgs (void) {
 	import.FS_GetFileList = FS_GetFileList;
 
 	import.AppendToSaveGame = SG_Append;
-#ifndef _XBOX
 	import.ReadFromSaveGame	= SG_Read;
 	import.ReadFromSaveGameOptional = SG_ReadOptional;
-#endif
 
 	import.AdjustAreaPortalState = SV_AdjustAreaPortalState;
 	import.AreasConnected = CM_AreasConnected;
@@ -571,7 +547,6 @@ Ghoul2 Insert Start
 	import.G2API_GetBoneAnimIndex = G2API_GetBoneAnimIndex;
 	import.G2API_AddSurface = G2API_AddSurface;
 	import.G2API_HaveWeGhoul2Models =G2API_HaveWeGhoul2Models;
-#ifndef _XBOX
 	import.G2API_InitGhoul2Model = G2API_InitGhoul2Model;
 	import.G2API_SetBoneAngles = G2API_SetBoneAngles;
 	import.G2API_SetBoneAnglesMatrix = G2API_SetBoneAnglesMatrix;
@@ -580,7 +555,6 @@ Ghoul2 Insert Start
 	import.G2API_CopyGhoul2Instance = G2API_CopyGhoul2Instance;
 	import.G2API_SetBoneAnglesIndex = G2API_SetBoneAnglesIndex;
 	import.G2API_SetBoneAnimIndex = G2API_SetBoneAnimIndex;
-#endif
 	import.G2API_IsPaused = G2API_IsPaused;
 	import.G2API_ListBones = G2API_ListBones;
 	import.G2API_ListSurfaces = G2API_ListSurfaces;
@@ -642,10 +616,8 @@ Ghoul2 Insert Start
 	import.G2API_AddSkinGore = G2API_AddSkinGore;
 	import.G2API_ClearSkinGore = G2API_ClearSkinGore;
 
-#ifndef _XBOX
 	import.RMG_Init = RMG_Init;
 	import.CM_RegisterTerrain = InterfaceCM_RegisterTerrain;
-#endif
 	import.SetActiveSubBSP = SV_SetActiveSubBSP;
 
 	import.RE_RegisterSkin = RE_RegisterSkin;
@@ -672,12 +644,8 @@ Ghoul2 Insert End
 		Com_Error (ERR_DROP, "failed to load game DLL");
 
 	//hook up the client while we're here
-#ifdef _XBOX
-	VM_Create("cl");
-#else
 	if (!VM_Create("cl"))
 		Com_Error (ERR_DROP, "failed to attach to the client DLL");
-#endif
 
 	if (ge->apiversion != GAME_API_VERSION)
 		Com_Error (ERR_DROP, "game is version %i, not %i", ge->apiversion,

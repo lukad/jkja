@@ -704,9 +704,6 @@ Ghoul2 Insert End
 		CG_ForcePushBlur( cent->lerpOrigin );
 	}
 
-#ifdef _XBOX
-	ent.number = cent->currentState.number;
-#endif
 	CG_AddRefEntWithTransportEffect( cent, &ent );
 
 	if ( cent->gent->health <= 0 
@@ -1014,9 +1011,6 @@ Ghoul2 Insert End
 //		ent.nonNormalizedAxes = qtrue;
 //	}
 
-#ifdef _XBOX
-	ent.number = cent->currentState.number;
-#endif
 
 	// add to refresh list
 	cgi_R_AddRefEntityToScene(&ent);
@@ -1252,9 +1246,6 @@ Ghoul2 Insert End
 //		vec3_t	org;
 		if ( !(s1->eFlags & EF_NODRAW) )
 		{
-#ifdef _XBOX
-			ent.number = cent->currentState.number;
-#endif
 			// add to refresh list
 			CG_AddRefEntWithTransportEffect( cent, &ent );
 		}
@@ -1307,9 +1298,6 @@ Ghoul2 Insert End
 	}
 
 	// add to refresh list
-#ifdef _XBOX
-	ent.number = cent->currentState.number;
-#endif
 	CG_AddRefEntWithTransportEffect( cent, &ent );
 
 	if ((cg.snap->ps.forcePowersActive & (1 << FP_SEE)) 

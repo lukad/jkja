@@ -592,24 +592,6 @@ COLORS
 /*
 ** RB_CalcColorFromEntity
 */
-#ifdef _XBOX
-void RB_CalcColorFromEntity( DWORD *dstColors )
-{
-	int	i;
-	DWORD *pColors = dstColors;
-
-	if ( !backEnd.currentEntity )
-		return;
-
-	for ( i = 0; i < tess.numVertexes; i++, pColors++ )
-	{
-		*pColors = D3DCOLOR_RGBA((int)(backEnd.currentEntity->e.shaderRGBA[0]),
-								 (int)(backEnd.currentEntity->e.shaderRGBA[1]),
-								 (int)(backEnd.currentEntity->e.shaderRGBA[2]),
-								 (int)(backEnd.currentEntity->e.shaderRGBA[3]));
-	}
-}
-#else
 void RB_CalcColorFromEntity( unsigned char *dstColors )
 {
 	int	i;
@@ -626,35 +608,10 @@ void RB_CalcColorFromEntity( unsigned char *dstColors )
 		*pColors = c;
 	}
 }
-#endif // _XBOX
 
 /*
 ** RB_CalcColorFromOneMinusEntity
 */
-#ifdef _XBOX
-void RB_CalcColorFromOneMinusEntity( DWORD *dstColors )
-{
-	int	i;
-	DWORD *pColors = dstColors;
-	unsigned char invModulate[3];
-
-	if ( !backEnd.currentEntity )
-		return;
-
-	invModulate[0] = 255 - backEnd.currentEntity->e.shaderRGBA[0];
-	invModulate[1] = 255 - backEnd.currentEntity->e.shaderRGBA[1];
-	invModulate[2] = 255 - backEnd.currentEntity->e.shaderRGBA[2];
-	invModulate[3] = 255 - backEnd.currentEntity->e.shaderRGBA[3];	// this trashes alpha, but the AGEN block fixes it
-
-	for ( i = 0; i < tess.numVertexes; i++, pColors++ )
-	{
-		*pColors = D3DCOLOR_RGBA((int)invModulate[0],
-								 (int)invModulate[1],
-								 (int)invModulate[2],
-								 (int)invModulate[3]);
-	}
-}
-#else
 void RB_CalcColorFromOneMinusEntity( unsigned char *dstColors )
 {
 	int	i;
@@ -677,26 +634,10 @@ void RB_CalcColorFromOneMinusEntity( unsigned char *dstColors )
 		*pColors = * ( int * ) invModulate;
 	}
 }
-#endif // _XBOX
 
 /*
 ** RB_CalcAlphaFromEntity
 */
-#ifdef _XBOX
-void RB_CalcAlphaFromEntity( DWORD *dstColors )
-{
-	int	i;
-
-	if ( !backEnd.currentEntity )
-		return;
-
-	for ( i = 0; i < tess.numVertexes; i++, dstColors ++ )
-	{
-		DWORD rgb = (DWORD)((*dstColors) & 0x00ffffff);
-		*dstColors = rgb | ((backEnd.currentEntity->e.shaderRGBA[3] & 0xff) << 24);
-	}
-}
-#else
 void RB_CalcAlphaFromEntity( unsigned char *dstColors )
 {
 	int	i;
@@ -711,26 +652,10 @@ void RB_CalcAlphaFromEntity( unsigned char *dstColors )
 		*dstColors = backEnd.currentEntity->e.shaderRGBA[3];
 	}
 }
-#endif
 
 /*
 ** RB_CalcAlphaFromOneMinusEntity
 */
-#ifdef _XBOX
-void RB_CalcAlphaFromOneMinusEntity( DWORD *dstColors )
-{
-	int	i;
-
-	if ( !backEnd.currentEntity )
-		return;
-
-	for ( i = 0; i < tess.numVertexes; i++, dstColors ++ )
-	{
-		DWORD rgb = (DWORD)((*dstColors) & 0x00ffffff);
-		*dstColors = rgb | (((255 - backEnd.currentEntity->e.shaderRGBA[3]) & 0xff) << 24);
-	}
-}
-#else
 void RB_CalcAlphaFromOneMinusEntity( unsigned char *dstColors )
 {
 	int	i;
@@ -745,42 +670,10 @@ void RB_CalcAlphaFromOneMinusEntity( unsigned char *dstColors )
 		*dstColors = 0xff - backEnd.currentEntity->e.shaderRGBA[3];
 	}
 }
-#endif
 
 /*
 ** RB_CalcWaveColor
 */
-#ifdef _XBOX
-void RB_CalcWaveColor( const waveForm_t *wf, DWORD *dstColors )
-{
-	int i;
-	int v;
-	float glow;
-	DWORD *colors = dstColors;
-	byte	color[4];
-
-	if ( wf->func == GF_NOISE ) {
-		glow = wf->base + R_NoiseGet4f( 0, 0, 0, ( backEnd.refdef.floatTime + wf->phase ) * wf->frequency ) * wf->amplitude;
-	} else {
-		glow = EvalWaveForm( wf ) * tr.identityLight;
-	}
-
-	if ( glow < 0 ) {
-		glow = 0;
-	}
-	else if ( glow > 1 ) {
-		glow = 1;
-	}
-
-	v = myftol( 255 * glow );
-	color[0] = color[1] = color[2] = v;
-	color[3] = 255;
-
-	for ( i = 0; i < tess.numVertexes; i++, colors++ ) {
-		*colors = D3DCOLOR_RGBA(color[0], color[1], color[2], color[3]);
-	}
-}
-#else // _XBOX
 void RB_CalcWaveColor( const waveForm_t *wf, unsigned char *dstColors )
 {
 	int i;
@@ -811,29 +704,10 @@ void RB_CalcWaveColor( const waveForm_t *wf, unsigned char *dstColors )
 		*colors = v;
 	}
 }
-#endif // _XBOX
 
 /*
 ** RB_CalcWaveAlpha
 */
-#ifdef _XBOX
-void RB_CalcWaveAlpha( const waveForm_t *wf, DWORD *dstColors )
-{
-	int i;
-	int v;
-	float glow;
-
-	glow = EvalWaveFormClamped( wf );
-
-	v = 255 * glow;
-
-	for ( i = 0; i < tess.numVertexes; i++, dstColors ++ )
-	{
-		DWORD rgb = (DWORD)((*dstColors) & 0x00ffffff);
-		*dstColors = rgb | ((v & 0xff) << 24);
-	}
-}
-#else
 void RB_CalcWaveAlpha( const waveForm_t *wf, unsigned char *dstColors )
 {
 	int i;
@@ -849,32 +723,10 @@ void RB_CalcWaveAlpha( const waveForm_t *wf, unsigned char *dstColors )
 		dstColors[3] = v;
 	}
 }
-#endif
 
 /*
 ** RB_CalcModulateColorsByFog
 */
-#ifdef _XBOX
-void RB_CalcModulateColorsByFog( DWORD *colors ) {
-	int i;
-	float	texCoords[SHADER_MAX_VERTEXES][2];
-
-	// calculate texcoords so we can derive density
-	// this is not wasted, because it would only have
-	// been previously called if the surface was opaque
-	RB_CalcFogTexCoords( texCoords[0] );
-
-	for ( i = 0; i < tess.numVertexes; i++, colors ++ ) {
-		float f = 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] );
-		DWORD a, r, g, b;
-		a = (*colors & 0xff000000) >> 24;
-		r = ((*colors & 0x00ff0000) >> 16) * f;
-		g = ((*colors & 0x0000ff00) >> 8) * f;
-		b = (*colors & 0x000000ff) * f;
-		*colors = (DWORD)((a << 24) | (r << 16) | (g << 8) | b);
-	}
-}
-#else
 void RB_CalcModulateColorsByFog( unsigned char *colors ) {
 	int i;
 	float	texCoords[SHADER_MAX_VERTEXES][2];
@@ -891,29 +743,10 @@ void RB_CalcModulateColorsByFog( unsigned char *colors ) {
 		colors[2] *= f;
 	}
 }
-#endif
 
 /*
 ** RB_CalcModulateAlphasByFog
 */
-#ifdef _XBOX
-void RB_CalcModulateAlphasByFog( DWORD *colors ) {
-	int i;
-	float	texCoords[SHADER_MAX_VERTEXES][2];
-
-	// calculate texcoords so we can derive density
-	// this is not wasted, because it would only have
-	// been previously called if the surface was opaque
-	RB_CalcFogTexCoords( texCoords[0] );
-
-	for ( i = 0; i < tess.numVertexes; i++, colors ++ ) {
-		float f = 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] );
-		DWORD rgb = *colors & 0x00ffffff;
-		DWORD alpha = ((*colors & 0xff000000) >> 24) * f;
-		*colors = (alpha << 24) | rgb;
-	}
-}
-#else
 void RB_CalcModulateAlphasByFog( unsigned char *colors ) {
 	int i;
 	float	texCoords[SHADER_MAX_VERTEXES][2];
@@ -928,32 +761,10 @@ void RB_CalcModulateAlphasByFog( unsigned char *colors ) {
 		colors[3] *= f;
 	}
 }
-#endif
 
 /*
 ** RB_CalcModulateRGBAsByFog
 */
-#ifdef _XBOX
-void RB_CalcModulateRGBAsByFog( DWORD *colors ) {
-	int i;
-	float	texCoords[SHADER_MAX_VERTEXES][2];
-
-	// calculate texcoords so we can derive density
-	// this is not wasted, because it would only have
-	// been previously called if the surface was opaque
-	RB_CalcFogTexCoords( texCoords[0] );
-
-	for ( i = 0; i < tess.numVertexes; i++, colors ++ ) {
-		float f = 1.0 - R_FogFactor( texCoords[i][0], texCoords[i][1] );
-		DWORD a, r, g, b;
-		a = ((*colors & 0xff000000) >> 24) * f;
-		r = ((*colors & 0x00ff0000) >> 16) * f;
-		g = ((*colors & 0x0000ff00) >> 8) * f;
-		b = (*colors & 0x000000ff) * f;
-		*colors = (DWORD)((a << 24) | (r << 16) | (g << 8) | b);
-	}
-}
-#else
 void RB_CalcModulateRGBAsByFog( unsigned char *colors ) {
 	int i;
 	float	texCoords[SHADER_MAX_VERTEXES][2];
@@ -971,7 +782,6 @@ void RB_CalcModulateRGBAsByFog( unsigned char *colors ) {
 		colors[3] *= f;
 	}
 }
-#endif
 
 
 /*
@@ -1006,15 +816,9 @@ void RB_CalcFogTexCoords( float *st ) {
 
 	// all fogging distance is based on world Z units
 	VectorSubtract( backEnd.ori.origin, backEnd.viewParms.or.origin, localVec );
-#ifdef _XBOX
-	fogDistanceVector[0] = backEnd.ori.modelMatrix[2];
-	fogDistanceVector[1] = backEnd.ori.modelMatrix[6];
-	fogDistanceVector[2] = backEnd.ori.modelMatrix[10];
-#else
 	fogDistanceVector[0] = -backEnd.ori.modelMatrix[2];
 	fogDistanceVector[1] = -backEnd.ori.modelMatrix[6];
 	fogDistanceVector[2] = -backEnd.ori.modelMatrix[10];
-#endif
 	fogDistanceVector[3] = DotProduct( localVec, backEnd.viewParms.or.axis[0] );
 
 	// scale the fog vectors based on the fog's thickness
@@ -1237,61 +1041,6 @@ long myftol( float f ) {
 */
 vec3_t lightOrigin = { -960, 1980, 96 };		// FIXME: track dynamically
 
-#ifdef _XBOX
-void RB_CalcSpecularAlpha( DWORD *alphas ) {
-	int			i;
-	float		*v, *normal;
-	vec3_t		viewer,  reflected;
-	float		l, d;
-	int			a;
-	vec3_t		lightDir;
-	int			numVertexes;
-
-	v = tess.xyz[0];
-	normal = tess.normal[0];
-
-	numVertexes = tess.numVertexes;
-	for (i = 0 ; i < numVertexes ; i++, v += 4, normal += 4, alphas ++) {
-		float ilength;
-
-		if (backEnd.currentEntity && 
-			(backEnd.currentEntity->e.hModel||backEnd.currentEntity->e.ghoul2) )	//this is a model so we can use world lights instead fake light
-		{
-			VectorCopy (backEnd.currentEntity->lightDir, lightDir);
-		} else {
-			VectorSubtract( lightOrigin, v, lightDir );
-			VectorNormalizeFast( lightDir );
-		}
-		// calculate the specular color
-		d = 2 * DotProduct (normal, lightDir);
-
-		// we don't optimize for the d < 0 case since this tends to
-		// cause visual artifacts such as faceted "snapping"
-		reflected[0] = normal[0]*d - lightDir[0];
-		reflected[1] = normal[1]*d - lightDir[1];
-		reflected[2] = normal[2]*d - lightDir[2];
-
-		VectorSubtract (backEnd.ori.viewOrigin, v, viewer);
-		ilength = Q_rsqrt( DotProduct( viewer, viewer ) );
-		l = DotProduct (reflected, viewer);
-		l *= ilength;
-
-		if (l < 0) {
-			a = 0;
-		} else {
-			l = l*l;
-			l = l*l;
-			a = l * 255;
-			if (a > 255) {
-				a = 255;
-			}
-		}
-		DWORD rgb = (DWORD)((*alphas) & 0x00ffffff);
-
-		*alphas = rgb | (a & 0xff) << 24;
-	}
-}
-#else // _XBOX
 void RB_CalcSpecularAlpha( unsigned char *alphas ) {
 	int			i;
 	float		*v, *normal;
@@ -1346,7 +1095,6 @@ void RB_CalcSpecularAlpha( unsigned char *alphas ) {
 		*alphas = b;
 	}
 }
-#endif
 
 /*
 ** RB_CalcDiffuseColor

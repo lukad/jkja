@@ -52,7 +52,6 @@ namespace ratl
 #endif
 
 
-#ifndef _XBOX
 void	ratl_base::save(hfile& file)
 {
 }
@@ -60,7 +59,6 @@ void	ratl_base::save(hfile& file)
 void	ratl_base::load(hfile& file)
 {
 }
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // A Profile Print Function 

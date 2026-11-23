@@ -610,7 +610,6 @@ void WP_SaberSwingSound( gentity_t *ent, int saberNum, swingType_t swingType )
 	{
 		index = Q_irand( 7, 9 );
 	}
-#ifdef _IMMERSION
 	if ( ent->client->ps.saber[saberNum].type == SABER_SITH_SWORD )
 	{
 		G_SoundOnEnt( ent, CHAN_WEAPON, va( "sound/weapons/sword/swing%d.wav", Q_irand( 1, 4 ) ) );
@@ -619,17 +618,6 @@ void WP_SaberSwingSound( gentity_t *ent, int saberNum, swingType_t swingType )
 	{
 		G_SoundOnEnt( ent, CHAN_WEAPON, va( "sound/weapons/saber/saberhup%d.wav", index ) );
 	}
-	G_Force( ent, G_ForceIndex( va( "fffx/weapons/saber/saberhup%d", index ), FF_CHANNEL_WEAPON ) );
-#else
-	if ( ent->client->ps.saber[saberNum].type == SABER_SITH_SWORD )
-	{
-		G_SoundOnEnt( ent, CHAN_WEAPON, va( "sound/weapons/sword/swing%d.wav", Q_irand( 1, 4 ) ) );
-	}
-	else
-	{
-		G_SoundOnEnt( ent, CHAN_WEAPON, va( "sound/weapons/saber/saberhup%d.wav", index ) );
-	}
-#endif // _IMMERSION
 }
 
 void WP_SaberHitSound( gentity_t *ent, int saberNum )
@@ -639,18 +627,6 @@ void WP_SaberHitSound( gentity_t *ent, int saberNum )
 	{
 		return;
 	}
-#ifdef _IMMERSION
-	index = Q_irand( 1, 3 );
-	if ( ent->client->ps.saber[saberNum].type == SABER_SITH_SWORD )
-	{
-		G_Sound( ent, G_SoundIndex( va( "sound/weapons/sword/stab%d.wav", Q_irand( 1, 4 ) ) ) );
-	}
-	else
-	{	
-		G_Sound( ent, G_SoundIndex( va( "sound/weapons/saber/saberhit%d.wav", index ) ) );
-	}
-	G_Force( ent, G_ForceIndex( va( "fffx/weapons/saber/saberhit%d", index), FF_CHANNEL_WEAPON ) );
-#else
 	if ( ent->client->ps.saber[saberNum].type == SABER_SITH_SWORD )
 	{
 		G_Sound( ent, G_SoundIndex( va( "sound/weapons/sword/stab%d.wav", Q_irand( 1, 4 ) ) ) );
@@ -659,7 +635,6 @@ void WP_SaberHitSound( gentity_t *ent, int saberNum )
 	{
 		G_Sound( ent, G_SoundIndex( va( "sound/weapons/saber/saberhit%d.wav", Q_irand( 1, 3 ) ) ) );
 	}
-#endif // _IMMERSION
 
 	if(ent->client && ent->client->ps.clientNum == 0)
 		FF_Play(fffx_Laser1);
@@ -4929,39 +4904,11 @@ void WP_SaberDamageTrace( gentity_t *ent, int saberNum, int bladeNum )
 				{
 					if ( deflected )
 					{
-#ifdef _IMMERSION
-						int index = Q_irand(1,3);
-						G_Sound( ent, G_SoundIndex( va("sound/weapons/saber/saberbounce%d.wav", index) ) );
-						int ff = G_ForceIndex( va("fffx/weapons/saber/saberbounce%d", index), FF_CHANNEL_WEAPON );
-						if ( !ent->s.saberInFlight )
-						{
-							G_Force( ent, ff );
-						}
-						if ( hitOwner && !hitOwner->s.saberInFlight )
-						{
-							G_Force( hitOwner, ff );
-						}
-#else
 						G_Sound( ent, G_SoundIndex( va( "sound/weapons/saber/saberbounce%d.wav", Q_irand(1,3) ) ) );
-#endif // _IMMERSION
 					}
 					else
 					{
-#ifdef _IMMERSION
-						int index = Q_irand(1, 9);
-						G_Sound( ent, G_SoundIndex( va( "sound/weapons/saber/saberblock%d.wav", index) ) );
-						int ff = G_ForceIndex( va("fffx/weapons/saber/saberblock%d", index), FF_CHANNEL_WEAPON );
-						if ( !ent->s.saberInFlight )
-						{
-							G_Force( ent, ff );
-						}
-						if ( hitOwner && !hitOwner->s.saberInFlight )
-						{
-							G_Force( hitOwner, ff );
-						}
-#else
 						G_Sound( ent, G_SoundIndex( va( "sound/weapons/saber/saberblock%d.wav", Q_irand(1, 9) ) ) );
-#endif // _IMMERSION
 					}
 				}
 				if ( !g_saberNoEffects )
@@ -5062,21 +5009,7 @@ void WP_SaberDamageTrace( gentity_t *ent, int saberNum, int bladeNum )
 						FF_Play(fffx_Laser1);
 				}
 			}
-#ifdef _IMMERSION
-			int index = Q_irand(1, 9);
-			G_Sound( ent, G_SoundIndex( va( "sound/weapons/saber/saberblock%d.wav", index ) ) );
-			int ff = G_ForceIndex( va("fffx/weapons/saber/saberblock%d", index), FF_CHANNEL_WEAPON );
-			if ( !ent->s.saberInFlight )
-			{
-				G_Force( ent, ff );
-			}
-			if ( !g_entities[ent->client->ps.saberLockEnemy].s.saberInFlight )
-			{
-				G_Force( &g_entities[ent->client->ps.saberLockEnemy], ff );
-			}
-#else
 			G_Sound( ent, G_SoundIndex( va( "sound/weapons/saber/saberblock%d.wav", Q_irand(1, 9) ) ) );
-#endif // _IMMERSION
 		}
 	}
 
@@ -6234,16 +6167,6 @@ void WP_SaberDrop( gentity_t *self, gentity_t *saber )
 	self->client->ps.saber[0].DeactivateTrail( 75 );
 	//play the saber turning off sound
 	G_SoundIndexOnEnt( saber, CHAN_AUTO, self->client->ps.saber[0].soundOff );
-#ifdef _IMMERSION
-	if ( self->client->playerTeam == TEAM_PLAYER )
-	{
-		G_Force( self, G_ForceIndex( "fffx/weapons/saber/saberoff", FF_CHANNEL_WEAPON ) );
-	}
-	else
-	{
-		G_Force( self, G_ForceIndex( "fffx/weapons/saber/enemy_saber_off", FF_CHANNEL_WEAPON ) );
-	}
-#endif // _IMMERSION
 
 	if ( self->health <= 0 )
 	{//owner is dead!
@@ -6266,9 +6189,6 @@ void WP_SaberPull( gentity_t *self, gentity_t *saber )
 		saber->s.eFlags &= EF_BOUNCE_HALF;
 		//play sound
 		G_Sound( self, G_SoundIndex( "sound/weapons/force/pull.wav" ) );
-#ifdef _IMMERSION
-		G_Force( self, G_ForceIndex( "fffx/weapons/force/pull", FF_CHANNEL_WEAPON ) );
-#endif // _IMMERSION
 	}
 }
 
@@ -8174,9 +8094,6 @@ void ForceThrow( gentity_t *self, qboolean pull, qboolean fake )
 	int			anim, hold, soundIndex, cost, actualCost;
 	qboolean	noResist = qfalse;
 
-#ifdef _IMMERSION
-	int			forceIndex;
-#endif // _IMMERSION
 	if ( self->health <= 0 )
 	{
 		return;
@@ -8245,9 +8162,6 @@ void ForceThrow( gentity_t *self, qboolean pull, qboolean fake )
 		//make sure this plays and that you cannot press fire for about 200ms after this
 		anim = BOTH_FORCEPULL;
 		soundIndex = G_SoundIndex( "sound/weapons/force/pull.wav" );
-#ifdef _IMMERSION
-		forceIndex = G_ForceIndex( "fffx/weapons/force/pull", FF_CHANNEL_WEAPON );
-#endif // _IMMERSION
 		hold = 200;
 	}
 	else
@@ -8260,9 +8174,6 @@ void ForceThrow( gentity_t *self, qboolean pull, qboolean fake )
 		//make sure this plays and that you cannot press fire for about 1 second after this
 		anim = BOTH_FORCEPUSH;
 		soundIndex = G_SoundIndex( "sound/weapons/force/push.wav" );
-#ifdef _IMMERSION
-		forceIndex = G_ForceIndex( "fffx/weapons/force/push", FF_CHANNEL_WEAPON );
-#endif // _IMMERSION
 		hold = 650;
 	}
 
@@ -8295,9 +8206,6 @@ void ForceThrow( gentity_t *self, qboolean pull, qboolean fake )
 	self->client->pushEffectFadeTime = 0;
 
 	G_Sound( self, soundIndex );
-#ifdef _IMMERSION
-	G_Force( self, forceIndex );
-#endif // _IMMERSION
 
 	if ( (!pull && self->client->ps.forcePowersForced&(1<<FP_PUSH))
 		|| (pull && self->client->ps.forcePowersForced&(1<<FP_PULL)) 
@@ -9330,9 +9238,6 @@ void ForceSpeed( gentity_t *self, int duration )
 		self->client->ps.forcePowerDuration[FP_SPEED] = level.time + duration;
 	}
 	G_Sound( self, G_SoundIndex( "sound/weapons/force/speed.wav" ) );
-#ifdef _IMMERSION
-	G_Force( self, G_ForceIndex( "fffx/weapons/force/speed", FF_CHANNEL_WEAPON ) );
-#endif // _IMMERSION
 }
 
 void WP_StartForceHealEffects( gentity_t *self )
@@ -9518,9 +9423,6 @@ void ForceHeal( gentity_t *self )
 	
 	//FIXME: always play healing effect
 	G_SoundOnEnt( self, CHAN_ITEM, "sound/weapons/force/heal.mp3" );
-#ifdef _IMMERSION
-	G_Force( self, G_ForceIndex( "fffx/weapons/force/heal", FF_CHANNEL_WEAPON ) );
-#endif // _IMMERSION
 }
 
 extern void NPC_PlayConfusionSound( gentity_t *self );
@@ -10072,9 +9974,6 @@ void ForceGrip( gentity_t *self )
 					//turn it off?
 					traceEnt->client->ps.SaberDeactivate();
 					G_SoundOnEnt( traceEnt, CHAN_WEAPON, "sound/weapons/saber/saberoffquick.wav" );
-#ifdef _IMMERSION
-					G_Force( traceEnt, G_ForceIndex( "fffx/weapons/saber/saberoffquick", FF_CHANNEL_WEAPON ) );
-#endif // _IMMERSION
 				}
 			}
 		}
@@ -10095,10 +9994,6 @@ void ForceGrip( gentity_t *self )
 		{//empty vehicles don't make gripped noise
 			traceEnt->s.loopSound = G_SoundIndex( "sound/weapons/force/grip.mp3" );
 		}
-#ifdef _IMMERSION
-		G_Force( self, G_ForceIndex( "fffx/weapons/force/gripcast", FF_CHANNEL_FORCE ) );
-		//G_Force( traceEnt, G_ForceIndex( "fffx/weapons/force/grip", FF_CHANNEL_DAMAGE ) );
-#endif // _IMMERSION
 	}
 	else
 	{
@@ -10232,9 +10127,6 @@ void ForceLightning( gentity_t *self )
 	self->client->ps.saberBlocked = BLOCKED_NONE;
 
 	G_SoundOnEnt( self, CHAN_BODY, "sound/weapons/force/lightning.wav" );
-#ifdef _IMMERSION
-	G_Force( self, G_ForceIndex( "fffx/weapons/force/lightning", FF_CHANNEL_WEAPON ) );
-#endif // _IMMERSION
 	if ( self->client->ps.forcePowerLevel[FP_LIGHTNING] < FORCE_LEVEL_2 )
 	{//short burst
 		//G_SoundOnEnt( self, CHAN_BODY, "sound/weapons/force/lightning.wav" );
@@ -10583,19 +10475,6 @@ void WP_DeactivateSaber( gentity_t *self, qboolean clearLength )
 			self->client->ps.SetSaberLength( 0 );
 		}
 		G_SoundIndexOnEnt( self, CHAN_WEAPON, self->client->ps.saber[0].soundOff );
-#ifdef _IMMERSION
-		if ( !self->s.number )
-		{//this is kind of silly to try to do on an NPC
-			if ( self->client->playerTeam == TEAM_PLAYER )
-			{
-				G_Force( self, G_ForceIndex( "fffx/weapons/saber/saberoff", FF_CHANNEL_WEAPON ) );
-			}
-			else
-			{
-				G_Force( self, G_ForceIndex( "fffx/weapons/saber/enemy_saber_off", FF_CHANNEL_WEAPON ) );
-			}
-		}
-#endif // _IMMERSION
 	}
 }
 
@@ -11601,9 +11480,6 @@ void ForceJumpCharge( gentity_t *self, usercmd_t *ucmd )
 	if ( !self->client->ps.forceJumpCharge )
 	{//FIXME: this should last only as long as the actual charge-up
 		G_SoundOnEnt( self, CHAN_BODY, "sound/weapons/force/jumpbuild.wav" );
-#ifdef _IMMERSION
-		G_Force( self, G_ForceIndex( "fffx/weapons/force/jumpbuild", FF_CHANNEL_WEAPON ) );
-#endif // _IMMERSION
 	}
 	//Increment
 	self->client->ps.forceJumpCharge += forceJumpChargeInterval;
@@ -11739,9 +11615,6 @@ void ForceJump( gentity_t *self, usercmd_t *ucmd )
 	{
 		G_SoundOnEnt( self, CHAN_BODY, "sound/weapons/force/jump.wav" );
 	}
-#ifdef _IMMERSION
-	G_Force( self, G_ForceIndex( "fffx/weapons/force/jump", FF_CHANNEL_WEAPON ) );
-#endif // _IMMERSION
 
 	float forceJumpChargeInterval = forceJumpStrength[self->client->ps.forcePowerLevel[FP_LEVITATION]]/(FORCE_JUMP_CHARGE_TIME/FRAMETIME);
 
@@ -12661,9 +12534,6 @@ static void WP_ForcePowerRun( gentity_t *self, forcePowers_t forcePower, usercmd
 						}
 					}
 				}
-#ifdef _IMMERSION
-				G_Force( self, G_ForceIndex( va( "fffx/weapons/force/heal%d", index ), FF_CHANNEL_WEAPON ) );
-#endif // _IMMERSION
 			}
 			WP_ForcePowerStop( self, forcePower );
 		}

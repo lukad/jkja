@@ -117,15 +117,6 @@ void UI_SetActiveMenu( const char* menuname,const char *menuID )
 	}
 	
 //JLF SPLASHMAIN MPSKIPPED
-#ifdef _XBOX
-	{
-		Menus_CloseAll();
-		if (Menus_ActivateByName(menuname))
-			ui.Key_SetCatcher( KEYCATCH_UI );
-		else
-			UI_MainMenu();
-	}
-#endif
 
 }
 

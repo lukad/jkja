@@ -150,11 +150,7 @@ cvar_t	*g_weaponRespawn;
 cvar_t	*g_subtitles;
 cvar_t	*g_ICARUSDebug;
 
-#ifdef _XBOX
-extern cvar_t *com_buildScript;
-#else
 cvar_t	*com_buildScript;
-#endif
 
 cvar_t	*g_skippingcin;
 cvar_t	*g_AIsurrender;
@@ -786,12 +782,6 @@ void InitGame(  const char *mapname, const char *spawntarget, int checkSum, cons
 	level.curAlertID = 1;//0 is default for lastAlertEvent, so...
 	eventClearTime = 0;
 
-#ifdef _XBOX
-	// clear out NPC water detection data
-	npcsToUpdateTop		= 0;
-	npcsToUpdateCount	= 0;
-	memset(npcsToUpdate, -1, 2 * MAX_NPC_WATER_UPDATE);
-#endif // _XBOX
 
 }
 
@@ -805,12 +795,6 @@ void ShutdownGame( void )
 	// write all the client session data so we can get it back
 	G_WriteSessionData(); 
 
-#ifdef _XBOX
-	// The following functions, cleverly disguised as memory freeing and dealloction,
-	// actually allocate small blocks. Fooled you!
-	extern void Z_SetNewDeleteTemporary(bool bTemp);
-	Z_SetNewDeleteTemporary( true );
-#endif
 
 	// Destroy the Game Interface.
 	IGameInterface::Destroy();
@@ -821,9 +805,6 @@ void ShutdownGame( void )
 	// Destroy the Game Interface again.  Only way to really free everything.
 	IGameInterface::Destroy();
 
-#ifdef _XBOX
-	Z_SetNewDeleteTemporary( false );
-#endif
 
 	TAG_Init();	//Clear the reference tags
 /*
@@ -2218,14 +2199,6 @@ extern int delayedShutDown;
 	}
 #endif
 
-#ifdef _XBOX
-	// update the water levels for npcs
-	extern void UpdateNPCWaterLevels(void);
-	UpdateNPCWaterLevels();
-
-	// Kill off any AI that are lingering!
-	G_FreeUselessEnemies();
-#endif // _XBOX
 }
 
 

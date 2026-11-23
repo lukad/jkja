@@ -14,14 +14,12 @@ extern int		mapPoolBlockCount;
 // Used to fool optimizer during compilation of mem touch routines.
 int HaHaOptimizer2=0;
 
-#ifndef _XBOX
 CMapPoolLow &GetMapPool()
 {
 	// this may need to be ifdefed to be different for different modules
 	static CMapPoolLow thePool;
 	return thePool;
 }
-#endif
 
 #define MAPBLOCK_SIZE_NODES	(1024)
 #define MAPNODE_FREE		(0xa1)
@@ -63,7 +61,6 @@ public:
 	}
 };
 
-#ifndef _XBOX
 CMapPoolLow::CMapPoolLow()
 {
 	mLastBlockNum=-1;	
@@ -178,7 +175,6 @@ void CMapPoolLow::TouchMem()
 	Com_Printf("MapPool: Bytes touched %i\n",totSize);
 #endif
 }
-#endif // _XBOX
 
 ////////////
 // hString stuff
@@ -464,10 +460,6 @@ void TouchStringPool(void)
 //
 // Now the rest of the hString class.
 //
-#ifdef _XBOX
-namespace exeNamespace
-{
-#endif
 
 void hstring::Init(const char *str)
 {
@@ -520,6 +512,3 @@ string hstring::str(void) const
 	return string(gCharPtrs[mId]);
 }
 
-#ifdef _XBOX
-} // exeNamespace
-#endif

@@ -7,18 +7,10 @@
 
 #include "../RMG/RM_Headers.h"
 
-#ifdef VV_LIGHTING
-#include "../renderer/tr_lightmanager.h"
-#endif
 	   		
 
 #include "client.h"
-#ifdef _IMMERSION
-#include "../ff/cl_ff.h"
-#include "../ff/ff.h"
-#else
 #include "fffx.h"
-#endif // _IMMERSION
 #include "vmachine.h"
 
 vm_t	cgvm;
@@ -374,19 +366,11 @@ CL_CM_LoadMap
 Just adds default parameters that cgame doesn't need to know about
 ====================
 */
-#ifdef _XBOX
-void CL_CM_LoadMap( const char *mapname ) {
-	int		checksum;
-
-	CM_LoadMap( mapname, qtrue, &checksum );
-}
-#else
 void CL_CM_LoadMap( const char *mapname, qboolean subBSP ) {
 	int		checksum;
 
 	CM_LoadMap( mapname, qtrue, &checksum, subBSP );
 }
-#endif // _XBOX
 
 /*
 ====================
@@ -401,9 +385,7 @@ void CL_ShutdownCGame( void ) {
 		return;
 	}
 	VM_Call( CG_SHUTDOWN );
-#ifndef _XBOX	// Not using it
 	RM_ShutdownTerrain();
-#endif
 
 //	VM_Free( cgvm );
 //	cgvm = NULL;
@@ -485,12 +467,6 @@ int CL_CgameSystemCalls( int *args ) {
 		SCR_UpdateScreen();
 		return 0;
 
-#ifdef _XBOX
-	case CG_RMG_INIT:
-	case CG_CM_REGISTER_TERRAIN:
-	case CG_RE_INIT_RENDERER_TERRAIN:
-		Com_Error( ERR_FATAL, "ERROR: Terrain unsupported on Xbox.\n" );
-#else
 	case CG_RMG_INIT:
 		/*
 		if (!com_sv_running->integer)
@@ -517,14 +493,9 @@ int CL_CgameSystemCalls( int *args ) {
 	case CG_RE_INIT_RENDERER_TERRAIN:
 		RE_InitRendererTerrain((const char *)VMA(1));
 		return 0;
-#endif	// _XBOX
 
 	case CG_CM_LOADMAP:
-#ifdef _XBOX
-		CL_CM_LoadMap( (const char *) VMA(1) );
-#else
 		CL_CM_LoadMap( (const char *) VMA(1), args[2] );
-#endif
 		return 0;
 	case CG_CM_NUMINLINEMODELS:
 		return CM_NumInlineModels();
@@ -609,25 +580,6 @@ int CL_CgameSystemCalls( int *args ) {
 		return 0;
 	case CG_S_GETSAMPLELENGTH:
 		return S_GetSampleLengthInMilliSeconds(  args[1]);
-#ifdef _IMMERSION
-	case CG_FF_START:
-		CL_FF_Start( (ffHandle_t) args[1], (int) args[2] );
-		return 0;
-	case CG_FF_STOP:
-		CL_FF_Stop( (ffHandle_t) args[1], (int) args[2] );
-		return 0;
-	case CG_FF_STOPALL:
-		FF_StopAll();
-		return 0;
-	case CG_FF_SHAKE:
-		FF_Shake( (int) args[1], (int) args[2] );
-		return 0;
-	case CG_FF_REGISTER:
-		return FF_Register( (const char *) VMA(1), (int) args[2] );
-	case CG_FF_ADDLOOPINGFORCE:
-		CL_FF_AddLoopingForce( (ffHandle_t) args[1], (int) args[2] );
-		return 0;
-#else
 	case CG_FF_STARTFX:
 		FFFX_START( (ffFX_e) args[1] );
 		return 0;
@@ -640,15 +592,6 @@ int CL_CgameSystemCalls( int *args ) {
 	case CG_FF_STOPALLFX:
 		FFFX_STOPALL;
 		return 0;
-#endif // _IMMERSION
-#ifdef _XBOX
-	case CG_FF_XBOX_SHAKE:
-		FF_XboxShake( VMF(1), (int) args[2] );
-		return 0;
-	case CG_FF_XBOX_DAMAGE:
-		FF_XboxDamage( (int) args[1], VMF(2) );
-		return 0;
-#endif
 	case CG_R_LOADWORLDMAP:
 		re.LoadWorld( (const char *) VMA(1) );
 		return 0; 
@@ -699,11 +642,7 @@ int CL_CgameSystemCalls( int *args ) {
 		re.AddPolyToScene( args[1], args[2], (const polyVert_t *) VMA(3) );
 		return 0;
 	case CG_R_ADDLIGHTTOSCENE:
-#ifdef VV_LIGHTING
-		VVLightMan.RE_AddLightToScene ( (const float *) VMA(1), VMF(2), VMF(3), VMF(4), VMF(5) );
-#else
 		re.AddLightToScene( (const float *) VMA(1), VMF(2), VMF(3), VMF(4), VMF(5) );
-#endif
 		return 0;
 	case CG_R_RENDERSCENE:
 		re.RenderScene( (const refdef_t *) VMA(1) );
@@ -823,11 +762,9 @@ Ghoul2 Insert End
 	case CG_CIN_RUNCINEMATIC:
 	  return CIN_RunCinematic(args[1]);
 
-#ifndef _XBOX
 	case CG_CIN_DRAWCINEMATIC:
 	  CIN_DrawCinematic(args[1]);
 	  return 0;
-#endif
 
 	case CG_CIN_SETEXTENTS:
 	  CIN_SetExtents(args[1], args[2], args[3], args[4], args[5]);
@@ -1243,38 +1180,7 @@ void CL_FirstSnapshot( void ) {
 	
 	Sys_BeginProfiling();
 
-#ifdef _XBOX
-	// turn vsync back on - tearing is ugly
-	qglEnable(GL_VSYNC);
-#endif
 
-#ifdef XBOX_DEMO
-	// It's convenient, so I call this the "end of loading" for timer pausing
-	extern void Demo_TimerPause( bool bPaused );
-	Demo_TimerPause( false );
-
-	// Need to copy in the force powers (that were configured in the front-end)
-	playerState_t *pState = svs.clients[0].gentity->client;
-	extern int demoForcePowerLevel[16];
-	pState->forcePowersKnown = 0;
-	for( int i = 0; i < NUM_FORCE_POWERS; ++i )
-	{
-		pState->forcePowerLevel[i] = demoForcePowerLevel[i];
-		if( pState->forcePowerLevel[i] )
-			pState->forcePowersKnown |= (1 << i);
-	}
-
-	// Give us the right weapons, and max ammo:
-	extern int demoWeapon1;
-	extern int demoWeapon2;
-	extern int demoThrowable;
-	pState->stats[STAT_WEAPONS] = 1 << WP_SABER;
-	Cbuf_ExecuteText( EXEC_APPEND, "give weaponnum 2\n" );
-	Cbuf_ExecuteText( EXEC_APPEND, va("give weaponnum %d\n", demoWeapon1) );
-	Cbuf_ExecuteText( EXEC_APPEND, va("give weaponnum %d\n", demoWeapon2) );
-	Cbuf_ExecuteText( EXEC_APPEND, va("give weaponnum %d\n", demoThrowable) );
-	Cbuf_ExecuteText( EXEC_APPEND, "give ammo\n" );
-#else
 	// Goodies?
 	cvar_t*	levelSelectCheat	= Cvar_Get("levelSelectCheat", "-1", CVAR_SAVEGAME);
 	if(  levelSelectCheat->integer >= 0 )
@@ -1296,7 +1202,6 @@ void CL_FirstSnapshot( void ) {
 		// Set all remaining neutral powers to cheat level:
 		Cbuf_ExecuteText( EXEC_APPEND, va("setForcePush %d\nsetForcePull %d\nsetForceSpeed %d\nsetForceJump %d\nsetForceSight %d\n", n, n, n, n, n) );
 	}
-#endif
 }
 
 /*

@@ -408,7 +408,6 @@ void CG_DrawNumField (int x, int y, int width, int value,int charWidth,int charH
 */
 	}
 
-#ifndef _XBOX
 	if ( zeroFill )
 	{
 		for (int i = 0; i < (width - l); i++ )
@@ -432,7 +431,6 @@ void CG_DrawNumField (int x, int y, int width, int value,int charWidth,int charH
 		}
 	}
 	else
-#endif
 	{
 		x += 2 + (xWidth)*(width - l);
 	}

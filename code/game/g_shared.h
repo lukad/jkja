@@ -13,9 +13,6 @@
 
 #define	FOFS(x) ((int)&(((gentity_t *)0)->x))
 
-#ifdef _XBOX
-#define MAX_NPC_WATER_UPDATE_PER_FRAME	2	// maxmum number of NPCs that will get updated water infromation per frame
-#endif
 
 typedef enum //# taskID_e
 {
@@ -875,14 +872,6 @@ typedef struct weaponInfo_s {
 
 	sfxHandle_t		selectSound;	// sound played when weapon is selected
 
-#ifdef _IMMERSION
-	ffHandle_t		firingForce;
-	ffHandle_t		altFiringForce;
-	ffHandle_t		stopForce;
-	ffHandle_t		chargeForce;
-	ffHandle_t		altChargeForce;
-	ffHandle_t		selectForce;
-#endif // _IMMERSION
 } weaponInfo_t;
 
 extern sfxHandle_t CAS_GetBModelSound( const char *name, int stage );

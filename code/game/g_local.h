@@ -299,10 +299,6 @@ void G_PlayEffect( int fxID, const vec3_t origin, const vec3_t fwd );
 void G_PlayEffect( int fxID, const vec3_t origin, const vec3_t axis[3] );
 void G_PlayEffect( int fxID, const int modelIndex, const int boltIndex, const int entNum, const vec3_t origin, int iLoopTime = qfalse, qboolean isRelative = qfalse );//iLoopTime 0 = not looping, 1 for infinite, else duration
 void G_PlayEffect( int fxID, int entNum, const vec3_t fwd );
-#ifdef _IMMERSION
-void G_PlayEffect( const char *name, int clientNum, const vec3_t origin, const vec3_t fwd );
-void G_PlayEffect( int fxID, int clientNum, const vec3_t origin, const vec3_t fwd );
-#endif // _IMMERSION
 void G_StopEffect( int fxID, const int modelIndex, const int boltIndex, const int entNum );
 void G_StopEffect(const char *name, const int modelIndex, const int boltIndex, const int entNum );
 
@@ -322,13 +318,6 @@ gentity_t *G_TempEntity( const vec3_t origin, int event );
 void	G_Sound( gentity_t *ent, int soundIndex );
 void	G_FreeEntity( gentity_t *e );
 
-#ifdef _IMMERSION
-int		G_ForceIndex( const char *name, int channel );
-void	G_Force( gentity_t *ent, int forceIndex );
-void	G_ForceArea( gentity_t *ent, int forceIndex );
-void	G_ForceBroadcast( gentity_t *ent, int forceIndex );
-void	G_ForceStop( gentity_t* ent, int forceIndex );
-#endif // _IMMERSION
 void	G_TouchTriggers (gentity_t *ent);
 void	G_TouchTeamClients (gentity_t *ent);
 void	G_TouchSolids (gentity_t *ent);
@@ -613,15 +602,5 @@ void		TIMER_Remove( gentity_t *ent, const char *identifier );
 float NPC_GetHFOVPercentage( vec3_t spot, vec3_t from, vec3_t facing, float hFOV );
 float NPC_GetVFOVPercentage( vec3_t spot, vec3_t from, vec3_t facing, float vFOV );
 
-#ifdef _XBOX
-// data used for NPC water detection
-#define MAX_NPC_WATER_UPDATE 64						// maximum npcs that can be waiting for a water update
-#define	MAX_NPC_WATER_UPDATES_PER_FRAME 2			// updates per frame
-
-extern	short	npcsToUpdate[MAX_NPC_WATER_UPDATE];	// queue of npcs
-extern	short	npcsToUpdateTop;					// top of the queue
-extern	short	npcsToUpdateCount;					// number of npcs in the queue
-
-#endif // _XBOX
 
 #endif//#ifndef __G_LOCAL_H__

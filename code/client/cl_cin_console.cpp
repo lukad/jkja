@@ -365,11 +365,6 @@ bool CIN_PlayAllFrames( const char *arg, int x, int y, int w, int h, int systemB
 	// PC hack
 	qbInGameCinematicOnStandBy = qfalse;
 
-#ifdef XBOX_DEMO
-	// When run from CDX, we can pause the timer during cutscenes:
-	extern void Demo_TimerPause( bool bPaused );
-	Demo_TimerPause( true );
-#endif
 
 	int Handle = CIN_PlayCinematic(arg, x, y, w, h, systemBits, NULL);
 	if (Handle != -1)
@@ -380,20 +375,9 @@ bool CIN_PlayAllFrames( const char *arg, int x, int y, int w, int h, int systemB
 			IN_Frame			();
 			Com_EventLoop		();
 		}
-#ifdef _XBOX
-//		while (CIN_RunCinematic(Handle) == FMV_PLAY && !(keyBreakAllowed && !kg.anykeydown))
-//		{
-//			SCR_UpdateScreen	();
-//			IN_Frame			();
-//			Com_EventLoop		();
-//		}
-#endif
 		CIN_StopCinematic(Handle);
 	}
 
-#ifdef XBOX_DEMO
-	Demo_TimerPause( false );
-#endif
 
 	retval =(keyBreakAllowed && kg.anykeydown);
 	Key_ClearStates();

@@ -267,7 +267,6 @@ DEBUG GRAPH
 
 ===============================================================================
 */
-#ifndef _XBOX
 typedef struct
 {
 	float	value;
@@ -324,7 +323,6 @@ void SCR_DrawDebugGraph (void)
 		re.DrawStretchPic( x+w-1-a, y - h, 1, h, 0, 0, 0, 0, 0 );
 	}
 }
-#endif	// _XBOX
 //=============================================================================
 
 /*
@@ -362,7 +360,6 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 
 	// wide aspect ratio screens need to have the sides cleared
 	// unless they are displaying game renderings
-#ifndef _XBOX
 	// Xbox no want this
 	if ( cls.state != CA_ACTIVE ) {
 		if ( cls.glconfig.vidWidth * 480 > cls.glconfig.vidHeight * 640 ) {
@@ -371,7 +368,6 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 			re.SetColor( NULL );
 		}
 	}
-#endif
 
 	// if the menu is going to cover the entire screen, we
 	// don't need to render anything under it
@@ -415,9 +411,7 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 		}
 	}
 
-#ifndef _XBOX // on xbox this is rendered right before a flip
 	re.ProcessDissolve();
-#endif // _XBOX
 
 	// draw downloading progress bar
 
@@ -428,11 +422,9 @@ void SCR_DrawScreenField( stereoFrame_t stereoFrame ) {
 //	Con_DrawConsole ();
 
 	// debug graph can be drawn on top of anything
-#ifndef _XBOX
 	if ( cl_debuggraph->integer || cl_timegraph->integer ) {
 		SCR_DrawDebugGraph ();
 	}
-#endif
 }
 
 /*
@@ -477,99 +469,3 @@ void SCR_UpdateScreen( void ) {
 
 // this stuff is only used by the savegame (SG) code for screenshots...
 //
-#ifdef _XBOX
-
-/*
-static byte	bScreenData[SG_SCR_WIDTH * SG_SCR_HEIGHT * 4];
-static qboolean screenDataValid = qfalse;
-void SCR_UnprecacheScreenshot()
-{
-	screenDataValid = qfalse;
-}
-*/
-
-void SCR_PrecacheScreenshot()
-{
-	// No screenshots unless connected to single player local server...
-	//
-//	char *psInfo = cl.gameState.stringData + cl.gameState.stringOffsets[ CS_SERVERINFO ];
-//	int iMaxClients = atoi(Info_ValueForKey( psInfo, "sv_maxclients" ));		
-
-	// (no need to check single-player status in voyager, this code base is all singleplayer)
-	if ( cls.state != CA_ACTIVE )
-	{	
-		return;
-	}
-
-#ifndef _XBOX
-	if (cls.keyCatchers == 0)
-	{
-		// in-game...
-		//
-//		SCR_UnprecacheScreenshot();
-//		pbScreenData = (byte *)Z_Malloc(SG_SCR_WIDTH * SG_SCR_HEIGHT * 4);		
-		S_ClearSoundBuffer();	// clear DMA etc because the following glReadPixels() call can take ages
-		re.GetScreenShot( (byte *) &bScreenData, SG_SCR_WIDTH, SG_SCR_HEIGHT);
-		screenDataValid = qtrue;
-	}
-	else
-	{
-		// we're in the console, or menu, or message input...
-		//
-	}
-#endif
-
-	// save the current screenshot to the user space to be used
-	// with a savegame
-#ifdef _XBOX
-	extern void SaveCompressedScreenshot( void );
-	SaveCompressedScreenshot();
-#endif
-
-}
-
-/*
-byte *SCR_GetScreenshot(qboolean *qValid)
-{
-	if (!screenDataValid) {
-		SCR_PrecacheScreenshot();
-	}
-	if (qValid) {
-		*qValid = screenDataValid;
-	}
-	return (byte *)&bScreenData;
-}
-
-// called from save-game code to set the lo-res loading screen to be the one from the save file...
-//
-void SCR_SetScreenshot(const byte *pbData, int w, int h)
-{
-	if (w == SG_SCR_WIDTH && h == SG_SCR_HEIGHT)
-	{
-		screenDataValid = qtrue;
-		memcpy(&bScreenData, pbData, SG_SCR_WIDTH*SG_SCR_HEIGHT*4);
-	}
-	else
-	{
-		screenDataValid = qfalse;
-		memset(&bScreenData, 0,      SG_SCR_WIDTH*SG_SCR_HEIGHT*4);
-	}
-}
-*/
-
-// This is just a client-side wrapper for the function RE_TempRawImage_ReadFromFile() in the renderer code...
-//
-/*
-byte* SCR_TempRawImage_ReadFromFile(const char *psLocalFilename, int *piWidth, int *piHeight, byte *pbReSampleBuffer, qboolean qbVertFlip)
-{
-	return re.TempRawImage_ReadFromFile(psLocalFilename, piWidth, piHeight, pbReSampleBuffer, qbVertFlip);
-}
-//
-// ditto (sort of)...
-//
-void  SCR_TempRawImage_CleanUp()
-{
-	re.TempRawImage_CleanUp();
-}
-*/
-#endif

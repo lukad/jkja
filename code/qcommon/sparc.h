@@ -39,9 +39,6 @@ Elements must define operator==, operator!=, and sizeof.
 #ifndef __SPARC_H
 #define __SPARC_H
 
-#ifdef _GAMECUBE
-#define SPARC_BIG_ENDIAN
-#endif
 
 //Bigger than a short, smaller than an int.
 #pragma pack(push, 1)

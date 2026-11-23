@@ -9,9 +9,6 @@
 #include "..\game\objectives.h"
 #include "..\game\g_vehicles.h"
 
-#ifdef _XBOX
-#include "../client/fffx.h"
-#endif
 
 extern vmCvar_t	cg_debugHealthBars;
 
@@ -203,15 +200,6 @@ static void CG_DrawForcePower(const centity_t *cent,const int xPos,const int yPo
 		}
 
 		cgi_R_SetColor( calcColor);
-#ifdef _XBOX
-		if(cg.widescreen)
-			CG_DrawPic( forceTics[i].xPos + 80, 
-			forceTics[i].yPos, 
-			forceTics[i].width, 
-			forceTics[i].height, 
-			forceTics[i].background );
-		else
-#endif
 		CG_DrawPic( forceTics[i].xPos, 
 			forceTics[i].yPos, 
 			forceTics[i].width, 
@@ -221,25 +209,6 @@ static void CG_DrawForcePower(const centity_t *cent,const int xPos,const int yPo
 		value -= inc;
 	}
 
-#ifdef _XBOX
-	// Add a black outline around the numbers
-	int xoff = 0;
-	float black[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-	cgi_R_SetColor( black );	
-
-	if(cg.widescreen)
-		xoff = 80;
-
-	CG_DrawNumField (
-		otherHUDBits[OHB_FORCEAMOUNT].xPos + xoff, 
-		otherHUDBits[OHB_FORCEAMOUNT].yPos, 
-		3, 
-		cent->gent->client->ps.forcePower, 
-		otherHUDBits[OHB_FORCEAMOUNT].width, 
-		otherHUDBits[OHB_FORCEAMOUNT].height, 
-		NUM_FONT_SMALL,
-		qtrue);
-#endif
 
 	if (flash)
 	{
@@ -251,19 +220,6 @@ static void CG_DrawForcePower(const centity_t *cent,const int xPos,const int yPo
 	}
 
 	// Print force numeric amount
-#ifdef _XBOX
-	if(cg.widescreen)
-		CG_DrawNumField (
-		otherHUDBits[OHB_FORCEAMOUNT].xPos + 80, 
-		otherHUDBits[OHB_FORCEAMOUNT].yPos, 
-		3, 
-		cent->gent->client->ps.forcePower, 
-		otherHUDBits[OHB_FORCEAMOUNT].width, 
-		otherHUDBits[OHB_FORCEAMOUNT].height, 
-		NUM_FONT_SMALL,
-		qfalse);
-	else
-#endif
 	CG_DrawNumField (
 		otherHUDBits[OHB_FORCEAMOUNT].xPos, 
 		otherHUDBits[OHB_FORCEAMOUNT].yPos, 
@@ -323,17 +279,6 @@ static void CG_DrawSaberStyle(const centity_t	*cent,const int xPos,const int yPo
 
 	cgi_R_SetColor( otherHUDBits[index].color);
 
-#ifdef _XBOX
-	if(cg.widescreen)
-		CG_DrawPic( 
-		otherHUDBits[index].xPos + 80,
-		otherHUDBits[index].yPos,
-		otherHUDBits[index].width, 
-		otherHUDBits[index].height, 
-		otherHUDBits[index].background 
-		);
-	else
-#endif
 	CG_DrawPic( 
 		otherHUDBits[index].xPos,
 		otherHUDBits[index].yPos,
@@ -417,42 +362,10 @@ static void CG_DrawAmmo(const centity_t	*cent,const int xPos,const int yPos)
 		}
 	}
 
-#ifdef _XBOX
-	// Add a black outline around the numbers
-	int xoff = 0;
-	float black[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-	cgi_R_SetColor( black );	
-
-	if(cg.widescreen)
-		xoff = 80;
-
-	CG_DrawNumField (
-		otherHUDBits[OHB_AMMOAMOUNT].xPos + xoff, 
-		otherHUDBits[OHB_AMMOAMOUNT].yPos, 
-		3, 
-		ps->ammo[weaponData[cent->currentState.weapon].ammoIndex], 
-		otherHUDBits[OHB_AMMOAMOUNT].width, 
-		otherHUDBits[OHB_AMMOAMOUNT].height, 
-		NUM_FONT_SMALL,
-		qtrue);
-#endif
 
 	// Print number amount
 	cgi_R_SetColor( calcColor );	
 
-#ifdef _XBOX
-	if(cg.widescreen)
-		CG_DrawNumField (
-		otherHUDBits[OHB_AMMOAMOUNT].xPos + 80, 
-		otherHUDBits[OHB_AMMOAMOUNT].yPos, 
-		3, 
-		ps->ammo[weaponData[cent->currentState.weapon].ammoIndex], 
-		otherHUDBits[OHB_AMMOAMOUNT].width, 
-		otherHUDBits[OHB_AMMOAMOUNT].height, 
-		NUM_FONT_SMALL,
-		qfalse);
-	else
-#endif
 	CG_DrawNumField (
 		otherHUDBits[OHB_AMMOAMOUNT].xPos, 
 		otherHUDBits[OHB_AMMOAMOUNT].yPos, 
@@ -484,15 +397,6 @@ static void CG_DrawAmmo(const centity_t	*cent,const int xPos,const int yPos)
 		}
 
 		cgi_R_SetColor( calcColor);
-#ifdef _XBOX
-		if(cg.widescreen)
-			CG_DrawPic( ammoTics[i].xPos + 80, 
-			ammoTics[i].yPos, 
-			ammoTics[i].width, 
-			ammoTics[i].height, 
-			ammoTics[i].background );
-		else
-#endif
 		CG_DrawPic( ammoTics[i].xPos, 
 			ammoTics[i].yPos, 
 			ammoTics[i].width, 
@@ -549,21 +453,6 @@ static void CG_DrawHealth(const int x,const int y,const int w,const int h)
 		currValue -= inc;
 	}
 
-#ifdef _XBOX
-	// Add a black outline around the numbers
-	float black[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-	cgi_R_SetColor( black );	
-
-	CG_DrawNumField (
-		otherHUDBits[OHB_HEALTHAMOUNT].xPos, 
-		otherHUDBits[OHB_HEALTHAMOUNT].yPos, 
-		3, 
-		ps->stats[STAT_HEALTH], 
-		otherHUDBits[OHB_HEALTHAMOUNT].width, 
-		otherHUDBits[OHB_HEALTHAMOUNT].height, 
-		NUM_FONT_SMALL,
-		qtrue);
-#endif
 
 	// Print force health amount
 	cgi_R_SetColor( otherHUDBits[OHB_HEALTHAMOUNT].color );	
@@ -645,21 +534,6 @@ static void CG_DrawArmor(const int x,const int y,const int w,const int h)
 		currValue -= inc;
 	}
 
-#ifdef _XBOX
-	// Add a black outline around the numbers
-	float black[4] = {0.0f, 0.0f, 0.0f, 1.0f};
-	cgi_R_SetColor( black );	
-
-	CG_DrawNumField (
-		otherHUDBits[OHB_ARMORAMOUNT].xPos, 
-		otherHUDBits[OHB_ARMORAMOUNT].yPos, 
-		3, 
-		ps->stats[STAT_ARMOR], 
-		otherHUDBits[OHB_ARMORAMOUNT].width, 
-		otherHUDBits[OHB_ARMORAMOUNT].height, 
-		NUM_FONT_SMALL,
-		qtrue);
-#endif
 
 	// Print armor amount
 	cgi_R_SetColor( otherHUDBits[OHB_ARMORAMOUNT].color );	
@@ -1768,9 +1642,6 @@ static void CG_DrawHUD( centity_t *cent )
 {
 	int value;
 	int	sectionXPos,sectionYPos,sectionWidth,sectionHeight;
-#ifdef _XBOX
-	float blackBar[4] = { 0.0429f, 0.078f, 1.0f, 0.4f };
-#endif
 
 	// Draw the lower left section of the HUD
 	if (cgi_UI_GetMenuInfo("lefthud",&sectionXPos,&sectionYPos,&sectionWidth,&sectionHeight))
@@ -1803,10 +1674,6 @@ static void CG_DrawHUD( centity_t *cent )
 			otherHUDBits[OHB_FRAME_LEFT].background 
 			);
 
-#ifdef _XBOX
-		CG_FillRect(otherHUDBits[OHB_HEALTHAMOUNT].xPos - 2, otherHUDBits[OHB_HEALTHAMOUNT].yPos - 2, 
-				otherHUDBits[OHB_HEALTHAMOUNT].width + 48, otherHUDBits[OHB_HEALTHAMOUNT].height + 4, blackBar);
-#endif
 
 		CG_DrawArmor(sectionXPos,sectionYPos,sectionWidth,sectionHeight);
 
@@ -1817,10 +1684,6 @@ static void CG_DrawHUD( centity_t *cent )
 	// Draw the lower right section of the HUD
 	if (cgi_UI_GetMenuInfo("righthud",&sectionXPos,&sectionYPos,&sectionWidth,&sectionHeight))
 	{
-#ifdef _XBOX
-		if(cg.widescreen)
-			sectionXPos += 80;
-#endif
 		// Draw armor & health values
 		if ( cg_drawStatus.integer == 2 ) 
 		{
@@ -1835,17 +1698,6 @@ static void CG_DrawHUD( centity_t *cent )
 		// Print scanline
 		cgi_R_SetColor( otherHUDBits[OHB_SCANLINE_RIGHT].color);
 
-#ifdef _XBOX
-		if(cg.widescreen)
-			CG_DrawPic( 
-			otherHUDBits[OHB_SCANLINE_RIGHT].xPos + 80,
-			otherHUDBits[OHB_SCANLINE_RIGHT].yPos,
-			otherHUDBits[OHB_SCANLINE_RIGHT].width, 
-			otherHUDBits[OHB_SCANLINE_RIGHT].height, 
-			otherHUDBits[OHB_SCANLINE_RIGHT].background 
-			);
-		else
-#endif
 		CG_DrawPic( 
 			otherHUDBits[OHB_SCANLINE_RIGHT].xPos,
 			otherHUDBits[OHB_SCANLINE_RIGHT].yPos,
@@ -1857,17 +1709,6 @@ static void CG_DrawHUD( centity_t *cent )
 
 		// Print frame
 		cgi_R_SetColor( otherHUDBits[OHB_FRAME_RIGHT].color);
-#ifdef _XBOX
-		if(cg.widescreen)
-			CG_DrawPic( 
-			otherHUDBits[OHB_FRAME_RIGHT].xPos + 80,
-			otherHUDBits[OHB_FRAME_RIGHT].yPos,
-			otherHUDBits[OHB_FRAME_RIGHT].width, 
-			otherHUDBits[OHB_FRAME_RIGHT].height, 
-			otherHUDBits[OHB_FRAME_RIGHT].background 
-			);
-		else
-#endif
 		CG_DrawPic( 
 			otherHUDBits[OHB_FRAME_RIGHT].xPos,
 			otherHUDBits[OHB_FRAME_RIGHT].yPos,
@@ -1876,14 +1717,6 @@ static void CG_DrawHUD( centity_t *cent )
 			otherHUDBits[OHB_FRAME_RIGHT].background 
 			);
 
-#ifdef _XBOX
-		int off = 0;
-		if(cg.widescreen)
-			off = 80;
-
-		CG_FillRect(otherHUDBits[OHB_FORCEAMOUNT].xPos - 2 + off, otherHUDBits[OHB_FORCEAMOUNT].yPos - 2, 
-				otherHUDBits[OHB_FORCEAMOUNT].width + 48, otherHUDBits[OHB_FORCEAMOUNT].height + 4, blackBar);
-#endif
 
 		CG_DrawForcePower(cent,sectionXPos,sectionYPos);
 
@@ -2098,13 +1931,6 @@ static void CG_DrawZoomMask( void )
 	{
 		level = (float)(80.0f - cg_zoomFov) / 80.0f;
 
-#ifdef _XBOX
-		if(cg.widescreen) {
-			cgi_R_SetColor(colorTable[CT_BLACK]);
-			CG_DrawPic( 0, 0, 40, 480, cgs.media.whiteShader );
-			CG_DrawPic( 720 - 40,  0, 40, 480, cgs.media.whiteShader );
-		}
-#endif
 
 		// ...so we'll clamp it
 		if ( level < 0.0f )
@@ -2121,11 +1947,6 @@ static void CG_DrawZoomMask( void )
 
 		// Draw target mask
 		cgi_R_SetColor( colorTable[CT_WHITE] );
-#ifdef _XBOX
-		if(cg.widescreen)
-			CG_DrawPic( 40, 0, 640, 480, cgs.media.disruptorMask );
-		else
-#endif
 		CG_DrawPic( 0, 0, 640, 480, cgs.media.disruptorMask );
 
 		// apparently 99.0f is the full zoom level
@@ -2142,11 +1963,6 @@ static void CG_DrawZoomMask( void )
 		}
 
 		// Draw rotating insert
-#ifdef _XBOX
-		if(cg.widescreen)
-			CG_DrawRotatePic2( 360, 240, 640, 480, -level, cgs.media.disruptorInsert );
-		else
-#endif
 		CG_DrawRotatePic2( 320, 240, 640, 480, -level, cgs.media.disruptorInsert );
 
 		float cx, cy;
@@ -2186,18 +2002,8 @@ static void CG_DrawZoomMask( void )
 
 		for ( float i = 18.5f; i <= 18.5f + max; i+= 3 ) // going from 15 to 45 degrees, with 5 degree increments
 		{
-#ifdef _XBOX
-			if(cg.widescreen) {
-				cx = 360 + sin( (i+90.0f)/57.296f ) * 190;
-				cy = 240 + cos( (i+90.0f)/57.296f ) * 190;
-			}
-			else {
-#endif
 			cx = 320 + sin( (i+90.0f)/57.296f ) * 190;
 			cy = 240 + cos( (i+90.0f)/57.296f ) * 190;
-#ifdef _XBOX
-			}
-#endif
 			CG_DrawRotatePic2( cx, cy, 12, 24, (90 - i)/57.296f, cgs.media.disruptorInsertTick );
 		}
 
@@ -2214,11 +2020,6 @@ static void CG_DrawZoomMask( void )
 				max = 1.0f;
 			}
 
-#ifdef _XBOX
-			if(cg.widescreen)
-				CG_DrawPic2( 297, 435, 134*max, 34, 0, 0, max, 1, cgi_R_RegisterShaderNoMip( "gfx/2d/crop_charge" ));
-			else
-#endif
 			CG_DrawPic2( 257, 435, 134 * max, 34, 0,0,max,1,cgi_R_RegisterShaderNoMip( "gfx/2d/crop_charge" ));
 		}
 	}
@@ -2504,9 +2305,6 @@ CROSSHAIR
 CG_DrawCrosshair
 =================
 */
-#ifdef _XBOX
-short cg_crossHairStatus = 0;
-#endif
 static void CG_DrawCrosshair( vec3_t worldPoint ) 
 {
 	float		w, h;
@@ -2527,9 +2325,6 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 		return;
 	}
 
-#ifdef _XBOX
-	cg_crossHairStatus = 0;
-#endif
 	//set color based on what kind of ent is under crosshair
 	if ( g_crosshairEntNum >= ENTITYNUM_WORLD )
 	{
@@ -2557,9 +2352,6 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 			}
 			else if ( g_entities[0].client && g_entities[0].client->playerTeam == TEAM_FREE )
 			{//evil player: everyone is red
-#ifdef _XBOX
-				cg_crossHairStatus = 1;
-#endif
 				//Enemies are red
 				ecolor[0] = 1.0f;//R
 				ecolor[1] = 0.1f;//G
@@ -2581,9 +2373,6 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 			}
 			else
 			{
-#ifdef _XBOX
-				cg_crossHairStatus = 1;
-#endif
 				//Enemies are red
 				ecolor[0] = 1.0f;//R
 				ecolor[1] = 0.1f;//G
@@ -2603,9 +2392,6 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 			else
 			{
 				// hostile ones are red
-#ifdef _XBOX
-				cg_crossHairStatus = 1;
-#endif
 				ecolor[0] = 1.0;//R
 				ecolor[1] = 0.0;//G
 				ecolor[2] = 0.0;//B
@@ -2614,9 +2400,6 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 		else if ( crossEnt->s.weapon == WP_TRIP_MINE )
 		{
 			// tripmines are red
-#ifdef _XBOX
-			cg_crossHairStatus = 1;
-#endif
 			ecolor[0] = 1.0;//R
 			ecolor[1] = 0.0;//G
 			ecolor[2] = 0.0;//B
@@ -2723,11 +2506,6 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 		{//off screen, don't draw it
 			return;
 		}
-#ifdef _XBOX
-		if(cg.widescreen)
-			x -= 360;
-		else
-#endif
 		x -= 320;//????
 		y -= 240;//????
 	}
@@ -2742,13 +2520,6 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 		if ( !Q_stricmp( "misc_panel_turret", g_entities[cg.snap->ps.viewEntity].classname ))
 		{
 			// draws a custom crosshair that is twice as large as normal
-#ifdef _XBOX
-			if(cg.widescreen)
-				cgi_R_DrawStretchPic( x + cg.refdef.x + 360 - w, 
-				y + cg.refdef.y + 240 - h, 
-				w * 2, h * 2, 0, 0, 1, 1, cgs.media.turretCrossHairShader );
-			else
-#endif
 			cgi_R_DrawStretchPic( x + cg.refdef.x + 320 - w, 
 				y + cg.refdef.y + 240 - h, 
 				w * 2, h * 2, 0, 0, 1, 1, cgs.media.turretCrossHairShader );	
@@ -2759,13 +2530,6 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 	{
 		hShader = cgs.media.crosshairShader[ cg_drawCrosshair.integer % NUM_CROSSHAIRS ];
 
-#ifdef _XBOX
-		if(cg.widescreen)
-			cgi_R_DrawStretchPic( x + cg.refdef.x + 0.5 * (720 - w), 
-			y + cg.refdef.y + 0.5 * (480 - h), 
-			w, h, 0, 0, 1, 1, hShader );
-		else
-#endif
 		cgi_R_DrawStretchPic( x + cg.refdef.x + 0.5 * (640 - w), 
 			y + cg.refdef.y + 0.5 * (480 - h), 
 			w, h, 0, 0, 1, 1, hShader );	
@@ -2781,14 +2545,6 @@ static void CG_DrawCrosshair( vec3_t worldPoint )
 		w *= 2.0f;
 		h *= 2.0f;
 
-#ifdef _XBOX
-		if(cg.widescreen)
-			cgi_R_DrawStretchPic( x + cg.refdef.x + 0.5f * ( 720 - w ), y + cg.refdef.y + 0.5f * ( 480 - h ), 
-								w, h, 
-								0, 0, 1, 1, 
-								cgs.media.forceCoronaShader ); 
-		else
-#endif
 		cgi_R_DrawStretchPic( x + cg.refdef.x + 0.5f * ( 640 - w ), y + cg.refdef.y + 0.5f * ( 480 - h ), 
 								w, h, 
 								0, 0, 1, 1, 
@@ -2811,11 +2567,6 @@ qboolean CG_WorldCoordToScreenCoordFloat(vec3_t worldCoord, float *x, float *y)
 	
 	//NOTE: did it this way because most draw functions expect virtual 640x480 coords
 	//	and adjust them for current resolution
-#ifdef _XBOX
-	if(cg.widescreen)
-		xcenter = 720 / 2.0f;
-	else
-#endif
 	xcenter = 640.0f / 2.0f;//gives screen coords in virtual 640x480, to be adjusted when drawn
 	ycenter = 480.0f / 2.0f;//gives screen coords in virtual 640x480, to be adjusted when drawn
 
@@ -3383,24 +3134,12 @@ static void CG_RunRocketLocking( void )
 
 			if ( g_rocketLockEntNum > 0 && g_rocketLockEntNum < ENTITYNUM_WORLD && g_rocketLockTime > 0 )
 			{
-#ifdef _XBOX
-				FFFX_START( fffx_StartConst );
-#endif
 				CG_DrawRocketLocking( g_rocketLockEntNum, g_rocketLockTime );
 			}
-#ifdef _XBOX
-			else
-			{
-				FFFX_START( fffx_StopConst );
-			}
-#endif
 		}
 		else
 		{
 			// disengage any residual locking
-#ifdef _XBOX
-			FFFX_START( fffx_StopConst );
-#endif
 			g_rocketLockEntNum = ENTITYNUM_WORLD;
 			g_rocketLockTime = 0;
 		}
@@ -3449,11 +3188,7 @@ static float CG_DrawFPS( float y ) {
 	static int	previous, lastupdate;
 	int		t, i, fps, total;
 	unsigned short frameTime;
-#ifdef _XBOX
-	const int		xOffset = 30;
-#else
 	const int		xOffset = 0;
-#endif
 
 	// don't use serverTime, because that will be drifting to
 	// correct for internet lag changes, timescales, timedemos, etc
@@ -3557,20 +3292,10 @@ static qboolean CG_RenderingFromMiscCamera()
 			// Only doing a misc_camera, so check health.
 			if ( g_entities[cg.snap->ps.viewEntity].health > 0 )
 			{
-#ifdef _XBOX
-				if(cg.widescreen)
-					CG_DrawPic( 0, 0, 720, 480, cgi_R_RegisterShader( "gfx/2d/workingCamera" ));
-				else
-#endif
 				CG_DrawPic( 0, 0, 640, 480, cgi_R_RegisterShader( "gfx/2d/workingCamera" ));
 			}
 			else
 			{
-#ifdef _XBOX
-				if(cg.widescreen)
-					CG_DrawPic( 0, 0, 720, 480, cgi_R_RegisterShader( "gfx/2d/brokenCamera" ));
-				else
-#endif
 				CG_DrawPic( 0, 0, 640, 480, cgi_R_RegisterShader( "gfx/2d/brokenCamera" ));
 			}
 			// don't render other 2d stuff
@@ -3585,11 +3310,6 @@ static qboolean CG_RenderingFromMiscCamera()
 		else
 		{
 			// FIXME: make sure that this assumption is correct...because I'm assuming that I must be a droid.
-#ifdef _XBOX
-			if(cg.widescreen)
-				CG_DrawPic( 0, 0, 720, 480, cgi_R_RegisterShader( "gfx/2d/droid_view" ));
-			else
-#endif
 			CG_DrawPic( 0, 0, 640, 480, cgi_R_RegisterShader( "gfx/2d/droid_view" ));
 		}
 	}
@@ -3642,11 +3362,6 @@ static void CG_Draw2DScreenTints( void )
 		
 		if (!cg.renderingThirdPerson)
 		{
-#ifdef _XBOX
-			if(cg.widescreen)
-				CG_FillRect( 0, 0, 720, SCREEN_HEIGHT, hcolor  );
-			else
-#endif
 			CG_FillRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor  );
 		}
 		
@@ -3702,11 +3417,6 @@ static void CG_Draw2DScreenTints( void )
 		
 		if (!cg.renderingThirdPerson && rageTime)
 		{
-#ifdef _XBOX
-			if(cg.widescreen)
-				CG_FillRect( 0, 0, 720, SCREEN_HEIGHT, hcolor  );
-			else
-#endif
 			CG_FillRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor  );
 		}
 		else
@@ -3717,11 +3427,6 @@ static void CG_Draw2DScreenTints( void )
 				hcolor[0] = 0.2f;
 				hcolor[1] = 0.2f;
 				hcolor[2] = 0.2f;
-#ifdef _XBOX
-				if(cg.widescreen)
-					CG_FillRect( 0, 0, 720, SCREEN_HEIGHT, hcolor  );
-				else
-#endif
 				CG_FillRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor  );
 			}
 			cgRageTime = 0;
@@ -3754,11 +3459,6 @@ static void CG_Draw2DScreenTints( void )
 		
 		if ( !cg.renderingThirdPerson )
 		{
-#ifdef _XBOX
-			if(cg.widescreen)
-				CG_FillRect( 0, 0, 720, SCREEN_HEIGHT, hcolor  );
-			else
-#endif
 			CG_FillRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor  );
 		}
 		
@@ -3793,11 +3493,6 @@ static void CG_Draw2DScreenTints( void )
 		
 		if (!cg.renderingThirdPerson && rageRecTime)
 		{
-#ifdef _XBOX
-			if(cg.widescreen)
-				CG_FillRect( 0, 0, 720, SCREEN_HEIGHT, hcolor  );
-			else
-#endif
 			CG_FillRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor  );
 		}
 		else
@@ -3833,11 +3528,6 @@ static void CG_Draw2DScreenTints( void )
 		
 		if ( !cg.renderingThirdPerson )
 		{
-#ifdef _XBOX
-			if(cg.widescreen)
-				CG_FillRect( 0, 0, 720, SCREEN_HEIGHT, hcolor  );
-			else
-#endif
 			CG_FillRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor  );
 		}
 		
@@ -3872,11 +3562,6 @@ static void CG_Draw2DScreenTints( void )
 		
 		if ( !cg.renderingThirdPerson && absorbTime )
 		{
-#ifdef _XBOX
-			if(cg.widescreen)
-				CG_FillRect( 0, 0, 720, SCREEN_HEIGHT, hcolor  );
-			else
-#endif
 			CG_FillRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor  );
 		}
 		else
@@ -3912,11 +3597,6 @@ static void CG_Draw2DScreenTints( void )
 		
 		if ( !cg.renderingThirdPerson )
 		{
-#ifdef _XBOX
-			if(cg.widescreen)
-				CG_FillRect( 0, 0, 720, SCREEN_HEIGHT, hcolor  );
-			else
-#endif
 			CG_FillRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor  );
 		}
 		
@@ -3951,11 +3631,6 @@ static void CG_Draw2DScreenTints( void )
 		
 		if ( !cg.renderingThirdPerson && protectTime )
 		{
-#ifdef _XBOX
-			if(cg.widescreen)
-				CG_FillRect( 0, 0, 720, SCREEN_HEIGHT, hcolor  );
-			else
-#endif
 			CG_FillRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor  );
 		}
 		else
@@ -3972,11 +3647,6 @@ static void CG_Draw2DScreenTints( void )
 		hcolor[1] = 0;
 		hcolor[2] = 0;
 		
-#ifdef _XBOX
-		if(cg.widescreen)
-			CG_FillRect( 0, 0, 720, SCREEN_HEIGHT, hcolor  );
-		else
-#endif
 		CG_FillRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor  );
 	}
 	else if ( (cg.refdef.viewContents&CONTENTS_SLIME) )
@@ -3987,11 +3657,6 @@ static void CG_Draw2DScreenTints( void )
 		hcolor[1] = 0.7f;
 		hcolor[2] = 0;
 		
-#ifdef _XBOX
-		if(cg.widescreen)
-			CG_FillRect( 0, 0, 720, SCREEN_HEIGHT, hcolor  );
-		else
-#endif
 		CG_FillRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor  );
 	}
 	else if ( (cg.refdef.viewContents&CONTENTS_WATER) )
@@ -4002,11 +3667,6 @@ static void CG_Draw2DScreenTints( void )
 		hcolor[1] = 0.2f;
 		hcolor[2] = 0.8f;
 		
-#ifdef _XBOX
-		if(cg.widescreen)
-			CG_FillRect( 0, 0, 720, SCREEN_HEIGHT, hcolor  );
-		else
-#endif
 		CG_FillRect( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, hcolor  );
 	}
 }
@@ -4086,11 +3746,6 @@ static void CG_Draw2D( void )
 	if ( (cg.snap->ps.forcePowersActive&(1<<FP_SEE)) )
 	{//force sight is on
 		//indicate this with sight cone thingy
-#ifdef _XBOX
-		if(cg.widescreen)
-			CG_DrawPic( 0, 0, 720, 480, cgi_R_RegisterShader( "gfx/2d/jsense" ));
-		else
-#endif
 		CG_DrawPic( 0, 0, 640, 480, cgi_R_RegisterShader( "gfx/2d/jsense" ));
 		CG_DrawHealthBars();
 	}
@@ -4137,11 +3792,7 @@ static void CG_Draw2D( void )
 	}
 	CG_SaberClashFlare();
 
-#ifdef _XBOX
-	float y = 32;
-#else
 	float y = 0;
-#endif
 	if (cg_drawSnapshot.integer) {
 		y=CG_DrawSnapshot(y);
 	} 
@@ -4208,11 +3859,7 @@ static void CG_Draw2D( void )
 	if (cg.weaponPickupTextTime	> cg.time )
 	{
 		int x_pos = 0;
-#ifdef _XBOX
-		y_pos = 41;
-#else
 		y_pos = 5;
-#endif
 		gi.Cvar_VariableStringBuffer( "cg_WeaponPickupText", text, sizeof(text) );
 
 		w = cgi_R_Font_StrLenPixels(text,cgs.media.qhFontSmall, 0.8f);

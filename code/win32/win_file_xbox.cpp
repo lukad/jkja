@@ -14,9 +14,6 @@
 #include "win_file.h"
 #include "../qcommon/qcommon.h"
 
-#ifdef _XBOX
-#include <Xtl.h>
-#endif
 
 #ifdef _WINDOWS
 #include <windows.h>

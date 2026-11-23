@@ -231,11 +231,9 @@ void CL_InitUI( void ) {
 	uii.R_RegisterShader		= re.RegisterShader;
 	uii.R_RegisterShaderNoMip	= re.RegisterShaderNoMip;
 	uii.R_RegisterFont			= re.RegisterFont;
-#ifndef _XBOX
 	uii.R_Font_StrLenPixels		= re.Font_StrLenPixels;
 	uii.R_Font_HeightPixels		= re.Font_HeightPixels;
 	uii.R_Font_DrawString		= re.Font_DrawString;
-#endif
 	uii.R_Font_StrLenChars		= re.Font_StrLenChars;
 	uii.Language_IsAsian		= re.Language_IsAsian;
 	uii.Language_UsesSpaces		= re.Language_UsesSpaces;
@@ -261,9 +259,6 @@ void CL_InitUI( void ) {
 	uii.R_DrawStretchPic		= re.DrawStretchPic;
 	uii.UpdateScreen			= SCR_UpdateScreen;
 
-#ifdef _XBOX
-	uii.PrecacheScreenshot		= SCR_PrecacheScreenshot;
-#endif
 
 	uii.R_LerpTag				= re.LerpTag;
 
@@ -294,11 +289,6 @@ void CL_InitUI( void ) {
 	UI_Init(UI_API_VERSION, &uii, (cls.state > CA_DISCONNECTED && cls.state <= CA_ACTIVE));
 
 //JLF MPSKIPPED
-#ifdef _XBOX
-	extern void UpdateDemoTimer();
-	UpdateDemoTimer();
-
-#endif
 
 //	uie->UI_Init( UI_API_VERSION, &uii );
 
@@ -470,11 +460,9 @@ int CL_UISystemCalls( int *args )
 	case UI_CIN_RUNCINEMATIC:
 	  return CIN_RunCinematic(args[1]);
 
-#ifndef _XBOX
 	case UI_CIN_DRAWCINEMATIC:
 	  CIN_DrawCinematic(args[1]);
 	  return 0;
-#endif
 
 	case UI_KEY_SETBINDING:
 		Key_SetBinding( args[1], (const char *) VMA(2) );

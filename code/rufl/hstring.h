@@ -17,10 +17,6 @@
 #define RUFL_HSTRING_INC
 
 
-#ifdef _XBOX
-namespace dllNamespace
-{
-#endif
 
 ////////////////////////////////////////////////////////////////////////////////////////
 // The Handle String Class
@@ -98,9 +94,5 @@ private:
 #endif
 };
 
-#ifdef _XBOX
-} // dllNamespace
-using namespace dllNamespace;
-#endif
 
 #endif // HSTRING_H

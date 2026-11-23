@@ -7,17 +7,10 @@
 
 
 // For printing objectives
-#ifdef _XBOX
-static const short objectiveStartingYpos = 100;		// Y starting position for objective text
-static const short objectiveStartingXpos = 130;		// X starting position for objective text
-static const int objectiveTextBoxWidth = 400;		// Width (in pixels) of text box
-static const int objectiveTextBoxHeight = 310;		// Height (in pixels) of text box
-#else
 static const short objectiveStartingYpos = 75;		// Y starting position for objective text
 static const short objectiveStartingXpos = 60;		// X starting position for objective text
 static const int objectiveTextBoxWidth = 500;		// Width (in pixels) of text box
 static const int objectiveTextBoxHeight = 300;		// Height (in pixels) of text box
-#endif // _XBOX
 
 const char *showLoadPowersName[] = 
 {

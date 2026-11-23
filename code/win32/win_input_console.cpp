@@ -178,7 +178,6 @@ bool Cheat_WinLevel( void )
 	return true;
 }
 
-#ifndef XBOX_DEMO
 bool Cheat_LevelSelect( void )
 {
 	// Set cvar that enables the level select menu:
@@ -186,7 +185,6 @@ bool Cheat_LevelSelect( void )
 
 	return true;
 }
-#endif
 
 extern bool Cheat_InfiniteForce( void ); // In wp_saber.cpp
 
@@ -294,9 +292,7 @@ cheat_t cheats[] = {
 	//{ {A_JOY6, A_JOY6, A_JOY8, A_JOY8, A_JOY7, A_JOY5}, Cheat_GiveAll },
 	{ {A_JOY7, A_JOY8, A_JOY5, A_JOY7, A_JOY6, A_JOY5}, Cheat_ChangeSaber },
 	{ {A_JOY5, A_JOY5, A_JOY7, A_JOY7, A_JOY8, A_JOY6}, Cheat_WinLevel },
-#ifndef XBOX_DEMO
 	{ {A_JOY6, A_JOY8, A_JOY6, A_JOY7, A_JOY6, A_JOY5}, Cheat_LevelSelect },
-#endif
 	{ {A_JOY5, A_JOY7, A_JOY5, A_JOY8, A_JOY5, A_JOY6}, Cheat_InfiniteForce },
 	{ {A_JOY8, A_JOY7, A_JOY6, A_JOY5, A_JOY7, A_JOY7}, Cheat_AllForce },
 //	{ {A_JOY8, A_JOY7, A_JOY6, A_JOY5, A_JOY7, A_JOY8}, Cheat_KungFoo },
@@ -460,11 +456,6 @@ char	lastControllerUsed = 0;
 
 void IN_CommonJoyPress(int controller, fakeAscii_t button, bool pressed)
 {
-#ifdef XBOX_DEMO
-	// Reset the demo timer so that we don't auto-reboot to CDX
-	extern void Demo_TimerKeypress( void );
-	Demo_TimerKeypress();
-#endif
 
 	lastControllerUsed	= controller;
 

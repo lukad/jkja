@@ -19,8 +19,6 @@
 
 #if defined(_WINDOWS)
 #include <windows.h>
-#elif defined(_XBOX)
-#include <xtl.h>
 #endif
 
 extern void Z_SetNewDeleteTemporary(bool);

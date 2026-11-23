@@ -2891,11 +2891,7 @@ saberMoveName_t PM_SaberAttackForMovement( int forwardmove, int rightmove, int c
 		noSpecials = qtrue;
 	}
 
-#ifdef _XBOX
-	if ( rightmove > 64 )
-#else
 	if ( rightmove > 0 )
-#endif // _XBOX
 	{//moving right
 		if ( !noSpecials
 			&& (pm->ps->groundEntityNum != ENTITYNUM_NONE||level.time-pm->ps->lastOnGround<=250) //on ground or just jumped
@@ -2968,11 +2964,7 @@ saberMoveName_t PM_SaberAttackForMovement( int forwardmove, int rightmove, int c
 			}
 		}
 	}
-#ifdef _XBOX
-	else if ( rightmove < -64 )
-#else
 	else if ( rightmove < 0 )
-#endif // _XBOX
 	{//moving left
 		if ( !noSpecials
 			&& (pm->ps->groundEntityNum != ENTITYNUM_NONE||level.time-pm->ps->lastOnGround<=250) //on ground or just jumped
@@ -3047,11 +3039,7 @@ saberMoveName_t PM_SaberAttackForMovement( int forwardmove, int rightmove, int c
 	}
 	else
 	{//not moving left or right
-#ifdef _XBOX
-		if ( forwardmove > 64 )
-#else
 		if ( forwardmove > 0 )
-#endif // _XBOX
 		{//forward= T2B slash
 			saberMoveName_t stabDownMove = noSpecials?LS_NONE:PM_CheckStabDown();
 			if ( stabDownMove != LS_NONE )
@@ -3141,11 +3129,7 @@ saberMoveName_t PM_SaberAttackForMovement( int forwardmove, int rightmove, int c
 			//check regular attacks
 			return LS_A_T2B;
 		}
-#ifdef _XBOX
-		else if ( forwardmove < -64 )
-#else
 		else if ( forwardmove < 0 )
-#endif // _XBOX
 		{//backward= T2B slash//B2T uppercut?
 			if ( g_saberNewControlScheme->integer )
 			{

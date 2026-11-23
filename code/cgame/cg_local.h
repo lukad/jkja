@@ -131,13 +131,8 @@ struct centity_s
 {
 	entityState_t	currentState;	// from cg.frame
 	const entityState_t	*nextState;		// from cg.nextFrame, if available
-#ifdef _XBOX
-	byte		interpolate;	// true if next is valid to interpolate to
-	byte		currentValid;	// true if cg.frame holds this entity
-#else
 	qboolean		interpolate;	// true if next is valid to interpolate to
 	qboolean		currentValid;	// true if cg.frame holds this entity
-#endif
 
 	int				muzzleFlashTime;	// move to playerEntity?
 	qboolean		altFire;			// move to playerEntity?
@@ -351,9 +346,6 @@ typedef struct {
 	refdef_t	refdef;
 	vec3_t		refdefViewAngles;		// will be converted to refdef.viewaxis
 
-#ifdef _XBOX
-	qboolean	widescreen;
-#endif
 
 	// zoom key
 	int			zoomMode;		// 0 - not zoomed, 1 - binoculars, 2 - disruptor weapon
@@ -984,15 +976,6 @@ void	cgi_S_StartBackgroundTrack( const char *intro, const char *loop, qboolean b
 float	cgi_S_GetSampleLength( sfxHandle_t sfx);
 
 
-#ifdef _IMMERSION
-void	cgi_FF_Start( ffHandle_t ff, int clientNum );
-void	cgi_FF_Ensure( ffHandle_t ff, int clientNum );
-void	cgi_FF_Stop( ffHandle_t ff, int clientNum );
-void	cgi_FF_StopAll( void );
-void	cgi_FF_Shake( int intensity, int duration );
-ffHandle_t	cgi_FF_Register( const char *name, int channel );
-void	cgi_FF_AddLoopingForce( ffHandle_t handle, int entNum );
-#else
 // I've made these into ints instead of original typedefs to cut down on rebuild time
 //	if I update the module they're in. No point in rebuilding all CGAME modules...
 //
@@ -1001,12 +984,7 @@ void	cgi_FF_EnsureFX( int iFX );
 void	cgi_FF_StopFX( int iFX );
 void	cgi_FF_StopAllFX( void );
 
-#endif // _IMMERSION
 
-#ifdef _XBOX
-void	cgi_FF_Xbox_Shake( float intensity, int duration );
-void	cgi_FF_Xbox_Damage( int damage, float xpos );
-#endif
 
 
 

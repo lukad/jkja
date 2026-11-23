@@ -16,9 +16,6 @@
 #define	SLOWDOWN_DIST	128.0f
 #define	MIN_NPC_SPEED	16.0f
 
-#ifdef _XBOX
-int g_lastFireTime = 0;
-#endif
 extern void VehicleExplosionDelay( gentity_t *self );
 extern qboolean Q3_TaskIDPending( gentity_t *ent, taskID_t taskType );
 extern void G_MaintainFormations(gentity_t *self);
@@ -522,24 +519,16 @@ void P_WorldEffects( gentity_t *ent ) {
 
 	if ( !in_camera )
 	{
-#ifndef _XBOX
 		if (gi.totalMapContents() & (CONTENTS_WATER|CONTENTS_SLIME))
 		{
 			mouthContents = gi.pointcontents( ent->client->renderInfo.eyePoint, ent->s.number );
 		}
-#endif // _XBOX
 	}
 	//
 	// check for drowning
 	//
 
-#ifdef _XBOX
-	// using waterlevel 3 should be good enough
-	// this saves us from doing an expensive trace
-	if ( ent->waterlevel == 3 )
-#else
 	if ( (mouthContents&(CONTENTS_WATER|CONTENTS_SLIME)) ) 
-#endif // _XBOX
 	{
 
 		if ( ent->client->NPC_class == CLASS_SWAMPTROOPER )
@@ -1791,11 +1780,6 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 #endif
 			fired = qtrue;
 			FireWeapon( ent, qfalse );
-#ifdef _XBOX
-			extern int Sys_Milliseconds();
-			if (ent->s.clientNum == 0)
-				g_lastFireTime = Sys_Milliseconds();
-#endif
 			break;
 
 		case EV_ALT_FIRE:
@@ -1806,10 +1790,6 @@ void ClientEvents( gentity_t *ent, int oldEventSequence ) {
 #endif
 			fired = qtrue;
 			FireWeapon( ent, qtrue );
-#ifdef _XBOX
-			if (ent->s.clientNum == 0)
-				g_lastFireTime = Sys_Milliseconds();
-#endif
 			break;
 
 		default:
@@ -4897,9 +4877,6 @@ extern cvar_t	*g_skippingcin;
 			{
 				// already zooming, so must be wanting to turn it off
 				G_Sound( ent, G_SoundIndex( "sound/weapons/disruptor/zoomend.wav" ));
-#ifdef _IMMERSION
-				G_Force( ent, G_ForceIndex( "fffx/weapons/disruptor/zoomend", FF_CHANNEL_WEAPON ) );
-#endif // _IMMERSION
 				cg.zoomMode = 0;
 				cg.zoomTime = cg.time;
 				cg.zoomLocked = qfalse;
@@ -5419,21 +5396,6 @@ extern cvar_t	*g_skippingcin;
 
 	VectorCopy( client->ps.origin, oldOrigin );
 
-#ifdef _XBOX
-	// if we're an npc then set the waterlevel
-	// based on the entity structure
-	// otherwise, zero it
-	if(ent->s.number != 0)
-	{
-		pm.waterlevel = ent->waterlevel;
-		pm.watertype = ent->watertype;
-	}
-	else
-	{
-		pm.waterlevel = 0;
-		pm.watertype = 0;
-	}
-#endif
 
 	// perform a pmove
 	Pmove( &pm );
@@ -5477,18 +5439,8 @@ extern cvar_t	*g_skippingcin;
 	VectorCopy( pm.mins, ent->mins );
 	VectorCopy( pm.maxs, ent->maxs );
 
-#ifdef _XBOX
-	// if this is the player then set the ent water level
-	// npcs are updated elsewhere
-	if(ent->s.number == 0)
-	{
-		ent->waterlevel = pm.waterlevel;
-		ent->watertype = pm.watertype;
-	}
-#else
 	ent->waterlevel = pm.waterlevel;
 	ent->watertype = pm.watertype;
-#endif
 
 
 

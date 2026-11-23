@@ -946,9 +946,6 @@ static void ParseSurfaceSprites(const char *_text, shaderStage_t *stage )
 	stage->ss->density = density;
 	stage->ss->fadeDist = fadedist;
 
-#ifdef _XBOX
-	shader.needsNormal = true;
-#endif
 
 	// These are defaults that can be overwritten.
 	stage->ss->fadeMax = fadedist*1.33;
@@ -1356,13 +1353,6 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				}
 				continue;
 			}
-#ifdef _XBOX
-			else if ( !Q_stricmp( token, "$saveGameImage") )
-			{
-				stage->bundle[0].image = tr.saveGameImage;
-				continue;
-			}
-#endif //_XBOX
 			else
 			{
 				stage->bundle[0].image = R_FindImageFile( token, !shader.noMipMaps, 0, 0, GL_REPEAT );
@@ -1373,32 +1363,6 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				}
 			}
 		}
-#ifdef VV_LIGHTING
-		//
-		// specularmap <name>
-		//
-		else if ( !Q_stricmp( token, "specularmap" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if ( !token[0] )
-			{
-				VID_Printf( PRINT_WARNING, "WARNING: missing parameter for 'specularmap' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-
-			stage->bundle[0].image = R_FindImageFile( token, !shader.noMipMaps, 0, 0, GL_REPEAT );
-			if ( !stage->bundle[0].image )
-			{
-				VID_Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-				return qfalse;
-			}
-
-			stage->isSpecular = qtrue;
-
-			shader.needsNormal = true;
-			shader.needsTangent = true;
-		}
-#endif // VV_LIGHTING
 		//
 		// clampmap <name>
 		//
@@ -1472,41 +1436,10 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			stage->bundle[0].videoMapHandle = CIN_PlayCinematic( token, 0, 0, 256, 256, (CIN_loop | CIN_silent | CIN_shader), NULL);
 			if (stage->bundle[0].videoMapHandle != -1) {
 				stage->bundle[0].isVideoMap = true;
-#ifdef _XBOX
-				stage->bundle[0].image = tr.scratchImage[0];
-#else
 				stage->bundle[0].image = tr.scratchImage[stage->bundle[0].videoMapHandle];
-#endif
 			}
 		}
 //#endif
-#ifdef _XBOX
-		//
-		// bumpmap <name>
-		//
-		else if ( !Q_stricmp( token, "bumpmap" ) )
-		{
-			token = COM_ParseExt( text, qfalse );
-			if( !token[0] )
-			{
-				VID_Printf( PRINT_WARNING, "WARNING: missing parameter for 'bumpmap' keyword in shader '%s'\n", shader.name );
-				return qfalse;
-			}
-
-			stage->bundle[0].image = R_FindImageFile( token, !shader.noMipMaps, 0, 0, GL_REPEAT );
-			if ( !stage->bundle[0].image )
-			{
-				VID_Printf( PRINT_WARNING, "WARNING: R_FindImageFile could not find '%s' in shader '%s'\n", token, shader.name );
-				return qfalse;
-			}
-
-			stage->isBumpMap = qtrue;
-			shader.isBumpMap = qtrue;
-
-			shader.needsNormal = true;
-			shader.needsTangent = true;
-		}
-#endif
 		//
 		// alphafunc <func>
 		//
@@ -1667,9 +1600,6 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				}
 				stage->rgbGen = CGEN_LIGHTING_DIFFUSE;
 
-#ifdef _XBOX
-				shader.needsNormal = true;
-#endif
 			}
 			else if ( !Q_stricmp( token, "lightingDiffuseEntity" ) )
 			{
@@ -1679,9 +1609,6 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 				}
 				stage->rgbGen = CGEN_LIGHTING_DIFFUSE_ENTITY;
 
-#ifdef _XBOX
-				shader.needsNormal = true;
-#endif
 			}
 			else if ( !Q_stricmp( token, "oneMinusVertex" ) )
 			{
@@ -1735,9 +1662,6 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			else if ( !Q_stricmp( token, "lightingSpecular" ) )
 			{
 				stage->alphaGen = AGEN_LIGHTING_SPECULAR;
-#ifdef _XBOX
-				shader.needsNormal = true; 
-#endif
 			}
 			else if ( !Q_stricmp( token, "oneMinusVertex" ) )
 			{
@@ -1786,9 +1710,6 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 			if ( !Q_stricmp( token, "environment" ) )
 			{
 				stage->bundle[0].tcGen = TCGEN_ENVIRONMENT_MAPPED;
-#ifdef _XBOX
-				shader.needsNormal = true;
-#endif
 			}
 			else if ( !Q_stricmp( token, "lightmap" ) )
 			{
@@ -2333,10 +2254,6 @@ static qboolean ParseShader( const char  **text )
 	char *token;
 	int s = 0;
 
-#ifdef _XBOX
-	shader.needsNormal = false;
-	shader.needsTangent = false;
-#endif
 
 	token = COM_ParseExt( text, qtrue );
 	if ( token[0] != '{' )
@@ -2405,11 +2322,6 @@ static qboolean ParseShader( const char  **text )
 			tr.sunDirection[1] = sin( a ) * cos( b );
 			tr.sunDirection[2] = sin( b );
 
-#ifdef _XBOX
-			Cvar_SetValue( "r_sundir_x", tr.sunDirection[0] );
-			Cvar_SetValue( "r_sundir_y", tr.sunDirection[1] );
-			Cvar_SetValue( "r_sundir_z", tr.sunDirection[2] );
-#endif
 		}
 		else if ( !Q_stricmp( token, "deformVertexes" ) ) {
 			ParseDeform( text );
@@ -2929,9 +2841,6 @@ static int VertexLightingCollapse( void ) {
 		stages[0].stateBits |= GLS_DEPTHMASK_TRUE;
 		if ( shader.lightmapIndex[0] == LIGHTMAP_NONE ) {
 			stages[0].rgbGen = CGEN_LIGHTING_DIFFUSE;
-#ifdef _XBOX
-			shader.needsNormal = true;
-#endif
 		} else {
 			stages[0].rgbGen = CGEN_EXACT_VERTEX;
 		}
@@ -3106,7 +3015,6 @@ static shader_t *FinishShader( void ) {
 		//
 		// ditch this stage if it's detail and detail textures are disabled
 		//
-#ifndef _XBOX
 		if ( pStage->isDetail && !r_detailTextures->integer ) {
 			if ( stage < ( MAX_SHADER_STAGES - 1 ) ) {
 				memmove( pStage, pStage + 1, sizeof( *pStage ) * ( MAX_SHADER_STAGES - stage - 1 ) );
@@ -3115,7 +3023,6 @@ static shader_t *FinishShader( void ) {
 			}
 			continue;
 		}
-#endif
 
 		pStage->index = stageIndex;
 
@@ -3256,34 +3163,6 @@ static shader_t *FinishShader( void ) {
 		stage--;
 	}
 
-#ifdef _XBOX
-	for(int i = 0; i < MAX_SHADER_STAGES; i++)
-	{
-		if(stages[i].isBumpMap)
-		{
-			// Bumpmap can't be the first stage
-			assert(i > 0);
-
-			if(stages[i - 1].bundle[1].image)
-			{
-				// Previous stage has already been collapsed
-				stages[i].bundle[1] = stages[i].bundle[0];
-				stages[i].bundle[0] = stages[i - 1].bundle[0];
-			}
-			else
-			{
-				stages[i - 1].bundle[1] = stages[i].bundle[0];
-				stages[i - 1].isBumpMap = qtrue;
-
-				// move down subsequent shaders
-				memmove( &stages[i], &stages[i+1], sizeof( stages[i-1] ) * ( MAX_SHADER_STAGES - 2 ) );
-				memset( &stages[MAX_SHADER_STAGES-1], 0, sizeof( stages[i-1] ) );
-
-				stage--;
-			}
-		}
-	}
-#endif
 
 
 	if ( shader.lightmapIndex[0] >= 0 && !hasLightmapStage ) {
@@ -3552,9 +3431,6 @@ shader_t *R_FindShader( const char *name, const short *lightmapIndex, const byte
 		stages[0].active = true;
 		stages[0].rgbGen = CGEN_LIGHTING_DIFFUSE;
 		stages[0].stateBits = GLS_DEFAULT;
-#ifdef _XBOX
-		shader.needsNormal = true;
-#endif
 	} else if ( shader.lightmapIndex[0] == LIGHTMAP_BY_VERTEX ) {
 		// explicit colors at vertexes
 		stages[0].bundle[0].image = image;
@@ -4027,7 +3903,6 @@ static void CreateInternalShaders( void ) {
 	shader.defaultShader = true;
 
 
-#ifndef _XBOX	// GLOWXXX
 	#define GL_PROGRAM_ERROR_STRING_ARB						0x8874
 	#define GL_PROGRAM_ERROR_POSITION_ARB					0x864B
 
@@ -4107,7 +3982,6 @@ static void CreateInternalShaders( void ) {
 		qglGetIntegerv( GL_PROGRAM_ERROR_POSITION_ARB, &iErrPos );
 		assert( iErrPos == -1 );
 	}
-#endif
 }
 
 static void CreateExternalShaders( void ) {

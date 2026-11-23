@@ -5,14 +5,7 @@
 
 #include "tr_local.h"
 
-#ifdef VV_LIGHTING
-#include "tr_lightmanager.h"
-#endif
 
-#ifdef _XBOX
-#include "../win32/glw_win_dx8.h"
-#include "../win32/win_highdynamicrange.h"
-#endif
 
 backEndData_t	*backEndData;
 backEndState_t	backEnd;
@@ -34,17 +27,10 @@ bool g_bDynamicGlowSupported = false;
 static const float s_flipMatrix[16] = {
 	// convert from our coordinate system (looking down X)
 	// to OpenGL's coordinate system (looking down -Z)
-#if defined (_XBOX)
-	0, 0, 1, 0,
-	-1, 0, 0, 0,
-	0, 1, 0, 0,
-	0, 0, 0, 1
-#else
 	0, 0, -1, 0,
 	-1, 0, 0, 0,
 	0, 1, 0, 0,
 	0, 0, 0, 1
-#endif
 };
 
 
@@ -61,16 +47,12 @@ void GL_Bind( image_t *image ) {
 		texnum = image->texnum;
 	}
 
-#ifndef _XBOX
 	if ( r_nobind->integer && tr.dlightImage ) {		// performance evaluation option
 		texnum = tr.dlightImage->texnum;
 	}
-#endif
 
 	if ( glState.currenttextures[glState.currenttmu] != texnum ) {
-#ifndef _XBOX
 		image->frameUsed = tr.frameCount;
-#endif
 		glState.currenttextures[glState.currenttmu] = texnum;
 		qglBindTexture (GL_TEXTURE_2D, texnum);
 	}
@@ -194,11 +176,6 @@ void GL_TexEnv( int env )
 	case GL_ADD:
 		qglTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_ADD );
 		break;
-#ifdef _XBOX
-	case GL_NONE:
-		qglTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_NONE );
-		break;
-#endif
 	default:
 		Com_Error( ERR_DROP, "GL_TexEnv: invalid env '%d' passed\n", env );
 		break;
@@ -703,11 +680,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 		}
 		R_DecomposeSort( drawSurf->sort, &entityNum, &shader, &fogNum, &dlighted );
 
-#ifdef _XBOX
-		tr.currentEntityNum = entityNum;
-#endif
 
-#ifndef _XBOX	// GLOWXXX
 		// If we're rendering glowing objects, but this shader has no stages with glow, skip it!
 		if ( g_bRenderGlowingObjects && !shader->hasGlow )
 		{
@@ -717,7 +690,6 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 			dlighted = oldDlighted;
 			continue;
 		}
-#endif
 		oldSort = drawSurf->sort;
 
 		//
@@ -820,11 +792,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 
 				// set up the dynamic lighting if needed
 				if ( backEnd.currentEntity->needDlights ) {
-#ifdef VV_LIGHTING
-					VVLightMan.R_TransformDlights( &backEnd.ori );
-#else
 					R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.ori );
-#endif
 				}
 
 				if ( backEnd.currentEntity->e.renderfx & RF_NODEPTH ) {
@@ -839,11 +807,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 				backEnd.currentEntity = &tr.worldEntity;
 				backEnd.refdef.floatTime = originalTime;
 				backEnd.ori = backEnd.viewParms.world;
-#ifdef VV_LIGHTING
-				VVLightMan.R_TransformDlights( &backEnd.ori );
-#else
 				R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.ori );
-#endif
 			}
 
 			qglLoadMatrixf( backEnd.ori.modelMatrix );
@@ -910,11 +874,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 			// set up the dynamic lighting if needed
 			if ( backEnd.currentEntity->needDlights )
 			{
-#ifdef VV_LIGHTING
-				VVLightMan.R_TransformDlights( &backEnd.ori );
-#else
 				R_TransformDlights( backEnd.refdef.num_dlights, backEnd.refdef.dlights, &backEnd.ori );
-#endif
 			}
 
 			qglLoadMatrixf( backEnd.ori.modelMatrix );
@@ -980,11 +940,7 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 					}
 
 					//now copy a portion of the screen to this texture
-#ifdef _XBOX
-					qglCopyBackBufferToTexEXT(rad, rad, cX, (480 - cY), (cX + rad), (480 - (cY + rad)));
-#else
 					qglCopyTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16, cX, cY, rad, rad, 0);
-#endif
 
 					lastPostEnt = pRender->entNum;
 				}
@@ -1015,12 +971,6 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 		didShadowPass = true;
 	}
 
-#ifdef _XBOX
-	if (r_hdreffect->integer)
-	{
-//		HDREffect.Render();
-	}
-#endif
 
 	// add light flares on lights that aren't obscured
 //	RB_RenderFlares();
@@ -1031,84 +981,6 @@ void RB_RenderDrawSurfList( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 }
 
 
-#ifdef _XBOX
-static unsigned short indexList[24] = { 0, 3, 2, 1,
-										1, 2, 6, 5,
-										5, 6, 7, 4,
-										4, 7, 3, 0,
-										3, 7, 6, 2,
-										4, 0, 1, 5 };
-
-void RB_RunVisTest(int number, vec3_t bounds[2])
-{
-	glw_state->device->SetTransform(D3DTS_VIEW, glw_state->matrixStack[glwstate_t::MatrixMode_Model]->GetTop());
-	if(glw_state->matricesDirty[glwstate_t::MatrixMode_Projection])
-        glw_state->device->SetTransform(D3DTS_PROJECTION, glw_state->matrixStack[glwstate_t::MatrixMode_Projection]->GetTop());
-
-	GL_Bind(tr.whiteImage);
-	glw_state->device->SetTexture(0, NULL);
-
-	GL_State(GLS_DEFAULT);
-
-	DWORD cullmode, zwrite;
-	glw_state->device->GetRenderState(D3DRS_CULLMODE, &cullmode);
-	glw_state->device->GetRenderState(D3DRS_ZWRITEENABLE, &zwrite);
-
-	glw_state->device->SetRenderState(D3DRS_CULLMODE, D3DCULL_NONE);
-	glw_state->device->SetRenderState(D3DRS_ZWRITEENABLE, false);
-	glw_state->device->SetRenderState(D3DRS_COLORWRITEENABLE, 0);
-
-	float fZOffset = -4.0f;
-	float fZSlopeScale = -2.0f;
-	glw_state->device->SetRenderState( D3DRS_SOLIDOFFSETENABLE,        TRUE );
-    glw_state->device->SetRenderState( D3DRS_POLYGONOFFSETZOFFSET,     *((DWORD*)&fZOffset) );
-    glw_state->device->SetRenderState( D3DRS_POLYGONOFFSETZSLOPESCALE, *((DWORD*)&fZSlopeScale) );
-
-	glw_state->device->SetVertexShader(D3DFVF_XYZ);
-
-	D3DVECTOR box[8];
-	box[0].x = bounds[0][0];
-	box[0].y = bounds[0][1];
-	box[0].z = bounds[0][2];
-
-	box[1].x = bounds[1][0];
-	box[1].y = bounds[0][1];
-	box[1].z = bounds[0][2];
-
-	box[2].x = bounds[1][0];
-	box[2].y = bounds[1][1];
-	box[2].z = bounds[0][2];
-
-	box[3].x = bounds[0][0];
-	box[3].y = bounds[1][1];
-	box[3].z = bounds[0][2];
-
-	box[4].x = bounds[0][0];
-	box[4].y = bounds[0][1];
-	box[4].z = bounds[1][2];
-
-	box[5].x = bounds[1][0];
-	box[5].y = bounds[0][1];
-	box[5].z = bounds[1][2];
-
-	box[6].x = bounds[1][0];
-	box[6].y = bounds[1][1];
-	box[6].z = bounds[1][2];
-
-	box[7].x = bounds[0][0];
-	box[7].y = bounds[1][1];
-	box[7].z = bounds[1][2];
-
-	glw_state->device->BeginVisibilityTest();
-	glw_state->device->DrawIndexedPrimitiveUP(D3DPT_QUADLIST, 0, 0, 6, indexList, D3DFMT_INDEX16, &box[0], 12);
-	glw_state->device->EndVisibilityTest(number);
-
-	glw_state->device->SetRenderState(D3DRS_CULLMODE, cullmode);
-	glw_state->device->SetRenderState(D3DRS_ZWRITEENABLE, zwrite);
-	glw_state->device->SetRenderState(D3DRS_COLORWRITEENABLE, D3DCOLORWRITEENABLE_ALL);
-	glw_state->device->SetRenderState( D3DRS_SOLIDOFFSETENABLE, FALSE );
-}
-#endif
 
 
 /*
@@ -1133,15 +1005,7 @@ void	RB_SetGL2D (void) {
 	qglScissor( 0, 0, glConfig.vidWidth, glConfig.vidHeight );
 	qglMatrixMode(GL_PROJECTION);
     qglLoadIdentity ();
-#ifdef _XBOX
-	extern int Menus_AnyFullScreenVisible(void);
-	if(glw_state->isWidescreen && !(Menus_AnyFullScreenVisible()) && cls.state == CA_ACTIVE)
-		qglOrtho (0, 720, 0, 480, 0, 1);
-	else
-        qglOrtho (0, 640, 0, 480, 0, 1);
-#else
 	qglOrtho (0, 640, 480, 0, 0, 1);
-#endif
 	qglMatrixMode(GL_MODELVIEW);
     qglLoadIdentity ();
 
@@ -1281,11 +1145,7 @@ const void *RB_RotatePic ( const void *data )
 		qglRotatef(cmd->a, 0.0, 0.0, 1.0);
 		
 		GL_Bind( image );
-#ifdef _XBOX
-		qglBeginEXT (GL_QUADS, 4, 0, 0, 4, 0);
-#else
 		qglBegin (GL_QUADS);
-#endif
 		qglTexCoord2f( cmd->s1, cmd->t1);
 		qglVertex2f( -cmd->w, 0 );
 		qglTexCoord2f( cmd->s2, cmd->t1 );
@@ -1339,11 +1199,7 @@ const void *RB_RotatePic2 ( const void *data )
 			qglRotatef( cmd->a, 0.0, 0.0, 1.0 );
 			
 			GL_Bind( image );
-#ifdef _XBOX
-			qglBeginEXT( GL_QUADS, 4, 0, 0, 4, 0);
-#else
 			qglBegin( GL_QUADS );
-#endif
 				qglTexCoord2f( cmd->s1, cmd->t1);
 				qglVertex2f( -cmd->w * 0.5f, -cmd->h * 0.5f );
 
@@ -1438,7 +1294,6 @@ const void	*RB_DrawSurfs( const void *data ) {
 	*/
 
 	// Render dynamic glowing/flaring objects.
-#ifndef _XBOX	// GLOWXXX
 	if ( !(backEnd.refdef.rdflags & RDF_NOWORLDMODEL) && g_bDynamicGlowSupported && r_DynamicGlow->integer )
 	{
 		// Copy the normal scene to texture.
@@ -1494,7 +1349,6 @@ const void	*RB_DrawSurfs( const void *data ) {
 		// Draw the glow additively over the screen.
 		RB_DrawGlowOverlay(); 
 	}
-#endif	// _XBOX
 
 	return (const void *)(cmd + 1);
 }
@@ -1515,7 +1369,6 @@ const void	*RB_DrawBuffer( const void *data ) {
 
 		// clear screen for debugging
 	// VVFIXME - Does their new check fix our problem with hoth2 cinematic?
-#ifndef _XBOX
 	if (!( backEnd.refdef.rdflags & RDF_NOWORLDMODEL ) && tr.world && tr.refdef.rdflags & RDF_doLAGoggles)
 	{
 		const fog_t		*fog = &tr.world->fogs[tr.world->numfogs];
@@ -1568,7 +1421,6 @@ const void	*RB_DrawBuffer( const void *data ) {
 		}		
 		qglClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 	}
-#endif // _XBOX
 
 	return (const void *)(cmd + 1);
 }
@@ -1613,11 +1465,7 @@ void RB_ShowImages( void ) {
 		}
 
 		GL_Bind( image );
-#ifdef _XBOX
-		qglBeginEXT (GL_QUADS, 4, 0, 0, 4, 0);
-#else
 		qglBegin (GL_QUADS);
-#endif
 		qglTexCoord2f( 0, 0 );
 		qglVertex2f( x, y );
 		qglTexCoord2f( 1, 0 );
@@ -1661,7 +1509,6 @@ const void	*RB_SwapBuffers( const void *data ) {
 
 	// we measure overdraw by reading back the stencil buffer and
 	// counting up the number of increments that have happened
-#ifndef _XBOX
 	if ( r_measureOverdraw->integer ) {
 		int i;
 		long sum = 0;
@@ -1677,7 +1524,6 @@ const void	*RB_SwapBuffers( const void *data ) {
 		backEnd.pc.c_overDraw += sum;
 		Z_Free( stencilReadback );
 	}
-#endif
 
     if ( !glState.finishCalled ) {
         qglFinish();
@@ -1766,7 +1612,6 @@ void RB_ExecuteRenderCommands( const void *data ) {
 
 }
 
-#ifndef _XBOX	// GLOWXXX
 // What Pixel Shader type is currently active (regcoms or fragment programs).
 GLuint g_uiCurrentPixelShaderType = 0x0;
 
@@ -2070,4 +1915,3 @@ static inline void RB_DrawGlowOverlay()
 	qglMatrixMode(GL_MODELVIEW);
 	qglPopMatrix();
 }
-#endif

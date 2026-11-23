@@ -18,17 +18,10 @@ trGlobals_t		tr;
 static float	s_flipMatrix[16] = {
 	// convert from our coordinate system (looking down X)
 	// to OpenGL's coordinate system (looking down -Z)
-#if defined (_XBOX)
-	0, 0, 1, 0,
-	-1, 0, 0, 0,
-	0, 1, 0, 0,
-	0, 0, 0, 1
-#else
 	0, 0, -1, 0,
 	-1, 0, 0, 0,
 	0, 1, 0, 0,
 	0, 0, 0, 1
-#endif
 };
 
 // entities that will have procedurally generated surfaces will just
@@ -514,27 +507,6 @@ void R_SetupProjection( void ) {
 	height = ymax - ymin;
 	depth = zFar - zNear;
 
-#if defined (_XBOX)
-	tr.viewParms.projectionMatrix[0] = 2 * zNear / width;
-	tr.viewParms.projectionMatrix[4] = 0;
-	tr.viewParms.projectionMatrix[8] = ( xmax + xmin ) / width;	// normally 0
-	tr.viewParms.projectionMatrix[12] = 0;
-
-	tr.viewParms.projectionMatrix[1] = 0;
-	tr.viewParms.projectionMatrix[5] = 2 * zNear / height;
-	tr.viewParms.projectionMatrix[9] = ( ymax + ymin ) / height;	// normally 0
-	tr.viewParms.projectionMatrix[13] = 0;
-
-	tr.viewParms.projectionMatrix[2] = 0;
-	tr.viewParms.projectionMatrix[6] = 0;
-	tr.viewParms.projectionMatrix[10] = ( zFar + zNear ) / depth;
-	tr.viewParms.projectionMatrix[14] = -2 * zFar * zNear / depth;
-
-	tr.viewParms.projectionMatrix[3] = 0;
-	tr.viewParms.projectionMatrix[7] = 0;
-	tr.viewParms.projectionMatrix[11] = 1;
-	tr.viewParms.projectionMatrix[15] = 0;
-#else
 	tr.viewParms.projectionMatrix[0] = 2 * zNear / width;
 	tr.viewParms.projectionMatrix[4] = 0;
 	tr.viewParms.projectionMatrix[8] = ( xmax + xmin ) / width;	// normally 0
@@ -554,7 +526,6 @@ void R_SetupProjection( void ) {
 	tr.viewParms.projectionMatrix[7] = 0;
 	tr.viewParms.projectionMatrix[11] = -1;
 	tr.viewParms.projectionMatrix[15] = 0;
-#endif
 }
 
 /*
@@ -1353,15 +1324,10 @@ void R_SortDrawSurfs( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 	// the first surfaces, not the last ones
 	if ( numDrawSurfs > MAX_DRAWSURFS ) {
 		numDrawSurfs = MAX_DRAWSURFS;
-#if defined(_DEBUG) && defined(_XBOX)
-		Com_Printf(S_COLOR_RED"Draw surface overflow!  Tell Brian.\n");
-#endif
 	}
 
-#ifndef _XBOX
 	// sort the drawsurfs by sort type, then orientation, then shader
 	qsortFast (drawSurfs, numDrawSurfs, sizeof(drawSurf_t) );
-#endif
 
 	// check for any pass through drawing, which
 	// may cause another view to be rendered first
@@ -1387,9 +1353,6 @@ void R_SortDrawSurfs( drawSurf_t *drawSurfs, int numDrawSurfs ) {
 		}
 	}
 
-#ifdef _XBOX
-	qsortFast (drawSurfs, numDrawSurfs, sizeof(drawSurf_t) );
-#endif
 
 	R_AddDrawSurfCmd( drawSurfs, numDrawSurfs );
 }
@@ -1520,31 +1483,6 @@ Ghoul2 Insert End
 R_GenerateDrawSurfs
 ====================
 */
-#ifdef _XBOX
-extern void R_MarkLeaves(mleaf_s*);
-void R_GenerateDrawSurfs( bool isPortal ) {
-	// determine which leaves are in the PVS / areamask
-	if ( !(tr.refdef.rdflags & RDF_NOWORLDMODEL) ) {
-		R_MarkLeaves (NULL);
-	}
-
-	R_AddWorldSurfaces ();
-
-	R_AddPolygonSurfaces();
-
-//	R_AddTerrainSurfaces();
-
-	// set the projection matrix with the minimum zfar
-	// now that we have the world bounded
-	// this needs to be done before entities are
-	// added, because they use the projection
-	// matrix for lod calculation
-	R_SetupProjection ();
-
-	R_AddEntitySurfaces ();
-}
-
-#else 
 
 void R_GenerateDrawSurfs( void ) {
 	R_AddWorldSurfaces ();
@@ -1562,7 +1500,6 @@ void R_GenerateDrawSurfs( void ) {
 
 	R_AddEntitySurfaces ();
 }
-#endif
 
 /*
 ================
@@ -1713,11 +1650,7 @@ void R_RenderView (viewParms_t *parms) {
 		R_SetViewFogIndex ();
 	}
 
-#ifdef _XBOX
-	R_GenerateDrawSurfs(parms->isPortal);
-#else
 	R_GenerateDrawSurfs();
-#endif
 
 	R_SortDrawSurfs( tr.refdef.drawSurfs + firstDrawSurf, tr.refdef.numDrawSurfs - firstDrawSurf );
 
