@@ -59,3 +59,4 @@ qboolean Key_IsDown( int keynum );
 qboolean Key_GetOverstrikeMode( void );
 void Key_SetOverstrikeMode( qboolean state );
 void Key_ClearStates( void );
+int Key_StringToKeynum( char *str );

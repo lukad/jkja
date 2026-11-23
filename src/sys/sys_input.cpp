@@ -233,6 +233,47 @@ void SetMouseActive(bool active) {
 	motionY = 0;
 }
 
+/*
+===============
+Scripted input
+
+Three commands queue the event a device would have produced, so that a test or a
+command line can press keys and move the mouse:
+
+  sys_key <key name> <1 for down, 0 for up>     names as in "bind": MOUSE1, ENTER, a
+  sys_char <character code>
+  sys_mousemove <x> <y>                          relative motion
+===============
+*/
+void ScriptedKey_f() {
+	if (Cmd_Argc() != 3) {
+		Com_Printf("sys_key <key name> <1 for down, 0 for up>\n");
+		return;
+	}
+	const int key = Key_StringToKeynum(Cmd_Argv(1));
+	if (key <= 0) {
+		Com_Printf("\"%s\" isn't a valid key\n", Cmd_Argv(1));
+		return;
+	}
+	Sys_QueEvent(0, SE_KEY, key, atoi(Cmd_Argv(2)) ? qtrue : qfalse, 0, NULL);
+}
+
+void ScriptedChar_f() {
+	if (Cmd_Argc() != 2) {
+		Com_Printf("sys_char <character code>\n");
+		return;
+	}
+	Sys_QueEvent(0, SE_CHAR, atoi(Cmd_Argv(1)), 0, 0, NULL);
+}
+
+void ScriptedMouseMove_f() {
+	if (Cmd_Argc() != 3) {
+		Com_Printf("sys_mousemove <x> <y>\n");
+		return;
+	}
+	Sys_QueEvent(0, SE_MOUSE, atoi(Cmd_Argv(1)), atoi(Cmd_Argv(2)), 0, NULL);
+}
+
 } // namespace
 
 /*
@@ -311,6 +352,10 @@ IN_Init
 */
 void IN_Init(void) {
 	in_mouse = Cvar_Get("in_mouse", "1", CVAR_ARCHIVE | CVAR_LATCH);
+
+	Cmd_AddCommand("sys_key", ScriptedKey_f);
+	Cmd_AddCommand("sys_char", ScriptedChar_f);
+	Cmd_AddCommand("sys_mousemove", ScriptedMouseMove_f);
 }
 
 /*
@@ -320,6 +365,10 @@ IN_Shutdown
 */
 void IN_Shutdown(void) {
 	SetMouseActive(false);
+
+	Cmd_RemoveCommand("sys_key");
+	Cmd_RemoveCommand("sys_char");
+	Cmd_RemoveCommand("sys_mousemove");
 }
 
 /*
