@@ -1,6 +1,6 @@
 # Design
 
-Status: basis for work. Decisions 0000 to 0011 accepted on 2026-11-23.
+Status: basis for work. Decisions 0000 to 0014 accepted on 2026-11-23.
 This document is the basis for all work in this repository. It describes where the code
 starts, where it is going, and in what order. Decisions that shape it are recorded as ADRs
 in [decisions/](decisions/README.md); where this document and an accepted ADR disagree,
@@ -194,6 +194,11 @@ the rumble scripting layer are removed.
 A **null** variant of window, input and sound exists from the first day, so the engine
 can start, mount the game data, load a map and quit without a display. That is the
 backbone of automated testing.
+
+Until M4 there is no null renderer: game logic needs the model loading and the Ghoul2
+skeleton code that still live inside the legacy renderer. The null window therefore
+gives the legacy renderer an OpenGL binding whose functions do nothing. Maps and models
+load for real, the front end runs, and nothing is drawn.
 
 ### 4.6 Filesystem and game data
 
@@ -401,7 +406,7 @@ and is the main design problem of M6 and M7.
 | Build | All presets the machine can build, warnings as configured | every change |
 | Sanitizers | AddressSanitizer and UBSan preset on Linux | every change from M1 |
 | Unit tests | New code with logic worth testing (serialisation, shader-script compiler, math replacements for assembly) | with the code |
-| Headless smoke test | Start with null window/sound/renderer, mount game data, load a map, run N frames, quit cleanly | from M1, needs game data |
+| Headless smoke test | Start with null window and sound and the renderer bound to a no-op OpenGL, mount game data, load a map, run N frames, quit cleanly | from M1, needs game data |
 | Play test | A fixed checklist on the opening level: movement, combat, cutscene, save, load | milestone exits |
 | Image comparison | Screenshots at fixed camera positions on a fixed set of maps, new renderer against legacy renderer, perceptual difference under a threshold | M4 onwards |
 | Reference | Retail `jasp.exe` under Wine, for "what did the original do?" | on demand |
@@ -437,7 +442,7 @@ Exit: the tree contains only in-scope single-player sources; the repo checks pas
 
 ### M1. Compiles
 
-- [ ] Decide and record: dependencies, game module interface
+- [x] Decide and record: dependencies, game module interface, audio
 - [ ] Engine and game module targets in CMake
 - [ ] Remove precompiled-header assumptions; every file includes what it uses
 - [ ] Fix compiler-dialect errors (MSVC keywords, `for` scope, non-standard library calls, pre-standard headers)
@@ -446,7 +451,7 @@ Exit: the tree contains only in-scope single-player sources; the repo checks pas
 - [ ] Replace inline assembly
 - [ ] Replace the variadic cgame syscalls with a typed interface
 - [ ] Fix pointer-size compile errors; remove `long`
-- [ ] Null platform layer and null renderer
+- [ ] Null platform layer; legacy renderer bound to a no-op OpenGL when there is no window
 - [ ] Headless smoke test
 
 Exit: GCC and Clang build engine and game module for Linux x86-64; the headless smoke
