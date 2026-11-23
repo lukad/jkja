@@ -3085,7 +3085,7 @@ qboolean Asset_Parse(char **buffer)
 				PC_ParseWarning("Bad 1st parameter for keyword 'cursor'");
 				return qfalse;
 			}
-//			uiInfo.uiDC.Assets.cursor = ui.R_RegisterShaderNoMip( tempStr);
+			uiInfo.uiDC.Assets.cursor = ui.R_RegisterShaderNoMip( tempStr);
 			continue;
 		}
 
