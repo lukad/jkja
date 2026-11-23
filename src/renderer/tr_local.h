@@ -1735,8 +1735,10 @@ RENDERER BACK END COMMAND QUEUE
 
 #define	MAX_RENDER_COMMANDS	0x40000
 
+// Commands hold pointers. The list and every command in it start at an address that is
+// aligned for one (R_GetCommandBuffer, RB_ExecuteRenderCommands).
 typedef struct {
-	byte	cmds[MAX_RENDER_COMMANDS];
+	alignas(void *) byte	cmds[MAX_RENDER_COMMANDS];
 	int		used;
 } renderCommandList_t;
 

@@ -143,6 +143,9 @@ void *R_GetCommandBuffer( int bytes ) {
 
 	cmdList = &backEndData->commands;
 
+	// Commands hold pointers, so each one starts at an address that is aligned for one.
+	bytes = ( bytes + (int)sizeof( void * ) - 1 ) & ~( (int)sizeof( void * ) - 1 );
+
 	// always leave room for the end of list command
 	if ( cmdList->used + bytes + 4 > MAX_RENDER_COMMANDS ) {
 		if ( bytes > MAX_RENDER_COMMANDS - 4 ) {

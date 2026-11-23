@@ -1575,6 +1575,9 @@ void RB_ExecuteRenderCommands( const void *data ) {
 	t1 = Sys_Milliseconds ();
 
 	while ( 1 ) {
+		// each command starts at an address that is aligned for a pointer
+		data = (const void *)( ( (size_t)data + sizeof( void * ) - 1 ) & ~( sizeof( void * ) - 1 ) );
+
 		switch ( *(const int *)data ) {
 		case RC_SET_COLOR:
 			data = RB_SetColor( data );
