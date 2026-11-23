@@ -210,6 +210,15 @@ static	char	com_token[MAX_TOKEN_CHARS];
 int parseDataCount = -1;
 parseData_t parseData[2];
 
+// The line counter of the session in progress. Text is also parsed outside of any
+// session, when parseDataCount is -1; those lines are counted in a slot of their own.
+static parseData_t *COM_CurrentParseData( void )
+{
+	static parseData_t noSession;
+
+	return parseDataCount >= 0 ? &parseData[parseDataCount] : &noSession;
+}
+
 void COM_ParseInit( void )
 {
 	memset(&(parseData[0]),0,sizeof(parseData_t));
@@ -227,7 +236,7 @@ void COM_BeginParseSession( void )
 
 int COM_GetCurrentParseLine( int index )
 {
-	return parseData[parseDataCount].com_lines;
+	return COM_CurrentParseData()->com_lines;
 }
 
 char *COM_Parse( const char **data_p )
@@ -259,7 +268,7 @@ const char *SkipWhitespace( const char *data, qboolean *hasNewLines )
 		}
 		if( c == '\n' ) 
 		{
-			parseData[parseDataCount].com_lines++;
+			COM_CurrentParseData()->com_lines++;
 			*hasNewLines = qtrue;
 		}
 		data++;
@@ -362,7 +371,7 @@ char *COM_ParseExt( const char **data_p, qboolean allowLineBreaks )
 		c = *data;
 		if ( c == '\n' )
 		{
-			parseData[parseDataCount].com_lines++;
+			COM_CurrentParseData()->com_lines++;
 		}
 	} while (c>32);
 
@@ -513,7 +522,7 @@ void SkipRestOfLine ( const char **data ) {
 	p = *data;
 	while ( (c = *p++) != 0 ) {
 		if ( c == '\n' ) {
-			parseData[parseDataCount].com_lines++;
+			COM_CurrentParseData()->com_lines++;
 			break;
 		}
 	}
