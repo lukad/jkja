@@ -1409,6 +1409,15 @@ void		GLimp_SetGamma( unsigned char red[256],
 						    unsigned char green[256],
 							unsigned char blue[256] );
 
+// An OpenGL function of the current context by name, or NULL. The caller converts it to
+// the function's real type.
+typedef void (*glFunction_t)( void );
+glFunction_t GLimp_GetProcAddress( const char *name );
+
+// The renderer's part of bringing OpenGL up: asks the driver for its strings and limits
+// and binds the extensions. The platform layer calls it once the context exists.
+void		R_InitGLConfig( void );
+
 
 
 

@@ -8,13 +8,13 @@
 
 /*
 ===============
-GLimp_Init
+NullWindow_Init
 
 Describes an OpenGL 1.1 without extensions and with a 640 by 480 window, so the
 renderer takes its simplest paths.
 ===============
 */
-void GLimp_Init(void) {
+void NullWindow_Init(void) {
 	QGL_BindNothing();
 
 	glConfig.renderer_string = "none";
@@ -42,11 +42,3 @@ void GLimp_Init(void) {
 	glConfig.isFullscreen = qfalse;
 	glConfig.stereoEnabled = qfalse;
 }
-
-void GLimp_Shutdown(void) {}
-
-void GLimp_EndFrame(void) {}
-
-void GLimp_LogComment(char *) {}
-
-void GLimp_SetGamma(unsigned char[256], unsigned char[256], unsigned char[256]) {}

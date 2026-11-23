@@ -83,6 +83,7 @@ add_executable(jasp
   renderer/tr_draw.cpp
   renderer/tr_font.cpp
   renderer/tr_ghoul2.cpp
+  renderer/tr_glconfig.cpp
   renderer/tr_image.cpp
   renderer/tr_init.cpp
   renderer/tr_light.cpp
@@ -132,6 +133,7 @@ add_executable(jasp
   sys/sys_null_sound.cpp
   sys/sys_null_window.cpp
   sys/sys_qgl.cpp
+  sys/sys_window.cpp
   ui/ui_atoms.cpp
   ui/ui_connect.cpp
   ui/ui_main.cpp
@@ -158,6 +160,7 @@ set(jasp_sys_sources
   sys/sys_null_sound.cpp
   sys/sys_null_window.cpp
   sys/sys_qgl.cpp
+  sys/sys_window.cpp
 )
 if(MSVC)
   set_source_files_properties(${jasp_sys_sources} PROPERTIES COMPILE_OPTIONS "/W4")

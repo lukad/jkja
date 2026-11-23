@@ -31,6 +31,7 @@ execute_process(
   COMMAND "${JASP}"
     +set fs_basepath "${gamedata}"
     +set fs_homepath "${home}"
+    +set sys_headless 1
     +map "${MAP}"
     +wait "${FRAMES}"
     +quit

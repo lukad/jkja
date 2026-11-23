@@ -93,6 +93,17 @@ void Sys_Quit(void) {
 
 /*
 ================
+Sys_Headless
+================
+*/
+bool Sys_Headless(void) {
+	static cvar_t *sys_headless = Cvar_Get("sys_headless", "0", CVAR_INIT);
+
+	return sys_headless->integer != 0;
+}
+
+/*
+================
 Sys_GetClipboardData
 
 The clipboard belongs to the window system; without a window there is none.
