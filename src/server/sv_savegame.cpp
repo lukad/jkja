@@ -10,11 +10,6 @@
 
 #define JPEG_IMAGE_QUALITY 95
 
-#define SG_USE_ZLIB
-#define SG_FULLCOMPRESSION
-#define SG_ZLIB_COMPRESSIONLEVEL 9		//Z_DEFAULT_COMPRESSION 0 FAST - 9 SMALL
-#define SG_ZLIB_COMPRESSIONLEVEL_CHECKPOINT 1		//Z_DEFAULT_COMPRESSION 0 FAST - 9 SMALL
-
 
 //#define USE_LAST_SAVE_FROM_THIS_MAP	// enable this if you want to use the last explicity-loaded savegame from this map
 				 						//	when respawning after dying, else it'll just load "auto" regardless 
@@ -123,7 +118,7 @@ static LPCSTR SG_AddSavePath( LPCSTR psPathlessBaseName )
 
 	if(psPathlessBaseName)
 	{
-		char *p = strchr(psPathlessBaseName,'/');
+		char *p = (char *)strchr(psPathlessBaseName,'/');
 		if (p)
 		{
 			while (p)
@@ -172,9 +167,7 @@ static void CompressMem_FreeScratchBuffer(void)
 {
 	if ( gpbCompBlock )
 	{
-//		Z_Free(	gpbCompBlock);
-		extern void BonePoolTempFree( void *p );
-		BonePoolTempFree( gpbCompBlock );
+		Z_Free(	gpbCompBlock);
 		gpbCompBlock = NULL;
 	}
 	giCompBlockSize = 0;
@@ -189,9 +182,7 @@ static byte *CompressMem_AllocScratchBuffer(int iSize)
 	{			
 		CompressMem_FreeScratchBuffer();
 
-//		gpbCompBlock = (byte *) Z_Malloc(iSize, TAG_TEMP_WORKSPACE, qfalse);
-		extern void *BonePoolTempAlloc( unsigned long size );
-		gpbCompBlock = (byte *) BonePoolTempAlloc( iSize );
+		gpbCompBlock = (byte *) Z_Malloc(iSize, TAG_TEMP_WORKSPACE, qfalse);
 		giCompBlockSize = iSize;
 	}
 
@@ -298,11 +289,6 @@ qboolean SG_Open( LPCSTR psPathlessBaseName )
 	{
 		return qfalse;
 	}
-//JLFSAVEGAME
-
-	gFullCompressionOn = qfalse;
-
-
 
 	LPCSTR psLocalFilename = SG_AddSavePath( psPathlessBaseName );	
 	FS_FOpenFileRead( psLocalFilename, &fhSaveGame, qtrue );	//qtrue = dup handle, so I can close it ok later
@@ -351,16 +337,7 @@ void SV_WipeGame_f(void)
 		Com_Printf (S_COLOR_RED "Can't wipe 'Checkpoint'\n");
 		return;
 	}
-	char fileNameBuffer[filepathlength];
-	const char *psFilename = Cmd_Argv(1);
-	if (g_loadsaveGameName[0] != 0 && g_loadsaveGameNameInitialized == qtrue)
-	{
-		strcpy (fileNameBuffer,g_loadsaveGameName);
-		psFilename = fileNameBuffer;
-		g_loadsaveGameName[0]=0;
-	}
-
-	SG_WipeSavegame(psFilename);
+	SG_WipeSavegame(Cmd_Argv(1));
 //	Com_Printf("%s has been wiped\n", Cmd_Argv(1));	// wurde gelöscht in german, but we've only got one string
 //	Com_Printf("Ok\n"); // no localization of this
 }
@@ -392,10 +369,8 @@ qboolean SV_TryLoadTransition( const char *mapname )
 qboolean gbAlreadyDoingLoad = qfalse;
 
 
-//extern void UI_xboxErrorPopup(xbErrorPopupType popup);
 void SV_LoadGame_f(void)
 {
-	char fileNameBuffer[filepathlength];
 	if (gbAlreadyDoingLoad)
 	{
 		Com_DPrintf ("( Already loading, ignoring extra 'load' commands... )\n");
@@ -422,14 +397,6 @@ void SV_LoadGame_f(void)
 		Com_Printf (S_COLOR_RED "Bad loadgame name.\n");
 		return;
 	}
-
-	if (g_loadsaveGameName[0] != 0 && g_loadsaveGameNameInitialized == qtrue)
-	{
-		strcpy (fileNameBuffer,g_loadsaveGameName);
-		psFilename = fileNameBuffer;
-		g_loadsaveGameName[0]=0;
-	}
-
 
 	// special case, if doing a respawn then check that the available auto-save (if any) is from the same map
 	//	as we're currently on (if in a map at all), if so, load that "auto", else re-load the last-loaded file...
@@ -495,23 +462,10 @@ void SV_LoadGame_f(void)
 
 	Cvar_Set("levelSelectCheat", "-1");
 	if (!SG_ReadSavegame(psFilename)) {
-		extern void Menus_CloseByName(const char *p);
-		if ( strcmp("Checkpoint", psFilename)==0)
-		{
-			Menus_CloseByName( "xbox_error_popup" );
-			UI_xboxErrorPopup(XB_POPUP_LOAD_FAILED);
-		}
-		else
-		{
-			Menus_CloseByName( "xbox_error_popup" );
-			UI_xboxErrorPopup(XB_POPUP_LOAD_FAILED);
-		}
-
 		gbAlreadyDoingLoad = qfalse; //	do NOT do this here now, need to wait until client spawn, unless the load failed.
 	
 	} else
 	{
-		Menus_CloseAll();
 		Com_Printf (S_COLOR_CYAN "%s.\n",SE_GetString("MENUS_DONE"));
 	}
 }
@@ -777,7 +731,8 @@ void SG_ReadServerConfigStrings( void )
 {
 	// trash the whole table...
 	//
-	for (int i=0; i<MAX_CONFIGSTRINGS; i++)
+	int i;
+	for (i=0; i<MAX_CONFIGSTRINGS; i++)
 	{
 		if (i!=CS_SYSTEMINFO)
 		{
@@ -889,8 +844,6 @@ int SG_GetSaveGameComment(const char *psPathlessBaseName, char *sComment, char *
 		}
 	}
 	qbSGReadIsTestOnly = qfalse;
-
-	XCalculateSignatureEnd( sg_sigHandleRead, &sg_validationHeaderRead.Signature );
 
 	if (!SG_Close())
 	{
@@ -1087,9 +1040,6 @@ qboolean SG_WriteSavegame(const char *psPathlessBaseName, qboolean qbAutosave)
 	char levelname[128];
 	char *levelnameptr;
 
-	// I'm going to jump in front of a fucking bus if I ever have to do something so hacky in the future.
-	int startOfFunction = Sys_Milliseconds();
-
 	if (!qbAutosave && !SG_GameAllowedToSaveHere(qfalse))	//full check
 		return qfalse;	// this prevents people saving via quick-save now during cinematics
 
@@ -1105,28 +1055,17 @@ qboolean SG_WriteSavegame(const char *psPathlessBaseName, qboolean qbAutosave)
 	psUserMapName = SE_GetString ("MENUS", psMapName);
 
 //JLF
-	if ( !strcmp("quick",pathlessBaseName))
+	if ( !strcmp("quick",psPathlessBaseName))
 	{
 		SG_StoreSaveGameComment(va("--> %s <--",psMapName));
 	}
 
-	if (strcmp ( "Checkpoint",pathlessBaseName)==0)
-		strcpy (numberedmapname,pathlessBaseName);
 //	if(!SG_Create( "current" ))
-	gFullCompressionOn = qfalse;
-	g_WriteFieldBufferToFile = qfalse;
-	
-	if(!SG_Create( numberedmapname ))
+	if(!SG_Create( psPathlessBaseName ))
 	{
-		Com_Printf (GetString_FailedToOpenSaveGame(numberedmapname,qfalse));//S_COLOR_RED "Failed to create savegame\n");
-		SG_WipeSavegame( numberedmapname );
+		Com_Printf (GetString_FailedToOpenSaveGame(psPathlessBaseName,qfalse));//S_COLOR_RED "Failed to create savegame\n");
+		SG_WipeSavegame( psPathlessBaseName );
 		sv_testsave->integer = iPrevTestSave;
-		if ( sg_FullBuffer )
-		{
-//			Z_Free(	sg_FullBuffer);
-			TempFree();
-			sg_FullBuffer = NULL;	
-		}
 		return qfalse;
 
 	}
@@ -1136,13 +1075,9 @@ qboolean SG_WriteSavegame(const char *psPathlessBaseName, qboolean qbAutosave)
 	char   sMapCmd[iSG_MAPCMD_SIZE]={0};
 	strcpy( sMapCmd,psMapName);	// need as array rather than ptr because const strlen needed for MPCM chunk
 
-	SG_WriteComment(qbAutosave, numberedmapname);
+	SG_WriteComment(qbAutosave, psPathlessBaseName);
 //	SG_WriteScreenshot(qbAutosave, sMapCmd);
 	SG_Append('MPCM', sMapCmd, sizeof(sMapCmd));
-#ifdef SG_FULLCOMPRESSION
-	gFullCompressionOn = qtrue;
-	g_WriteFieldBufferToFile = qtrue;
-#endif
 	SG_WriteCvars();
 
 	WriteGame (qbAutosave);
@@ -1162,42 +1097,18 @@ qboolean SG_WriteSavegame(const char *psPathlessBaseName, qboolean qbAutosave)
 	SG_Close();
 	if (gbSGWriteFailed)
 	{
-		Com_Printf (GetString_FailedToOpenSaveGame(numberedmapname,qfalse));//S_COLOR_RED "Failed to write savegame!\n");
-		SG_WipeSavegame( numberedmapname );
+		Com_Printf (GetString_FailedToOpenSaveGame(psPathlessBaseName,qfalse));//S_COLOR_RED "Failed to write savegame!\n");
+		SG_WipeSavegame( psPathlessBaseName );
 		sv_testsave->integer = iPrevTestSave;
-		if ( sg_FullBuffer )
-		{
-//			Z_Free(	sg_FullBuffer);
-			TempFree();
-			sg_FullBuffer = NULL;	
-		}
 		return qfalse;
 	}
 
-	if ( sg_FullBuffer )
-	{
-//		Z_Free(	sg_FullBuffer);
-		TempFree();
-		sg_FullBuffer = NULL;	
-	}
 	sv_testsave->integer = iPrevTestSave;
-	extern qboolean Script_RunDeferred ( itemDef_t* item, const char **args );
 	extern void ui_resetSaveGameList();
 	ui_resetSaveGameList();
 
-	// The first thing that the deferred script is going to do is to close the "Saving"
-	// popup, but we need it to be up for at least a second, so sit here in a fucking
-	// busy-loop. See note at start of function, re: bus.
-	while( Sys_Milliseconds() < startOfFunction + 1000 )
-	{
-		// Do nothing. Yes, nothing.
-	}
-
-	Script_RunDeferred( NULL, NULL);
 	return qtrue;
 }
-
-void loadCompressedData();
 
 qboolean SG_ReadSavegame(const char *psPathlessBaseName)
 {
@@ -1207,9 +1118,6 @@ qboolean SG_ReadSavegame(const char *psPathlessBaseName)
 
 	int iPrevTestSave = sv_testsave->integer;
 	sv_testsave->integer = 0;
-
-	if (!SG_TestSignature(psPathlessBaseName))
-		return false;
 
 	if (!SG_Open( psPathlessBaseName ))
 	{
@@ -1234,12 +1142,6 @@ qboolean SG_ReadSavegame(const char *psPathlessBaseName)
 
 //	SG_ReadScreenshot(qtrue);	// qboolean qbSetAsLoadingScreen
 	SG_Read('MPCM', sMapCmd, sizeof(sMapCmd));
-#ifdef SG_USE_ZLIB
-#ifdef SG_FULLCOMPRESSION
-	loadCompressedData();
-	
-#endif
-#endif
 
 	SG_ReadCvars();
 
@@ -1261,53 +1163,7 @@ qboolean SG_ReadSavegame(const char *psPathlessBaseName)
 	ge->ReadLevel(qbAutosave, qbLoadTransition);	// always done now, but ent reader only does player if auto
 
 
-	//finish reading the file (blank data)
-	int fillBufferSize = SG_FILESIZE;
-	DWORD  bytesRead;
-	qboolean dwSuccess;
-	byte * fillBuffer =  (byte *) Z_Malloc(fillBufferSize, TAG_TEMP_WORKSPACE, qfalse);
-	memset ( fillBuffer, 0, fillBufferSize);	
-
-	if(!ReadFile(sg_Handle,&fillBufferSize, sizeof(fillBufferSize), &bytesRead, NULL))
-		{	
-				Z_Free (fillBuffer);
-				return qfalse;
-		}
-	if(fillBufferSize) {
-		dwSuccess = XCalculateSignatureUpdate( sg_sigHandleRead, (BYTE*)(&fillBufferSize),sizeof(fillBufferSize));
-
-	
-		if(!ReadFile(sg_Handle,fillBuffer, fillBufferSize, &bytesRead, NULL))
-		{	
-			Z_Free (fillBuffer);
-			return qfalse;
-		}
-		dwSuccess = XCalculateSignatureUpdate( sg_sigHandleRead, (BYTE*)(fillBuffer),fillBufferSize);
-	}
-
-	
-	Z_Free (fillBuffer);
-
-	//sigend here
-	dwSuccess =XCalculateSignatureEnd( sg_sigHandleRead, &sg_validationHeaderRead.Signature );
-	assert( dwSuccess == ERROR_SUCCESS );
-
-	DWORD dwSigSize = XCalculateSignatureGetSize( XCALCSIG_FLAG_SAVE_GAME );
-
-	if ( sg_FullBuffer)
-	{	
-//		Z_Free(sg_FullBuffer);
-		TempFree();
-		sg_FullBuffer = NULL;
-	}
-
 	if(!SG_Close())
-	{
-		Com_Printf (GetString_FailedToOpenSaveGame(psPathlessBaseName,qfalse));//S_COLOR_RED "Failed to close savegame\n");
-		sv_testsave->integer = iPrevTestSave;
-		return qfalse;
-	}
-	if( memcmp( &sg_validationHeader.Signature, &sg_validationHeaderRead.Signature, dwSigSize ) != 0 )
 	{
 		Com_Printf (GetString_FailedToOpenSaveGame(psPathlessBaseName,qfalse));//S_COLOR_RED "Failed to close savegame\n");
 		sv_testsave->integer = iPrevTestSave;
@@ -1317,65 +1173,6 @@ qboolean SG_ReadSavegame(const char *psPathlessBaseName)
 	sv_testsave->integer = iPrevTestSave;
 	return qtrue;
 }
-#ifdef SG_USE_ZLIB
-
-static void* sv_alloc(void* opaque, unsigned int items, unsigned int size)
-{
-	return TempAlloc(items * size);
-}
-
-static void sv_free(void* opaque, void* address)
-{
-	//Free does nothing, we'll free it all at the end.
-}
-
-
-int ZEXPORT sv_compress (unsigned char* dest, unsigned long *destLen, const unsigned char* source, unsigned long sourceLen, int level)
-{
-    z_stream stream;
-    int err;
-
-    stream.next_in = (Bytef*)source;
-    stream.avail_in = (uInt)sourceLen;
-    stream.next_out = dest;
-    stream.avail_out = (uInt)*destLen;
-    if ((uLong)stream.avail_out != *destLen) return Z_BUF_ERROR;
-
-    stream.zalloc = sv_alloc;
-    stream.zfree = sv_free;
-    stream.opaque = 0;
-
-    err = deflateInit(&stream, level);
-    if (err != Z_OK) return err;
-
-    err = deflate(&stream, Z_FINISH);
-    if (err != Z_STREAM_END) {
-        deflateEnd(&stream);
-        return err == Z_OK ? Z_BUF_ERROR : err;
-    }
-    *destLen = stream.total_out;
-
-    err = deflateEnd(&stream);
-    return err;
-}
-
-
-int Compress_ZLIB(const byte *pIn, int iLength, byte *pOut,int & outLength)
-{
-    uLongf outlengthlocal;
-	outlengthlocal = outLength;
-	if(bSavingCheckpoint) {
-		sv_compress ( pOut,&outlengthlocal, pIn, iLength, SG_ZLIB_COMPRESSIONLEVEL_CHECKPOINT);
-	} else {
-		sv_compress ( pOut,&outlengthlocal, pIn, iLength, SG_ZLIB_COMPRESSIONLEVEL);
-	}
-	outLength = outlengthlocal;
-	return outLength;
-}
-
-
-
-#else
 
 int Compress_RLE(const byte *pIn, int iLength, byte *pOut)
 {
@@ -1414,29 +1211,6 @@ int Compress_RLE(const byte *pIn, int iLength, byte *pOut)
 	return iOutIndex;
 }
 
-#endif
-
-#ifdef SG_USE_ZLIB
-
-int DeCompress_ZLIB(byte *pOut,uLongf iLength, const byte *pIn, int bytes)
-{
-	int retval;
-	retval = uncompress(pOut, &iLength, pIn, bytes);
-	if ( retval != Z_OK)
-	{
-		if ( retval == Z_MEM_ERROR)
-			Com_Printf("ZLib Error: not enough memory\n");
-		if (retval == Z_BUF_ERROR)
-			Com_Printf("ZLib Error: not enough room in output buffer\n");
-		if (retval == Z_DATA_ERROR)
-			Com_Printf("ZLib Error: input Corrupted Data\n");
-		return -1;
-	}
-	return iLength;
-}
-
-#else
-
 void DeCompress_RLE(byte *pOut, const byte *pIn, int iDecompressedBytesRemaining)
 {
 	signed char count;
@@ -1459,7 +1233,6 @@ void DeCompress_RLE(byte *pOut, const byte *pIn, int iDecompressedBytesRemaining
 		iDecompressedBytesRemaining -= count;
 	}
 }
-#endif
 
 // simulate decompression over original data (but don't actually do it), to test de/compress validity...
 //
@@ -1540,21 +1313,11 @@ int CompressMem(byte *pbData, int iLength, byte *&pbOut)
 
 	// malloc enough to cope with uncompressable data (it'll never grow to 2* size, so)...
 	//
-#ifdef SG_USE_ZLIB
-	pbOut = CompressMem_AllocScratchBuffer(iLength* 1.01 +40 );	
-#else
 	pbOut = CompressMem_AllocScratchBuffer(iLength*2 );	
-#endif
 	//
 	// compress it...
 	//
-#ifdef SG_USE_ZLIB
-	int iOutputLength;
-	iOutputLength =iLength * 1.01 +40;
-	iOutputLength= Compress_ZLIB(pbData, iLength, pbOut,iOutputLength);
-#else
 	int iOutputLength = Compress_RLE(pbData, iLength, pbOut);
-#endif
 	//
 	// worth compressing?...
 	//
@@ -1563,10 +1326,8 @@ int CompressMem(byte *pbData, int iLength, byte *&pbOut)
 	//
 	// compression code works? (I'd hope this is always the case, but for safety)...
 	//
-#ifndef SG_USE_ZLIB
 	if (!Verify_RLE(pbData, pbOut, iLength))
 		return -1;
-#endif
 	return iOutputLength;
 }
 
@@ -1605,16 +1366,12 @@ qboolean SG_Append(unsigned long chid, const void *pvData, int iLength)
 	if (!sv_testsave->integer)
 	{
 		uiCksum = Com_BlockChecksum (pvData, iLength);
-		if (gFullCompressionOn)
-			uiSaved  = SG_WriteFullCompress(&chid,		sizeof(chid),		fhSaveGame);
-		else
-			uiSaved  = SG_Write(&chid,		sizeof(chid),		fhSaveGame);
+		uiSaved  = SG_Write(&chid,		sizeof(chid),		fhSaveGame);
 
 /**/
 		byte *pbCompressedData = NULL;
 		int iCompressedLength = -1;
-		if (! bypassFieldCompression)
-			iCompressedLength = CompressMem((byte*)pvData, iLength, pbCompressedData);
+		iCompressedLength = CompressMem((byte*)pvData, iLength, pbCompressedData);
 		if (iCompressedLength != -1)
 		{
 			// compressed...  (write length field out as -ve)
@@ -1648,25 +1405,15 @@ qboolean SG_Append(unsigned long chid, const void *pvData, int iLength)
 			// uncompressed...
 			//
 
-			if (gFullCompressionOn)
-				uiSaved += SG_WriteFullCompress(&iLength,		sizeof(iLength),		fhSaveGame);
-			else
-				uiSaved += SG_Write(&iLength,	sizeof(iLength),	fhSaveGame);
+			uiSaved += SG_Write(&iLength,	sizeof(iLength),	fhSaveGame);
 			//
 			// uncompressed data...
 			//
-			if (gFullCompressionOn)
-				uiSaved += SG_WriteFullCompress(pvData,		iLength,		fhSaveGame);
-			else
-				uiSaved += SG_Write( pvData,	iLength,			fhSaveGame);
+			uiSaved += SG_Write( pvData,	iLength,			fhSaveGame);
 			//
 			// CRC...
 			//
-			
-			if (gFullCompressionOn)
-				uiSaved += SG_WriteFullCompress(&uiCksum,		sizeof(uiCksum),		fhSaveGame);
-			else
-				uiSaved += SG_Write(&uiCksum,	sizeof(uiCksum),	fhSaveGame);
+			uiSaved += SG_Write(&uiCksum,	sizeof(uiCksum),	fhSaveGame);
 
 			if (uiSaved != sizeof(chid) + sizeof(iLength) + sizeof(uiCksum) + iLength)
 			{
@@ -1805,12 +1552,7 @@ static int SG_Read_Actual(unsigned long chid, void *pvAddress, int iLength, void
 		//
 		// decompress it...
 		//
-#ifdef SG_USE_ZLIB
-		DeCompress_ZLIB((byte *)pvAddress, iLength, pTempRLEData, uiCompressedLength);
-		
-#else
 		DeCompress_RLE((byte *)pvAddress, pTempRLEData, iLength);
-#endif
 		//
 		// free workspace...
 		//
@@ -1893,81 +1635,6 @@ void SG_TestSave(void)
 		WriteGame (false);
 		ge->WriteLevel(false);
 	}
-}
-
-qboolean SG_TestSignature(const char * psPathlessBaseName)
-{
-	char		sComment[iSG_COMMENT_SIZE];
-	char		sMapCmd [iSG_MAPCMD_SIZE];
-	qboolean	qbAutosave;
-	DWORD dwSuccess ;
-
-	int iPrevTestSave = sv_testsave->integer;
-	sv_testsave->integer = 0;
-	//open the file
-	if (!SG_Open( psPathlessBaseName ))
-	{
-		Com_Printf (GetString_FailedToOpenSaveGame(psPathlessBaseName, qtrue));//S_COLOR_RED "Failed to open savegame \"%s\"\n", psPathlessBaseName);
-		sv_testsave->integer = iPrevTestSave;
-		return qfalse;
-	}
-	
-	while( SG_ReadBytes(sComment, iSG_COMMENT_SIZE, NULL))
-		;
-	
-
-/*
-	// Read in all the server data...
-	//
-	SG_Read('COMM', sComment, sizeof(sComment));
-	Com_DPrintf("Reading: %s\n", sComment);
-	SG_Read( 'CMTM', NULL, sizeof( time_t ));
-
-
-//	SG_ReadScreenshot(qtrue);	// qboolean qbSetAsLoadingScreen
-	SG_Read('MPCM', sMapCmd, sizeof(sMapCmd));
-	SG_ReadCvars();
-
-	// read game state
-	qbAutosave = ReadGame();
-	eSavedGameJustLoaded = (qbAutosave)?eAUTO:eFULL;
-
-	SV_SpawnServer(sMapCmd, eForceReload_NOTHING, (eSavedGameJustLoaded != eFULL) );	// note that this also trashes the whole G_Alloc pool as well (of course)		
-
-	// read in all the level data...
-	//
-	if (!qbAutosave)
-	{
-		SG_Read('TIME', (void *)&sv.time, sizeof(sv.time));
-		SG_Read('TIMR', (void *)&sv.timeResidual, sizeof(sv.timeResidual));
-		CM_ReadPortalState();
-		SG_ReadServerConfigStrings();		
-	}
-	ge->ReadLevel(qbAutosave, qbLoadTransition);	// always done now, but ent reader only does player if auto
-
-*/
-	//sigend here
-	dwSuccess = XCalculateSignatureEnd( sg_sigHandleRead, &sg_validationHeaderRead.Signature );
-	assert( dwSuccess == ERROR_SUCCESS );
-
-	DWORD dwSigSize = XCalculateSignatureGetSize( XCALCSIG_FLAG_SAVE_GAME );
-
-	if(!SG_Close())
-	{
-		Com_Printf (GetString_FailedToOpenSaveGame(psPathlessBaseName,qfalse));//S_COLOR_RED "Failed to close savegame\n");
-		sv_testsave->integer = iPrevTestSave;
-		return qfalse;
-	}
-	if( memcmp( &sg_validationHeader.Signature, &sg_validationHeaderRead.Signature, dwSigSize ) != 0 )
-	{
-		Com_Printf (GetString_FailedToOpenSaveGame(psPathlessBaseName,qfalse));//S_COLOR_RED "Failed to close savegame\n");
-		sv_testsave->integer = iPrevTestSave;
-		return qfalse;
-	}
-
-	sv_testsave->integer = iPrevTestSave;
-	return qtrue;
-
 }
 
 //JLF 
