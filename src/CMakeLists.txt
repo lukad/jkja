@@ -71,6 +71,7 @@ add_executable(jasp
   qcommon/net_chan.cpp
   qcommon/stringed_ingame.cpp
   qcommon/stringed_interface.cpp
+  qcommon/sg_fields.cpp
   qcommon/unzip.cpp
   qcommon/z_memman_pc.cpp
   renderer/matcomp.c
@@ -299,6 +300,7 @@ add_library(jagame MODULE
   game/g_ref.cpp
   game/g_roff.cpp
   game/g_savegame.cpp
+  game/g_savetables.cpp
   game/g_session.cpp
   game/g_spawn.cpp
   game/g_svcmds.cpp
@@ -320,6 +322,7 @@ add_library(jagame MODULE
   icarus/Sequence.cpp
   icarus/Sequencer.cpp
   icarus/TaskManager.cpp
+  qcommon/sg_fields.cpp
   qcommon/tri_coll_test.cpp
   ratl/ratl.cpp
   ravl/CBounds.cpp
