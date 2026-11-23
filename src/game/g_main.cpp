@@ -94,7 +94,7 @@ void WriteInUseBits(void)
 
 void ReadInUseBits(void)
 {
-	gi.ReadFromSaveGame('INUS', &g_entityInUseBits, sizeof(g_entityInUseBits));
+	gi.ReadFromSaveGame('INUS', &g_entityInUseBits, sizeof(g_entityInUseBits), NULL);
 	// This is only temporary. Once I have converted all the ent->inuse refs,
 	// it won;t be needed -MW.
 	for(int i=0;i<MAX_GENTITIES;i++)
@@ -1120,7 +1120,7 @@ static void G_Animate ( gentity_t *self )
 		self->s.frame = self->endFrame;
 		
 		gi.G2API_SetBoneAnimIndex( &self->ghoul2[self->playerModel], self->rootBone, 
-									self->startFrame, self->endFrame, BONE_ANIM_OVERRIDE_FREEZE, 1.0f, cg.time );
+									self->startFrame, self->endFrame, BONE_ANIM_OVERRIDE_FREEZE, 1.0f, cg.time, -1, -1 );
 		return;
 	}
 
@@ -1560,7 +1560,7 @@ qboolean G_RagDoll(gentity_t *ent, vec3_t forcedAngles)
 				}
 
 				//Now that we have all that sorted out, trace between the two points we desire.
-				gi.trace(&tr, trStart, NULL, NULL, trEnd, ent->s.number, MASK_SOLID);
+				gi.trace(&tr, trStart, NULL, NULL, trEnd, ent->s.number, MASK_SOLID, (EG2_Collision)0, 0);
 
 				if (tr.fraction != 1.0 || tr.startsolid || tr.allsolid)
 				{ //Hit something or start in solid, so flag it and break.
@@ -2214,7 +2214,7 @@ void G_LoadSave_WriteMiscData(void)
 
 void G_LoadSave_ReadMiscData(void)
 {
-	gi.ReadFromSaveGame('LCKD', &player_locked, sizeof(player_locked));
+	gi.ReadFromSaveGame('LCKD', &player_locked, sizeof(player_locked), NULL);
 }
 
 

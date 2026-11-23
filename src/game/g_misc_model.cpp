@@ -165,13 +165,13 @@ void SP_misc_model_ghoul( gentity_t *ent )
 {
 #if 1
 	ent->s.modelindex = G_ModelIndex( ent->model );
-	gi.G2API_InitGhoul2Model(ent->ghoul2, ent->model, ent->s.modelindex);
+	gi.G2API_InitGhoul2Model(ent->ghoul2, ent->model, ent->s.modelindex, 0, 0, 0, 0);
 	ent->s.radius = 50;
 #else
 	char name1[200] = "models/players/kyle/model.glm";
 	ent->s.modelindex = G_ModelIndex( name1 );
 
-	gi.G2API_InitGhoul2Model(ent->ghoul2, name1, ent->s.modelindex);
+	gi.G2API_InitGhoul2Model(ent->ghoul2, name1, ent->s.modelindex, 0, 0, 0, 0);
 	ent->s.radius = 150;
 
 			// we found the model ok - load it's animation config
@@ -216,7 +216,7 @@ void SP_misc_model_ghoul( gentity_t *ent )
 	float animSpeed = 50.0f / animations[anim].frameLerp;
 	gi.G2API_SetBoneAnim(&ent->ghoul2[0], "model_root", animations[anim].firstFrame, 
 					(animations[anim].numFrames -1 )+ animations[anim].firstFrame,
-					BONE_ANIM_OVERRIDE_FREEZE , animSpeed, cg.time);
+					BONE_ANIM_OVERRIDE_FREEZE , animSpeed, cg.time, -1, -1);
 
 //	int test = gi.G2API_GetSurfaceRenderStatus(&ent->ghoul2[0], "l_hand");
 //	gi.G2API_SetSurfaceOnOff(&ent->ghoul2[0], "l_arm",0x00000100);

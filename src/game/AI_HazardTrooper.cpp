@@ -738,7 +738,7 @@ private:
 					mOrders[0].mPosition.v, 
 					mActors[0]->s.number, 
 					mActors[0]->clipmask
-					);
+, (EG2_Collision)0, 0					);
 
 			if (trace.fraction<1.0f)
 			{
@@ -869,7 +869,7 @@ private:
 					mActors[actorIndex]->maxs, 
 					OrderUp.v, 
 					mActors[actorIndex]->s.number, 
-					CONTENTS_SOLID|CONTENTS_TERRAIN|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP);
+					CONTENTS_SOLID|CONTENTS_TERRAIN|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP, (EG2_Collision)0, 0);
 
 				if (trace.startsolid || trace.allsolid)
 				{
@@ -1146,7 +1146,7 @@ void		Trooper_UpdateTroop(gentity_t* actor)
 						actor->maxs, 
 						iTroop->TroopLeader()->currentOrigin, 
 						actor->s.number, 
-						CONTENTS_SOLID|CONTENTS_TERRAIN|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP);
+						CONTENTS_SOLID|CONTENTS_TERRAIN|CONTENTS_MONSTERCLIP|CONTENTS_BOTCLIP, (EG2_Collision)0, 0);
 
 					if (!trace.allsolid && 
 						!trace.startsolid && 
@@ -1303,7 +1303,7 @@ int			Trooper_CanHitTarget(gentity_t* actor, gentity_t* target, CTroop& troop, f
 	{
 		// Clear Line Of Sight To Target?
 		//--------------------------------
-		gi.trace(&tr, MuzzlePoint.v, NULL, NULL, troop.TargetVisablePosition().v, actor->s.number, MASK_SHOT);
+		gi.trace(&tr, MuzzlePoint.v, NULL, NULL, troop.TargetVisablePosition().v, actor->s.number, MASK_SHOT, (EG2_Collision)0, 0);
 		if (tr.startsolid || tr.allsolid)
 		{
 			return ENTITYNUM_NONE;

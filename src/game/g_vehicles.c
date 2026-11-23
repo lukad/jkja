@@ -47,7 +47,7 @@ void Vehicle_SetAnim(gentity_t *ent,int setAnimParts,int anim,int setAnimFlags, 
 
 void G_VehicleTrace( trace_t *results, const vec3_t start, const vec3_t tMins, const vec3_t tMaxs, const vec3_t end, int passEntityNum, int contentmask )
 {
-	gi.trace( results, start, tMins, tMaxs, end, passEntityNum, contentmask );
+	gi.trace( results, start, tMins, tMaxs, end, passEntityNum, contentmask, (EG2_Collision)0, 0 );
 }
 
 Vehicle_t *G_IsRidingVehicle( gentity_t *pEnt )
@@ -341,7 +341,7 @@ void G_DriveATST( gentity_t *pEnt, gentity_t *atst )
 		{
 			G_RemovePlayerModel( pEnt );
 			G_RemoveWeaponModels( pEnt );
-			gi.G2API_CopyGhoul2Instance( atst->ghoul2, pEnt->ghoul2 );
+			gi.G2API_CopyGhoul2Instance( atst->ghoul2, pEnt->ghoul2, -1 );
 			pEnt->playerModel = 0;
 			G_SetG2PlayerModelInfo( pEnt, "atst", NULL, NULL, NULL );
 			//turn off hatch underside
