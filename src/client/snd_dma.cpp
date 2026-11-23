@@ -1593,9 +1593,17 @@ static int S_CheckAmplitude(channel_t	*ch, const int s_oldpaintedtime )
 					case ct_MP3:
 					{
 						const int iIndex = (i*100) + ((offset * /*ch->thesfx->width*/2) - ch->iMP3SlidingDecodeWindowPos);
-						const short* pwSamples = (short*) (ch->MP3SlidingDecodeBuffer + iIndex);
-
-						sample = LittleShort(*pwSamples);						
+// the position can lie outside what has been decoded into the window
+						if ( iIndex < 0 || iIndex + (int)sizeof(short) > (int)sizeof(ch->MP3SlidingDecodeBuffer) )
+						{
+							sample = 0;
+						}
+						else
+						{
+							short wSample;
+							memcpy( &wSample, ch->MP3SlidingDecodeBuffer + iIndex, sizeof(wSample) );
+							sample = LittleShort(wSample);
+						}						
 					}
 					break;
 
