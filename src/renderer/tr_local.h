@@ -527,7 +527,7 @@ typedef struct {
 } fog_t;
 
 typedef struct {
-	orientationr_t	or;
+	orientationr_t	ori;
 	orientationr_t	world;
 	vec3_t		pvsOrigin;			// may be different than or.origin for portals
 	qboolean	isPortal;			// true if this view is through a portal
@@ -1028,7 +1028,7 @@ typedef struct {
 	int						identityLightByte;	// identityLight * 255
 	int						overbrightBits;		// r_overbrightBits->integer, but set to 0 if no hw gamma
 
-	orientationr_t			or;					// for current entity
+	orientationr_t			ori;					// for current entity
 
 	trRefdef_t				refdef;
 
@@ -1266,7 +1266,7 @@ int R_CullLocalBox (const vec3_t bounds[2]);
 int R_CullPointAndRadius( const vec3_t pt, float radius );
 int R_CullLocalPointAndRadius( const vec3_t pt, float radius );
 
-void R_RotateForEntity( const trRefEntity_t *ent, const viewParms_t *viewParms, orientationr_t *or );
+void R_RotateForEntity( const trRefEntity_t *ent, const viewParms_t *viewParms, orientationr_t *ori );
 
 
 /*
@@ -1518,7 +1518,7 @@ LIGHTS
 
 void R_DlightBmodel( bmodel_t *bmodel, qboolean NoLight );
 void R_SetupEntityLighting( const trRefdef_t *refdef, trRefEntity_t *ent );
-void R_TransformDlights( int count, dlight_t *dl, orientationr_t *or );
+void R_TransformDlights( int count, dlight_t *dl, orientationr_t *ori );
 
 
 /*
