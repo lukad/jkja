@@ -400,7 +400,7 @@ static void ParseFace( dsurface_t *ds, mapVert_t *verts, msurface_t *surf, int *
 	numIndexes = LittleLong( ds->numIndexes );
 
 	// create the srfSurfaceFace_t
-	sfaceSize = ( int ) &((srfSurfaceFace_t *)0)->points[numPoints];
+	sfaceSize = ( int ) ( offsetof( srfSurfaceFace_t, points ) + numPoints * sizeof( ((srfSurfaceFace_t *)0)->points[0] ) );
 	ofsIndexes = sfaceSize;
 	sfaceSize += sizeof( int ) * numIndexes;
 
@@ -689,7 +689,7 @@ static	void R_LoadSurfaces( lump_t *surfs, lump_t *verts, lump_t *indexLump, wor
 		{
 			case MST_PLANAR:
 				
-				int sfaceSize = ( int ) &((srfSurfaceFace_t *)0)->points[LittleLong(in->numVerts)];	
+				int sfaceSize = ( int ) ( offsetof( srfSurfaceFace_t, points ) + LittleLong(in->numVerts) * sizeof( ((srfSurfaceFace_t *)0)->points[0] ) );
 					sfaceSize += sizeof( int ) * LittleLong(in->numIndexes);
 
 				iFaceDataSizeRequired += sfaceSize;

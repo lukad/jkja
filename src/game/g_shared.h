@@ -11,7 +11,7 @@
 #include "hitlocs.h"
 #include "bset.h"
 
-#define	FOFS(x) ((int)&(((gentity_t *)0)->x))
+#define	FOFS(x) ((int)offsetof(gentity_t, x))
 
 
 typedef enum //# taskID_e

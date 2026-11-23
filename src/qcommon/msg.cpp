@@ -488,7 +488,7 @@ typedef struct {
 } netField_t;
 
 // using the stringizing operator to save typing...
-#define	NETF(x) #x,(int)&((entityState_t*)0)->x
+#define	NETF(x) #x,(int)offsetof(entityState_t, x)
 
 #if 0	// Removed by BTO (VV)
 const netField_t	entityStateFields[] = 
@@ -922,7 +922,7 @@ plyer_state_t communication
 */
 
 // using the stringizing operator to save typing...
-#define	PSF(x) #x,(int)&((playerState_t*)0)->x
+#define	PSF(x) #x,(int)offsetof(playerState_t, x)
 
 static const netField_t	playerStateFields[] = 
 {
