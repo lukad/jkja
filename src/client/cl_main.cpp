@@ -38,8 +38,8 @@ cvar_t	*cl_endcredits;
 cvar_t	*cl_freelook;
 cvar_t	*cl_sensitivity;
 
-//cvar_t	*cl_mouseAccel;
-//cvar_t	*cl_showMouseRate;
+cvar_t	*cl_mouseAccel;
+cvar_t	*cl_showMouseRate;
 cvar_t  *cl_VideoQuality;
 cvar_t	*cl_VidFadeUp;	// deliberately kept as "Vid" rather than "Video" so tab-matching matches only VideoQuality
 cvar_t	*cl_VidFadeDown;
@@ -49,7 +49,7 @@ cvar_t	*m_pitch;
 cvar_t	*m_yaw;
 cvar_t	*m_forward;
 cvar_t	*m_side;
-//cvar_t	*m_filter;
+cvar_t	*m_filter;
 
 
 cvar_t	*cl_activeAction;
@@ -1009,7 +1009,7 @@ void CL_StartHunkUsers( void ) {
 //		cls.charSetShader = re.RegisterShaderNoMip( "gfx/2d/bigchars" );
 		cls.charSetShader = re.RegisterShaderNoMip( "gfx/2d/charsgrid_med" );
 		cls.whiteShader = re.RegisterShader( "white" );
-//		cls.consoleShader = re.RegisterShader( "console" );
+		cls.consoleShader = re.RegisterShader( "console" );
 		g_console_field_width = cls.glconfig.vidWidth / SMALLCHAR_WIDTH - 2;
 		kg.g_consoleField.widthInChars = g_console_field_width;
 		//-------
@@ -1137,10 +1137,10 @@ void CL_Init( void ) {
 	cl_sensitivity = Cvar_Get ("sensitivity", "2", CVAR_ARCHIVE);
 
 
-//	cl_mouseAccel = Cvar_Get ("cl_mouseAccel", "0", CVAR_ARCHIVE);
+	cl_mouseAccel = Cvar_Get ("cl_mouseAccel", "0", CVAR_ARCHIVE);
 	cl_freelook = Cvar_Get( "cl_freelook", "1", CVAR_ARCHIVE );
 
-//	cl_showMouseRate = Cvar_Get ("cl_showmouserate", "0", 0);
+	cl_showMouseRate = Cvar_Get ("cl_showmouserate", "0", 0);
 
 	cl_ingameVideo = Cvar_Get ("cl_ingameVideo", "1", CVAR_ARCHIVE);
 	cl_VideoQuality = Cvar_Get ("cl_VideoQuality", "0", CVAR_ARCHIVE);
@@ -1159,7 +1159,7 @@ void CL_Init( void ) {
 	m_yaw = Cvar_Get ("m_yaw", "0.022", CVAR_ARCHIVE);
 	m_forward = Cvar_Get ("m_forward", "0.25", CVAR_ARCHIVE);
 	m_side = Cvar_Get ("m_side", "0.25", CVAR_ARCHIVE);
-//	m_filter = Cvar_Get ("m_filter", "0", CVAR_ARCHIVE);
+	m_filter = Cvar_Get ("m_filter", "0", CVAR_ARCHIVE);
 
 
 	cl_updateInfoString = Cvar_Get( "cl_updateInfoString", "", CVAR_ROM );

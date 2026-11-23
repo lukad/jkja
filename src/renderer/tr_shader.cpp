@@ -1490,7 +1490,7 @@ static qboolean ParseStage( shaderStage_t *stage, const char **text )
 		//
 		else if ( !Q_stricmp( token, "detail" ) )
 		{
-//			stage->isDetail = true;
+			stage->isDetail = true;
 		}
 		//
 		// blendfunc <srcFactor> <dstFactor>
@@ -2165,7 +2165,7 @@ const infoParm_t	infoParms[] = {
 	{"inside",		~(CONTENTS_SOLID|CONTENTS_OPAQUE),0,CONTENTS_INSIDE },			// volume is considered to be inside (i.e. indoors)
 																		
 	{"detail",		-1,					0,				CONTENTS_DETAIL },			// don't include in structural bsp
-	{"trans",		-1,					0,				CONTENTS_TRANSLUCENT },		// surface has an alpha component
+	{"trans",		-1,					0,				(int)CONTENTS_TRANSLUCENT },		// surface has an alpha component
 	
 	/* Game surface flags */
 	{"sky",			-1,					SURF_SKY,		0 },					   	/* emit light from an environment map */

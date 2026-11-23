@@ -46,7 +46,7 @@ static client_t *SV_SetPlayer( void ) {
 static void SV_Map_( ForceReload_e eForceReload ) 
 {
 	char	*map;
-//	char	expanded[MAX_QPATH];
+	char	expanded[MAX_QPATH];
 
 	map = Cmd_Argv(1);
 	if ( !*map ) {

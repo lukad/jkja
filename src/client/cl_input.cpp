@@ -449,106 +449,76 @@ CL_MouseMove
 =================
 */
 
-extern short cg_crossHairStatus;
-
-void CL_MouseMove( usercmd_t *cmd )
-{
-	const float mouseSpeedX = 0.06f;
-	const float mouseSpeedY = 0.05f;
-	const float m_hoverSensitivity = 0.4f;
-
+void CL_MouseMove( usercmd_t *cmd ) {
+	float	mx, my;
+	float	accelSensitivity;
+	float	rate;
 	const float	speed = static_cast<float>(frame_msec);
 	const float pitch = m_pitch->value;
 
-	// Get raw stick values:
-	int ax = cl.mouseDx[cl.mouseIndex];
-	int ay = cl.mouseDy[cl.mouseIndex];
-	// Run them through our filter:
-	CL_MouseClamp(&ax, &ay);
-
-	// Adjust for frame duration and make horizontal slightly faster:
-	float mx = ax * speed * mouseSpeedX;
-	float my = ay * speed * mouseSpeedY;
-	// Save these before we start tuning them, in case user is on a vehicle with overrides:
-	float rawMx = mx;
-	float rawMy = my;
-
-	// Slow it down when targeting an enemy:
-	if (cg_crossHairStatus == 1)
-	{
-		mx *= m_hoverSensitivity;
-		my *= m_hoverSensitivity;
+	// allow mouse smoothing
+	if ( m_filter->integer ) {
+		mx = ( cl.mouseDx[0] + cl.mouseDx[1] ) * 0.5;
+		my = ( cl.mouseDy[0] + cl.mouseDy[1] ) * 0.5;
+	} else {
+		mx = cl.mouseDx[cl.mouseIndex];
+		my = cl.mouseDy[cl.mouseIndex];
 	}
 
-	// Switch entries, clear values:
 	cl.mouseIndex ^= 1;
 	cl.mouseDx[cl.mouseIndex] = 0;
 	cl.mouseDy[cl.mouseIndex] = 0;
 
-	// scale by FOV and user settings:
-	mx *= cl_sensitivity->value * cl.cgameSensitivity;
+	rate = SQRTFAST( mx * mx + my * my ) / speed;
 
-	// note the capital Y in the cvarname - scale by FOV and settings:
-	my *= cl_sensitivityY->value * cl.cgameSensitivity;
+	accelSensitivity = cl_sensitivity->value + rate * cl_mouseAccel->value;
+	// scale by FOV
+	accelSensitivity *= cl.cgameSensitivity;
+
+	if ( rate && cl_showMouseRate->integer ) {
+		Com_Printf( "%f : %f\n", rate, accelSensitivity );
+	}
+
+	mx *= accelSensitivity;
+	my *= accelSensitivity;
 
 	if (!mx && !my) {
-		// If there was a movement but no change in angles then start auto-leveling the camera
-		extern int g_lastFireTime;
-		float autolevelSpeed = 0.03f;
-
-		if (cg_crossHairStatus != 1 &&							// Not looking at an enemy
-			cl.joystickAxis[AXIS_FORWARD] &&					// Moving forward/backward
-			cl.frame.ps.groundEntityNum != ENTITYNUM_NONE &&	// Not in the air
-			Cvar_VariableIntegerValue("cl_autolevel") &&		// Autolevel is turned on
-			g_lastFireTime < Sys_Milliseconds() - 1000)			// Haven't fired recently
-		{
-			float normAngle = -SHORT2ANGLE(cl.frame.ps.delta_angles[PITCH]);
-			// The adjustment to normAngle below is meant to add or remove some multiple
-			// of 360, so that normAngle is within 180 of viewangles[PITCH]. It should
-			// be correct.
-			int diff = (int)(cl.viewangles[PITCH] - normAngle);
-			if (diff > 180)
-				normAngle += 360.0f * ((diff+180) / 360);
-			else if (diff < -180)
-				normAngle -= 360.0f * ((-diff+180) / 360);
-
-			if (Cvar_VariableIntegerValue("cg_thirdperson") == 1)
-			{
-//				normAngle += 10;	// Removed by BTO, 2003/05/14, I hate it
-				autolevelSpeed *= 1.5f;
-			}
-			if (cl.viewangles[PITCH] > normAngle)
-			{
-				cl.viewangles[PITCH] -= autolevelSpeed * speed;
-				if (cl.viewangles[PITCH] < normAngle) cl.viewangles[PITCH] = normAngle;
-			}
-			else if (cl.viewangles[PITCH] < normAngle)
-			{
-				cl.viewangles[PITCH] += autolevelSpeed * speed;
-				if (cl.viewangles[PITCH] > normAngle) cl.viewangles[PITCH] = normAngle;
-			}
-		}
 		return;
 	}
 
-	// Do yaw - use un-tweaked number if override is active:
-	if ( cl_mYawOverride )
-		cl.viewangles[YAW] -= cl_mYawOverride * rawMx;
-	else
-		cl.viewangles[YAW] -= m_yaw->value * mx;
-
-	// Do pitch - use un-tweaked number if override is active:
-	const float cl_pitchSensitivity = 0.5f;	// Should be a cvar!
-	if ( cl_mPitchOverride )
-	{
-		if ( pitch > 0 )
-			cl.viewangles[PITCH] += cl_mPitchOverride * rawMy * cl_pitchSensitivity;
+	// add mouse X/Y movement to cmd
+	if ( in_strafe.active ) {
+		cmd->rightmove = ClampChar( cmd->rightmove + m_side->value * mx );
+	} else {
+		if ( cl_mYawOverride )
+		{
+			cl.viewangles[YAW] -= cl_mYawOverride * mx;
+		}
 		else
-			cl.viewangles[PITCH] -= cl_mPitchOverride * rawMy * cl_pitchSensitivity;
+		{
+			cl.viewangles[YAW] -= m_yaw->value * mx;
+		}
 	}
-	else
-	{
-		cl.viewangles[PITCH] += pitch * my * cl_pitchSensitivity;
+
+	if ( (in_mlooking || cl_freelook->integer) && !in_strafe.active ) {
+		const float cl_pitchSensitivity = 1.0f;
+		if ( cl_mPitchOverride )
+		{
+			if ( pitch > 0 )
+			{
+				cl.viewangles[PITCH] += cl_mPitchOverride * my * cl_pitchSensitivity;
+			}
+			else
+			{
+				cl.viewangles[PITCH] -= cl_mPitchOverride * my * cl_pitchSensitivity;
+			}
+		}
+		else
+		{
+			cl.viewangles[PITCH] += pitch * my * cl_pitchSensitivity;
+		}
+	} else {
+		cmd->forwardmove = ClampChar( cmd->forwardmove - m_forward->value * my );
 	}
 }
 

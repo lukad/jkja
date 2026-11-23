@@ -6,7 +6,6 @@
 #include "stv_version.h"
 
 
-#include "platform.h"
 
 #define	MAXPRINTMSG	4096
 
@@ -21,9 +20,6 @@ static fileHandle_t	camerafile;
 fileHandle_t	com_journalFile;
 fileHandle_t	com_journalDataFile;		// config files are written here
 
-// Global language setting - this should be used instead of the myriad language
-// cvars. Will be one of the Xbox values: XC_LANGUAGE_(ENGLISH|FRENCH|GERMAN)
-DWORD	g_dwLanguage;
 
 cvar_t	*com_viewlog;
 cvar_t	*com_speeds;
@@ -97,9 +93,6 @@ void Com_EndRedirect (void)
 	rd_buffersize = 0;
 	rd_flush = NULL;
 }
-#ifndef FINAL_BUILD
-#define OUTPUT_TO_BUILD_WINDOW
-#endif
 
 /*
 =============
@@ -133,10 +126,6 @@ void QDECL Com_Printf( const char *fmt, ... ) {
 
 	// echo to dedicated console and early console
 	Sys_Print( msg );
-
-#ifdef OUTPUT_TO_BUILD_WINDOW
-	OutputDebugString(msg);
-#endif
 
 	// logfile
 	if ( com_logfile && com_logfile->integer ) {
@@ -177,10 +166,6 @@ void QDECL Com_PrintfAlways( const char *fmt, ... ) {
 	// echo to dedicated console and early console
 #ifndef FINAL_BUILD
 	Sys_Print( msg );
-
-#ifdef OUTPUT_TO_BUILD_WINDOW
-	OutputDebugString(msg);
-#endif
 #endif
 
 	// logfile
@@ -329,7 +314,7 @@ void QDECL Com_Error( int code, const char *fmt, ... ) {
 		CL_Disconnect();
 		CL_FlushMemory();
 		CL_StartHunkUsers();
-		Com_Printf (S_COLOR_RED"********************\n"S_COLOR_MAGENTA"ERROR: %s\n"S_COLOR_RED"********************\n", com_errorMessage);
+		Com_Printf (S_COLOR_RED"********************\n" S_COLOR_MAGENTA"ERROR: %s\n" S_COLOR_RED"********************\n", com_errorMessage);
 		com_errorEntered = qfalse;
 		throw ("DROPPED\n");
 	} else if ( code == ERR_NEED_CD ) {
@@ -986,11 +971,6 @@ void Com_Init( char *commandLine ) {
 	Com_Printf( "%s %s %s\n", Q3_VERSION, CPUSTRING, __DATE__ );
 
 	try {
-		// Grab the user's langauge preference from the dashboard right away!
-		// We only support french/german/english (with english as default)
-		g_dwLanguage = XGetLanguage();
-		if( g_dwLanguage != XC_LANGUAGE_FRENCH && g_dwLanguage != XC_LANGUAGE_GERMAN )
-			g_dwLanguage = XC_LANGUAGE_ENGLISH;
 
 		// prepare enough of the subsystems to handle
 		// cvar and command buffer management

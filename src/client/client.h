@@ -212,7 +212,7 @@ typedef struct {
 	glconfig_t	glconfig;
 	qhandle_t	charSetShader;
 	qhandle_t	whiteShader;
-//	qhandle_t	consoleShader;
+	qhandle_t	consoleShader;
 
 } clientStatic_t;
 
@@ -272,8 +272,8 @@ extern	cvar_t	*cl_sensitivity;
 
 extern	cvar_t	*cl_freelook;
 
-//extern	cvar_t	*cl_mouseAccel;
-//extern	cvar_t	*cl_showMouseRate;
+extern	cvar_t	*cl_mouseAccel;
+extern	cvar_t	*cl_showMouseRate;
 
 extern	cvar_t	*cl_ingameVideo;
 extern  cvar_t  *cl_VideoQuality;
@@ -284,7 +284,7 @@ extern	cvar_t	*m_pitch;
 extern	cvar_t	*m_yaw;
 extern	cvar_t	*m_forward;
 extern	cvar_t	*m_side;
-//extern	cvar_t	*m_filter;
+extern	cvar_t	*m_filter;
 
 extern	cvar_t	*cl_activeAction;
 

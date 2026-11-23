@@ -25,9 +25,6 @@
 #include "stringed_ingame.h"
 #include "stringed_interface.h"
 
-// Needed for DWORD and XC_LANGUAGE defines:
-#include <xtl.h>
-
 ///////////////////////////////////////////////
 
 // some STL stuff...
@@ -897,21 +894,7 @@ void SE_Init(void)
 
 	TheStringPackage.Clear( SE_FALSE );
 
-//	se_language = Cvar_Get("se_language", "english", CVAR_ARCHIVE | CVAR_NORESTART);
-	extern DWORD g_dwLanguage;
-	switch( g_dwLanguage )
-	{
-		case XC_LANGUAGE_FRENCH:
-			se_language = Cvar_Get("se_language", "french", CVAR_NORESTART);
-			break;
-		case XC_LANGUAGE_GERMAN:
-			se_language = Cvar_Get("se_language", "german", CVAR_NORESTART);
-			break;
-		case XC_LANGUAGE_ENGLISH:
-		default:
-			se_language = Cvar_Get("se_language", "english", CVAR_NORESTART);
-			break;
-	}
+	se_language = Cvar_Get("se_language", "english", CVAR_ARCHIVE | CVAR_NORESTART);
 
 	// Rather than calling SE_LoadLanguage directly, do this. Otherwise,
 	// se_langauge->modified doesn't get cleared, and we parse the string files

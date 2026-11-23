@@ -640,7 +640,7 @@ static void RB_SurfaceCylinder( void )
 }
 
 static vec3_t sh1, sh2;
-static f_count;
+static int f_count;
 
 // Up front, we create a random "shape", then apply that to each line segment...and then again to each of those segments...kind of like a fractal
 //----------------------------------------------------------------------------
@@ -1338,21 +1338,21 @@ RB_SurfaceFace
 */
 void RB_SurfaceFace( srfSurfaceFace_t *surf ) {
 	int			i, k;
+	unsigned int *indices;
+	glIndex_t	*tessIndexes;
+	float		*v;
 	float		*normal;
 	int			ndx;
 	int			Bob;
 	int			numPoints;
 	int			dlightBits;
-	unsigned char	*indices;
-	unsigned short	*tessIndexes;
-	unsigned short	*v;
 
 	RB_CHECKOVERFLOW( surf->numPoints, surf->numIndices );
 
 	dlightBits = surf->dlightBits;
 	tess.dlightBits |= dlightBits;
 
-	indices = ( unsigned char * ) ( ( ( char  * ) surf ) + surf->ofsIndices );
+	indices = ( unsigned * ) ( ( ( char  * ) surf ) + surf->ofsIndices );
 
 	Bob = tess.numVertexes;
 	tessIndexes = tess.indexes + tess.numIndexes;
@@ -1362,53 +1362,39 @@ void RB_SurfaceFace( srfSurfaceFace_t *surf ) {
 
 	tess.numIndexes += surf->numIndices;
 
+	v = surf->points[0];
+
 	ndx = tess.numVertexes;
 
 	numPoints = surf->numPoints;
 
-	if ( tess.shader->needsNormal || tess.dlightBits) {
+	//if ( tess.shader->needsNormal ) 
+	{
 		normal = surf->plane.normal;
 		for ( i = 0, ndx = tess.numVertexes; i < numPoints; i++, ndx++ ) {
 			VectorCopy( normal, tess.normal[ndx] );
 		}
 	}
 
-	int nextSurfPoint = NEXT_SURFPOINT(surf->flags);
-	int numLightMaps = surf->flags & 0x7F;
-
-	for ( i = 0, v = surf->srfPoints, ndx = tess.numVertexes; i < numPoints; i++, v += nextSurfPoint, ndx++ ) {
-
-		Q_CastShort2Float(&tess.xyz[ndx][0], (short*)&v[0]);
-		Q_CastShort2Float(&tess.xyz[ndx][1], (short*)&v[1]);
-		Q_CastShort2Float(&tess.xyz[ndx][2], (short*)&v[2]);
-
-		if(tess.shader->needsTangent || tess.dlightBits)
+	for ( i = 0, v = surf->points[0], ndx = tess.numVertexes; i < numPoints; i++, v += VERTEXSIZE, ndx++ ) 
+	{
+		VectorCopy( v, tess.xyz[ndx]);
+		tess.texCoords[ndx][0][0] = v[3];
+		tess.texCoords[ndx][0][1] = v[4];
+		for(k=0;k<MAXLIGHTMAPS;k++)
 		{
-			Q_CastShort2FloatScale(&tess.tangent[ndx][0], (short*)&v[3], 1.f / 32767.0f);
-			Q_CastShort2FloatScale(&tess.tangent[ndx][1], (short*)&v[4], 1.f / 32767.0f);
-			Q_CastShort2FloatScale(&tess.tangent[ndx][2], (short*)&v[5], 1.f / 32767.0f);
-
-			tess.setTangents = true;
+			if (tess.shader->lightmapIndex[k] >= 0)
+			{
+				tess.texCoords[ndx][k+1][0] = v[VERTEX_LM+(k*2)];
+				tess.texCoords[ndx][k+1][1] = v[VERTEX_LM+(k*2)+1];
+			}
+			else
+			{
+				break;
+			}
 		}
-
-		Q_CastShort2FloatScale(&tess.texCoords[ndx][0][0], (short*)&v[6], 1.f / POINTS_ST_SCALE);
-		Q_CastShort2FloatScale(&tess.texCoords[ndx][0][1], (short*)&v[7], 1.f / POINTS_ST_SCALE);
-
-		for(k=0;k<numLightMaps;k++)
-		{
-			Q_CastUShort2FloatScale(&tess.texCoords[ndx][k+1][0], 
-				&v[VERTEX_LM+(k*2)+0], 1.f / POINTS_LIGHT_SCALE);
-			Q_CastUShort2FloatScale(&tess.texCoords[ndx][k+1][1], 
-				&v[VERTEX_LM+(k*2)+1], 1.f / POINTS_LIGHT_SCALE);
-
-		}
-		if((surf->flags & 0x80) >> 7) {
-#ifdef COMPRESS_VERTEX_COLORS
-			*(unsigned int*) &tess.vertexColors[ndx] = ComputeFinalVertexColor16((byte *)&v[VERTEX_COLOR(surf->flags)]);
-#else
-			*(unsigned int*) &tess.vertexColors[ndx] = ComputeFinalVertexColor((byte *)&v[VERTEX_COLOR(surf->flags)]);
-#endif
-		}
+		*(unsigned int*) &tess.vertexColors[ndx] = ComputeFinalVertexColor((byte *)&v[VERTEX_COLOR]);
+		tess.vertexDlightBits[ndx] = dlightBits;
 	}
 
 	tess.numVertexes += surf->numPoints;

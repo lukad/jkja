@@ -7,7 +7,6 @@
 #include "tr_public.h"
 #include "mdx_format.h"
 #include "qgl.h"
-#include "glext.h"
 
 #define GL_INDEX_TYPE		GL_UNSIGNED_INT
 typedef unsigned int glIndex_t;
@@ -355,7 +354,7 @@ typedef struct {
 
 typedef struct {
 	byte			active;
-//	byte			isDetail;
+	byte			isDetail;
 	byte			isEnvironment;
 	byte			isSpecular;
 	byte			isBumpMap;

@@ -5,8 +5,6 @@
 
 #include "../client/snd_music.h"	// didn't want to put this in snd_local because of rebuild times etc.
 #include "server.h"
-#include "../win32/xbox_texture_man.h"
-#include <xgraphics.h>
 
 /*
 Ghoul2 Insert Start
@@ -178,91 +176,6 @@ qboolean CM_SameMap(char *server);
 qboolean CM_HasTerrain(void);
 void Cvar_Defrag(void);
 
-// Load-time animation hackery:
-struct OVERLAYINFO
-{
-	D3DTexture *texture;
-	D3DSurface *surface;
-};
-
-OVERLAYINFO Image;
-static int loadingX = 290;
-
-void InitLoadingAnimation( void )
-{
-/*
-	// Make our two textures:
-	Image.texture = new IDirect3DTexture9;
-
-	// Fill in the texture headers:
-	DWORD pixelSize = 
-	XGSetTextureHeader( 4,
-						4,
-						1,
-						0,
-						D3DFMT_YUY2,
-						0,
-						Image.texture,
-						0,
-						0 );
-
-	// Get pixel data, texNum is unused:
-	byte *pixels = (byte *)gTextures.Allocate( pixelSize, 0 );
-
-	// texNum is unused:
-	Image.texture->Register( pixels );
-
-	// Turn on overlays:
-	glw_state->device->EnableOverlay( TRUE );
-
-	// Get surface pointers:
-	Image.texture->GetSurfaceLevel( 0, &Image.surface );
-
-	D3DLOCKED_RECT lock;
-	Image.surface->LockRect( &lock, NULL, D3DLOCK_TILED );
-
-	// Grey?
-	memset( lock.pBits, 0x7f7f7f7f, lock.Pitch * 4 );
-
-	Image.surface->UnlockRect();
-
-	// Just to be safe:
-//	loadingIndex = 0;
-*/
-}
-
-void UpdateLoadingAnimation( void )
-{
-/*
-	// Draw the image tiny, in the bottom of the screen:
-	RECT dst_rect = { loadingX, 390, loadingX + 8, 398 };
-	RECT src_rect = { 0, 0, 4, 4 };
-
-	// Update this bugger.
-	glw_state->device->UpdateOverlay( Image.surface, &src_rect, &dst_rect, FALSE, 0 );
-	loadingX += 4;
-	if (loadingX > 342 )
-		loadingX = 290;
-*/
-}
-
-void StopLoadingAnimation( void )
-{
-/*
-	// Release surfaces:
-	Image.surface->Release();
-	Image.surface = NULL;
-
-	// Clean up the textures we made for the overlay stuff:
-	Image.texture->BlockUntilNotBusy();
-	delete Image.texture;
-	Image.texture = NULL;
-
-	// Turn overlays back off:
-	glw_state->device->EnableOverlay( FALSE );
-*/
-}
-
 /*
 ================
 SV_SpawnServer
@@ -350,9 +263,6 @@ void SV_SpawnServer( char *iServer, ForceReload_e eForceReload, qboolean bAllowS
 		This is useful for debugging memory fragmentation.  Please don't
 	   remove it.
 */
-
-	InitLoadingAnimation();
-	UpdateLoadingAnimation();
 
 	// init client structures and svs.numSnapshotEntities
 	// This is moved down quite a bit, but should be safe. And keeps
@@ -472,8 +382,6 @@ void SV_SpawnServer( char *iServer, ForceReload_e eForceReload, qboolean bAllowS
 	Z_Validate();
 	Z_Validate();
 	Z_Validate();
-
-	StopLoadingAnimation();
 
 	Com_Printf ("-----------------------------------\n");
 }
