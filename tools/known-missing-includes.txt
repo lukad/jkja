@@ -7,4 +7,3 @@
 # only shrink.
 
 src/qcommon/stringed_interface.cpp generic.h  # only used when building Raven's StringEd tool (_STRINGED)
-src/mp3code/wavep.c wcvt.c                    # third-party decoder; the file was never part of the release

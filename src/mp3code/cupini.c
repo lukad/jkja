@@ -42,9 +42,6 @@ mod 11/15/95 for Layer I
 
 =========================================================*/
 /*-- compiler bug, floating constant overflow w/ansi --*/
-#ifdef _MSC_VER
-#pragma warning(disable:4056)
-#endif
 
 
 

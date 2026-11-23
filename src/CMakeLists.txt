@@ -53,7 +53,6 @@ add_executable(jasp EXCLUDE_FROM_ALL
   mp3code/towave.c
   mp3code/uph.c
   mp3code/upsf.c
-  mp3code/wavep.c
   qcommon/cm_draw.cpp
   qcommon/cm_load.cpp
   qcommon/cm_patch.cpp

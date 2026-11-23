@@ -100,9 +100,6 @@ IN_OUT structure returns:
 #include "mhead.h"		/* mpeg header structure */
 
 
-#ifdef _MSC_VER
-#pragma warning(disable: 4709)
-#endif
 
 #include "mp3struct.h"
 

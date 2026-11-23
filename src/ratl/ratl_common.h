@@ -48,14 +48,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////
 // In VC++, Don't Bother With These Warnings
 ////////////////////////////////////////////////////////////////////////////////////////
-#if defined(_MSC_VER) && !defined(__MWERKS__)
-	#pragma warning ( disable : 4786 )			// Truncated to 255 characters warning
-	#pragma warning ( disable : 4284 )			// nevamind what this is
-	#pragma warning ( disable : 4100 )			// unreferenced formal parameter
-	#pragma warning ( disable : 4512 )			// unable to generate default operator=
-	#pragma warning ( disable : 4130 )			// logical operation on address of string constant
-	#pragma warning ( disable : 4127 )			// conditional expression is constant
-#endif
 
 
 ////////////////////////////////////////////////////////////////////////////////////////
@@ -118,17 +110,10 @@ namespace	mem
 // unsigned character array
 //
 ////////////////////////////////////////////////////////////////////////////////////////
-#if defined(_MSC_VER) && !defined(__MWERKS__)
-	struct alignStruct
-	{
-		int space;
-	};
-#else
-	struct alignStruct
+	struct alignas(16) alignStruct
 	{
 		unsigned char space[16];
-	} __attribute__ ((aligned(16)));
-#endif 
+	};
 
 	inline void*	cpy( void *dest, const void *src, size_t count )
 	{

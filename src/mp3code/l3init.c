@@ -37,9 +37,6 @@ ____________________________________________________________________________*/
 #include "l3.h"
 
 /* get rid of precision loss warnings on conversion */
-#ifdef _MSC_VER
-#pragma warning(disable:4244 4056)
-#endif
 
 
 /*---------- quant ---------------------------------*/
