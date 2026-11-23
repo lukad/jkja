@@ -11,7 +11,8 @@
 #include <list>
 #pragma warning (pop)
 
-using namespace std;
+using std::vector;
+using std::list;
 
 #if !defined(GENERICPARSER2_H_INC)
 #include "../game/genericparser2.h"

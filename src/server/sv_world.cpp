@@ -462,7 +462,10 @@ void SV_SectorList_f( void ) {
 #include <list>
 #include <map>
 #pragma warning (pop)
-using namespace std;
+using std::list;
+using std::map;
+using std::multimap;
+using std::pair;
 
 class CBBox
 {

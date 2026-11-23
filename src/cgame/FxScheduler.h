@@ -14,7 +14,10 @@ typedef sstring_t fxString_t;
 #ifndef FX_SCHEDULER_H_INC
 #define FX_SCHEDULER_H_INC
 
-using namespace std;
+using std::list;
+using std::map;
+using std::vector;
+using std::string;
 
 
 #define FX_FILE_PATH	"effects"

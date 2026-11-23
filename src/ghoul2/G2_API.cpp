@@ -42,7 +42,8 @@
 #include "ghoul2_gore.h"
 //rww - RAGDOLL_END
 
-using namespace std;
+using std::list;
+using std::string;
 
 extern mdxaBone_t		worldMatrix;
 extern mdxaBone_t		worldMatrixInv;

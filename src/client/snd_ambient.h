@@ -19,7 +19,11 @@
 #pragma warning (pop)
 #pragma warning (disable:4503)	// decorated name length xceeded, name was truncated
 
-using namespace std;
+using std::string;
+using std::vector;
+using std::map;
+using std::multimap;
+using std::pair;
 
 // Defines
 

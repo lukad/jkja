@@ -32,7 +32,9 @@
 
 #include <map>
 
-using namespace std;
+using std::map;
+using std::multimap;
+using std::pair;
 
 static char	saveGameComment[iSG_COMMENT_SIZE];
 

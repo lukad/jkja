@@ -1,7 +1,7 @@
 #include "cm_local.h"
 #pragma warning (push, 3)	//go back down to 3 for the stl include
 #pragma warning (pop)
-using namespace std;
+
 
 
 class CPoint

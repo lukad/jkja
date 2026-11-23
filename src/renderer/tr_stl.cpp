@@ -22,7 +22,10 @@
 
 #include <map>
 #include "../qcommon/sstring.h"	// #include <string>
-using namespace std;
+using std::map;
+using std::multimap;
+using std::pair;
+using std::string;
 
 typedef map<sstring_t, const char *>	ShaderEntryPtrs_t;
 										ShaderEntryPtrs_t *ShaderEntryPtrs;
