@@ -336,9 +336,9 @@ void SV_WipeGame_f(void)
 		Com_Printf (S_COLOR_RED "USAGE: wipe <name>\n");
 		return;
 	}
-	if (!Q_stricmp (Cmd_Argv(1), "Checkpoint") )
+	if (!Q_stricmp (Cmd_Argv(1), "auto") )
 	{
-		Com_Printf (S_COLOR_RED "Can't wipe 'Checkpoint'\n");
+		Com_Printf (S_COLOR_RED "Can't wipe 'auto'\n");
 		return;
 	}
 	SG_WipeSavegame(Cmd_Argv(1));
@@ -409,9 +409,8 @@ void SV_LoadGame_f(void)
 
 	if (!Q_stricmp(psFilename, "*respawn"))
 	{
-		psFilename = "Checkpoint";	// default to standard respawn behaviour
+		psFilename = "auto";	// default to standard respawn behaviour
 		
-/*
 		// see if there's a last-loaded file to even check against as regards loading...
 		//
 		if ( sLastSaveFileLoaded[0] )
@@ -420,13 +419,7 @@ void SV_LoadGame_f(void)
 			LPCSTR psMapName    = Info_ValueForKey( psServerInfo, "mapname" );
 			//psMapName = SE_GetString ("MENUS", psMapName);
 
-			char *psMapNameOfAutoSave = NULL;
-			
-			
-			if (!SG_TestSignature("Checkpoint"))
-				psMapNameOfAutoSave = NULL;
-			else
-				psMapNameOfAutoSave = SG_GetSaveGameMapName("Checkpoint");
+			char *psMapNameOfAutoSave = SG_GetSaveGameMapName("auto");
 
 			if ( !Q_stricmp(psMapName,"_brig") )
 			{//if you're in the brig and there is no autosave, load the last loaded savegame
@@ -457,7 +450,6 @@ void SV_LoadGame_f(void)
 				}
 			}
 		}
-*/
 		//default will continue to load auto
 	}
 	Com_Printf (S_COLOR_CYAN "%s\n",va(SE_GetString("MENUS_LOADING_MAPNAME"), psFilename));
@@ -537,7 +529,7 @@ void SV_SaveGame_f(void)
 	if (!SG_GameAllowedToSaveHere(qfalse))	//full check
 		return;	// this prevents people saving via quick-save now during cinematics.
 
-	if ( !Q_stricmp (psFilename, "Checkpoint") || !Q_stricmp (psFilename, "auto"))
+	if ( !Q_stricmp (psFilename, "auto"))
 	{
 		
 		SG_StoreSaveGameComment("");	// clear previous comment/description, which will force time/date comment.
@@ -1141,7 +1133,7 @@ qboolean SG_ReadSavegame(const char *psPathlessBaseName)
 
 	// this check isn't really necessary, but it reminds me that these two strings may actually be the same physical one.
 	//
-	if (psPathlessBaseName != sLastSaveFileLoaded && (strcmp(psPathlessBaseName,"Checkpoint")))
+	if (psPathlessBaseName != sLastSaveFileLoaded && (strcmp(psPathlessBaseName,"auto")))
 	{
 		Q_strncpyz(sLastSaveFileLoaded,psPathlessBaseName,sizeof(sLastSaveFileLoaded));
 	}

@@ -73,7 +73,7 @@ static void SV_Map_( ForceReload_e eForceReload )
 
 	if (map[0]!='_')
 	{
-		SG_WipeSavegame("Checkpoint");
+		SG_WipeSavegame("auto");
 	}
 
 	SV_SpawnServer( map, eForceReload, qtrue );	// start up the map
