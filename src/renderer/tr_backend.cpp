@@ -52,6 +52,9 @@ void GL_Bind( image_t *image ) {
 	}
 
 	if ( glState.currenttextures[glState.currenttmu] != texnum ) {
+		if ( image ) {
+			image->frameUsed = tr.frameCount;
+		}
 		glState.currenttextures[glState.currenttmu] = texnum;
 		qglBindTexture (GL_TEXTURE_2D, texnum);
 	}
@@ -1661,7 +1664,8 @@ void EndPixelShader()
 
 // Hack variable for deciding which kind of texture rectangle thing to do (for some
 // reason it acts different on radeon! It's against the spec!).
-extern bool g_bTextureRectangleHack;
+// set by the platform layer for drivers that mishandle rectangle textures
+bool g_bTextureRectangleHack = false;
 
 static inline void RB_BlurGlowTexture()
 {

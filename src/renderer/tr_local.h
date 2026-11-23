@@ -112,6 +112,8 @@ typedef struct image_s {
 
 //	bool		allowPicmip;
 	short		iLastLevelUsedOn;
+
+	int			frameUsed;				// for texture usage in frame statistics
 } image_t;
 
 

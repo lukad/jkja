@@ -199,6 +199,35 @@ static float R_BytesPerTex (int format)
 
 /*
 ===============
+R_SumOfUsedImages
+===============
+*/
+float R_SumOfUsedImages( qboolean bUseFormat ) 
+{	
+	int	total = 0;
+	image_t *pImage;
+
+					  R_Images_StartIteration();
+	while ( (pImage = R_Images_GetNextIteration()) != NULL)
+	{
+		if ( pImage->frameUsed == tr.frameCount- 1 ) {//it has already been advanced for the next frame, so...
+			if (bUseFormat)
+			{
+				float  bytePerTex = R_BytesPerTex (pImage->internalFormat);
+				total += bytePerTex * (pImage->width * pImage->height);
+			}
+			else
+			{
+				total += pImage->width * pImage->height;
+			}
+		}
+	}
+
+	return total;
+}
+
+/*
+===============
 R_ImageList_f
 ===============
 */
