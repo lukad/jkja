@@ -813,9 +813,9 @@ static void SG_WriteComment(qboolean qbAutosave, LPCSTR psMapName)
 	SG_Append('COMM', sComment, sizeof(sComment));
 
 	// Add Date/Time/Map stamp
-	time_t now;
-	time(&now);
-	SG_Append('CMTM', &now, sizeof(time_t));
+	// seconds since 1970, in 64 bits whatever the width of time_t
+	const int64_t now = time(NULL);
+	SG_Append('CMTM', &now, sizeof(now));
 
 	Com_DPrintf("Saving: current (%s)\n", sComment);
 }
@@ -827,7 +827,7 @@ static void SG_WriteComment(qboolean qbAutosave, LPCSTR psMapName)
 int SG_GetSaveGameComment(const char *psPathlessBaseName, char *sComment, char *sMapName)
 {
 	int ret = 0;
-	time_t tFileTime;
+	int64_t tFileTime;
 
 	qbSGReadIsTestOnly = qtrue;	// do NOT leave this in this state
 
@@ -839,7 +839,7 @@ int SG_GetSaveGameComment(const char *psPathlessBaseName, char *sComment, char *
 
 	if (SG_Read( 'COMM', sComment, iSG_COMMENT_SIZE ))
 	{	
-		if (SG_Read( 'CMTM', &tFileTime, sizeof( time_t )))	//read
+		if (SG_Read( 'CMTM', &tFileTime, sizeof( tFileTime )))	//read
 		{	
 			if (SG_Read('MPCM', sMapName, iSG_MAPCMD_SIZE ))	// read
 			{
@@ -963,7 +963,7 @@ qboolean SG_GetSaveImage( const char *psPathlessBaseName, void *pvAddress )
 	}
 	
 	SG_Read('COMM', NULL, 0, NULL);	// skip
-	SG_Read('CMTM', NULL, sizeof( time_t ));
+	SG_Read('CMTM', NULL, sizeof( int64_t ));
 
 	qboolean bGotSaveImage = SG_ReadScreenshot(qfalse, pvAddress);
 
@@ -1150,7 +1150,7 @@ qboolean SG_ReadSavegame(const char *psPathlessBaseName)
 	//
 	SG_Read('COMM', sComment, sizeof(sComment));
 	Com_DPrintf("Reading: %s\n", sComment);
-	SG_Read( 'CMTM', NULL, sizeof( time_t ));
+	SG_Read( 'CMTM', NULL, sizeof( int64_t ));
 
 
 //	SG_ReadScreenshot(qtrue);	// qboolean qbSetAsLoadingScreen
