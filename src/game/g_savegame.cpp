@@ -7,10 +7,14 @@
 #include "../icarus/IcarusInterface.h"
 #include "Q3_Interface.h"
 #include "g_local.h"
-#include "fields.h"
 #include "objectives.h"
 #include "../cgame/cg_camera.h"
 #include "../qcommon/sstring.h"
+#include "g_savetables.h"
+#include "g_vehicles.h"
+
+#include <string>
+#include <vector>
 
 extern void OBJ_LoadTacticalInfo(void);
 
@@ -20,167 +24,21 @@ extern void G_ReloadSaberData( gentity_t *ent );
 extern void FX_Read( void );
 extern void FX_Write( void );
 
-
-static const save_field_t savefields_gEntity[] =
-{
-	{strFOFS(client),			F_GCLIENT},
-	{strFOFS(owner),			F_GENTITY},
-	{strFOFS(classname),		F_STRING},
-	{strFOFS(model),			F_STRING},
-	{strFOFS(model2),			F_STRING},
-//	{strFOFS(model3),			F_STRING}, - MCG
-	{strFOFS(nextTrain),		F_GENTITY},
-	{strFOFS(prevTrain),		F_GENTITY},
-	{strFOFS(message),			F_STRING},
-	{strFOFS(target),			F_STRING},
-	{strFOFS(target2),			F_STRING},
-	{strFOFS(target3),			F_STRING},
-	{strFOFS(target4),			F_STRING},
-	{strFOFS(targetJump),		F_STRING},
-	{strFOFS(targetname),		F_STRING},
-	{strFOFS(team),				F_STRING},
-	{strFOFS(roff),				F_STRING},
-//	{strFOFS(target_ent),		F_GENTITY}, - MCG
-	{strFOFS(chain),			F_GENTITY},
-	{strFOFS(enemy),			F_GENTITY},
-	{strFOFS(activator),		F_GENTITY},
-	{strFOFS(teamchain),		F_GENTITY},
-	{strFOFS(teammaster),		F_GENTITY},
-	{strFOFS(item),				F_ITEM},
-	{strFOFS(NPC_type),			F_STRING},
-	{strFOFS(closetarget),		F_STRING},
-	{strFOFS(opentarget),		F_STRING},
-	{strFOFS(paintarget),		F_STRING},
-	{strFOFS(NPC_targetname),	F_STRING},
-	{strFOFS(NPC_target),		F_STRING},
-	{strFOFS(ownername),		F_STRING},
-	{strFOFS(lastEnemy),		F_GENTITY},
-	{strFOFS(behaviorSet),		F_BEHAVIORSET},
-	{strFOFS(script_targetname),F_STRING},
-	{strFOFS(m_iIcarusID),		F_NULL},
-	{strFOFS(NPC),				F_BOOLPTR},	
-	{strFOFS(soundSet),			F_STRING},
-	{strFOFS(cameraGroup),		F_STRING},
-	{strFOFS(parms),			F_BOOLPTR},		
-	{strFOFS(m_pVehicle),		F_BOOLPTR},	
-
-	{NULL, 0, F_IGNORE}
-};
-
-static const save_field_t savefields_gNPC[] =
-{
-//	{strNPCOFS(pendingEnemy),		F_GENTITY},
-	{strNPCOFS(touchedByPlayer),	F_GENTITY},
-	{strNPCOFS(aimingBeam),			F_GENTITY},
-	{strNPCOFS(eventOwner),			F_GENTITY},
-	{strNPCOFS(coverTarg),			F_GENTITY},
-	{strNPCOFS(tempGoal),			F_GENTITY},
-	{strNPCOFS(goalEntity),			F_GENTITY},
-	{strNPCOFS(lastGoalEntity),		F_GENTITY},
-	{strNPCOFS(eventualGoal),		F_GENTITY},
-	{strNPCOFS(captureGoal),		F_GENTITY},
-	{strNPCOFS(defendEnt),			F_GENTITY},
-	{strNPCOFS(greetEnt),			F_GENTITY},
-	{strNPCOFS(group),				F_GROUP},
-	{strNPCOFS(blockedEntity),		F_GENTITY},
-	{strNPCOFS(blockedTargetEntity),F_GENTITY},
-	{strNPCOFS(jumpTarget),			F_GENTITY},
-	{strNPCOFS(watchTarget),		F_GENTITY},
-	{NULL, 0, F_IGNORE}
-};
-
-static const save_field_t savefields_LevelLocals[] =
-{
-	{strLLOFS(locationHead),	F_GENTITY},	
-	{strLLOFS(alertEvents),		F_ALERTEVENT},
-	{strLLOFS(groups),			F_AIGROUPS},	
-	{strLLOFS(knownAnimFileSets),F_ANIMFILESETS},	
-	{NULL, 0, F_IGNORE}
-};
-
-static const save_field_t savefields_gVHIC[] =
-{
-	{strVHICOFS(m_pPilot),			F_GENTITY},
-	{strVHICOFS(m_pOldPilot),		F_GENTITY},
-	{strVHICOFS(m_pDroidUnit),		F_GENTITY},
-	{strVHICOFS(m_pParentEntity),	F_GENTITY},
-	
-	//m_ppPassengers	//!ptr array?!
-	{strVHICOFS(m_pVehicleInfo),	F_VEHINFO}, //!another ptr! store name field instead and re-hook on load?
-
-	{NULL, 0, F_IGNORE}
-};
-
-static const save_field_t savefields_gClient[] =
-{
-	// sabers are stomped over by specific code elsewhere, it seems, but the first two fields MUST be saved
-	//	or it crashes on reload
-	{strCLOFS(ps.saber[0].name),F_STRING},	
-/*	{strCLOFS(ps.saber[0].model),F_STRING},
-	{strCLOFS(ps.saber[0].skin),F_STRING},
-	{strCLOFS(ps.saber[0].brokenSaber1),F_STRING},
-	{strCLOFS(ps.saber[0].brokenSaber2),F_STRING},
-*/
-	{strCLOFS(ps.saber[1].name),F_STRING},
-/*	{strCLOFS(ps.saber[1].model),F_STRING},
-	{strCLOFS(ps.saber[1].skin),F_STRING},
-	{strCLOFS(ps.saber[1].brokenSaber1),F_STRING},
-	{strCLOFS(ps.saber[1].brokenSaber2),F_STRING},
-*/
-	{strCLOFS(leader),			F_GENTITY},
-	{strCLOFS(clientInfo.customBasicSoundDir),F_STRING},
-	{strCLOFS(clientInfo.customCombatSoundDir),F_STRING},
-	{strCLOFS(clientInfo.customExtraSoundDir),F_STRING},
-	{strCLOFS(clientInfo.customJediSoundDir),F_STRING},
-
-	{NULL, 0, F_IGNORE}
-};
-
-list<sstring_t> *strList = NULL;
-
-
 /////////// char * /////////////
 //
 //
-static int GetStringNum(const char *psString)
+
+static char *GetStringPtr(const char *sString, char *psOriginal/*may be NULL*/)
 {
-	assert( psString != (char *)0xcdcdcdcd );
-
-	// NULL ptrs I'll write out as a strlen of -1...
-	//
-	if (!psString)
-	{
-		return -1;
-	}
-
-	strList->push_back( psString );
-	return strlen(psString) + 1;	// this gives us the chunk length for the reader later
-}
-
-static char *GetStringPtr(int iStrlen, char *psOriginal/*may be NULL*/)
-{
-	if (iStrlen != -1)
-	{
-		char sString[768];	// arb, inc if nec.
-
-		sString[0]=0;
-
-		assert(iStrlen+1<=sizeof(sString));
-		
-		gi.ReadFromSaveGame('STRG', sString, iStrlen, NULL);
-
-		if (psOriginal && gi.bIsFromZone(psOriginal, TAG_G_ALLOC)) {
-			if (!strcmp(psOriginal,sString))
-			{//it's a legal ptr and they're the same so let's just reuse it instead of free/alloc
-				return psOriginal;
-			}
-			gi.Free(psOriginal);
+	if (psOriginal && gi.bIsFromZone(psOriginal, TAG_G_ALLOC)) {
+		if (!strcmp(psOriginal,sString))
+		{//it's a legal ptr and they're the same so let's just reuse it instead of free/alloc
+			return psOriginal;
 		}
-
-		return G_NewString(sString);
+		gi.Free(psOriginal);
 	}
 
-	return NULL;
+	return G_NewString(sString);
 }
 //
 //
@@ -367,303 +225,162 @@ static vehicleInfo_t *GetVehicleInfoPtr(int iVehicleIndex)
 ////////////////////////////////
 
 
-static void EnumerateField(const save_field_t *pField, const byte *pbBase)
+
+/////////// field tables ////////
+//
+// The structures are written and read member by member from the tables in
+// g_savetables.cpp (docs/decisions/0015-savegame-format.md). What follows tells the
+// table code what the game's pointers are.
+//
+static std::int32_t SaveIndexOf(void *, const char *psKind, const void *pv, const void *pvRoot)
 {
-	void *pv = (void *)(pbBase + pField->iOffset);
-
-	switch (pField->eFieldType)
+	if (!strcmp(psKind, "entity"))
 	{
-	case F_STRING:
-		*(int *)pv = GetStringNum(*(char **)pv);
-		break;
-
-	case F_GENTITY:
-		*(int *)pv = GetGEntityNum(*(gentity_t **)pv);
-		break;
-
-	case F_GROUP:
-		*(int *)pv = GetGroupNumber(*(AIGroupInfo_t **)pv);
-		break;
-
-	case F_GCLIENT:
-		*(int *)pv = GetGClientNum(*(gclient_t **)pv, (gentity_t *) pbBase);
-		break;
-
-	case F_ITEM:
-		*(int *)pv = GetGItemNum(*(gitem_t **)pv);
-		break;
-
-	case F_VEHINFO:
-		*(int *)pv = GetVehicleInfoNum(*(vehicleInfo_t **)pv);
-		break;
-
-	case F_BEHAVIORSET:
-		{
-			const char **p = (const char **) pv;
-			for (int i=0; i<NUM_BSETS; i++)
-			{
-				pv = &p[i];	// since you can't ++ a void ptr
-				*(int *)pv = GetStringNum(*(char **)pv);
-			}
-		}
-		break;
-
-/*MCG
-	case F_BODYQUEUE:
-		{
-			gentity_t **p = (gentity_t **) pv;
-			for (int i=0; i<BODY_QUEUE_SIZE; i++)
-			{
-				pv = &p[i];	// since you can't ++ a void ptr
-				*(int *)pv = GetGEntityNum(*(gentity_t **)pv);
-			}
-		}
-		break;
-*/
-
-	case F_ALERTEVENT:	// convert all gentity_t ptrs in an alertEvent array into indexes...
-		{
-			alertEvent_t* p = (alertEvent_t *) pv;
-
-			for (int i=0; i<MAX_ALERT_EVENTS; i++)
-			{
-				*(int *)(&p[i].owner) = GetGEntityNum(p[i].owner);
-			}
-		}
-		break;
-
-	case F_AIGROUPS:	// convert to ptrs within this into indexes...
-		{
-			AIGroupInfo_t* p = (AIGroupInfo_t *) pv;
-
-			for (int i=0; i<MAX_FRAME_GROUPS; i++)
-			{
-				*(int *)(&p[i].enemy)		= GetGEntityNum(p[i].enemy);
-				*(int *)(&p[i].commander)	= GetGEntityNum(p[i].commander);
-			}
-		}
-		break;
-
-	case F_ANIMFILESETS:
-		{
-			animFileSet_t* p = (animFileSet_t *) pv;
-
-			for (int i=0; i<MAX_ANIM_FILES; i++)
-			{
-				for ( int j=0; j<MAX_ANIM_EVENTS; j++ )
-				{
-					const char *ptAnimEventStringData = p[i].torsoAnimEvents[j].stringData;
-					*(int *)(&p[i].torsoAnimEvents[j].stringData) = GetStringNum( ptAnimEventStringData );
-					const char *plAnimEventStringData = p[i].legsAnimEvents[j].stringData;
-					*(int *)(&p[i].legsAnimEvents[j].stringData) = GetStringNum( plAnimEventStringData );
-				}
-			}
-		}
-		break;
-
-	case F_BOOLPTR:
-		*(qboolean *)pv = !!(*(int *)pv);
-		break;
-
-	// These are always recreated. The one field of this type, m_iIcarusID, is an int.
-	case F_NULL:
-		*(int *)pv = 0;
-		break;
-
-	case F_IGNORE:
-		break;
-
-	default:
-		G_Error ("EnumerateField: unknown field type");
-		break;
+		return GetGEntityNum((gentity_t *) pv);
 	}
+	if (!strcmp(psKind, "client"))
+	{
+		// only an entity has a pointer of this kind, and it is the entity that is being written
+		return GetGClientNum((gclient_t *) pv, (gentity_t *) pvRoot);
+	}
+	if (!strcmp(psKind, "item"))
+	{
+		return GetGItemNum((gitem_t *) pv);
+	}
+	if (!strcmp(psKind, "group"))
+	{
+		return GetGroupNumber((AIGroupInfo_t *) pv);
+	}
+	if (!strcmp(psKind, "vehicle"))
+	{
+		return GetVehicleInfoNum((vehicleInfo_t *) pv);
+	}
+	G_Error("SaveIndexOf: unknown kind of pointer \"%s\"", psKind);
+	return -1;
 }
 
-static void EnumerateFields(const save_field_t *pFields, const byte *pbData, unsigned int ulChid, int iLen)
+static void *SavePointerOf(void *, const char *psKind, std::int32_t iIndex)
 {
-	strList = new list<sstring_t>;
-
-	// enumerate all the fields...
-	//
-	if (pFields)
+	if (!strcmp(psKind, "entity"))
 	{
-		for (const save_field_t *pField = pFields; pField->psName; pField++)
-		{
-			assert(pField->iOffset < iLen);
-			EnumerateField(pField, pbData);
-		}
+		return GetGEntityPtr(iIndex);
 	}
-	
-	// save out raw data...
-	//
-	gi.AppendToSaveGame(ulChid, pbData, iLen);
-
-	// save out any associated strings..
-	//
-	list<sstring_t>::iterator it = strList->begin();
-	for (unsigned int i=0; i<strList->size(); i++, ++it)
+	if (!strcmp(psKind, "client"))
 	{
-		gi.AppendToSaveGame('STRG', (void *)(*it).c_str(), (*it).length() + 1);
+		return GetGClientPtr(iIndex);
 	}
-	
-	delete strList;
-	strList = NULL;
+	if (!strcmp(psKind, "item"))
+	{
+		return GetGItemPtr(iIndex);
+	}
+	if (!strcmp(psKind, "group"))
+	{
+		return GetGroupPtr(iIndex);
+	}
+	if (!strcmp(psKind, "vehicle"))
+	{
+		return GetVehicleInfoPtr(iIndex);
+	}
+	G_Error("SavePointerOf: unknown kind of pointer \"%s\"", psKind);
+	return NULL;
 }
 
-
-static void EvaluateField(const save_field_t *pField, byte *pbBase, byte *pbOriginalRefData/* may be NULL*/)
+static char *SaveNewString(void *, std::string_view sText, char *psOriginal)
 {
-	void *pv		 = (void *)(pbBase			  + pField->iOffset);
-	void *pvOriginal = (void *)(pbOriginalRefData + pField->iOffset);
-
-	switch (pField->eFieldType)
-	{
-	case F_STRING:
-		*(char **)pv = GetStringPtr(*(int *)pv, pbOriginalRefData?*(char**)pvOriginal:NULL);
-		break;
-
-	case F_GENTITY:
-		*(gentity_t **)pv = GetGEntityPtr(*(int *)pv);
-		break;
-
-	case F_GROUP:
-		*(AIGroupInfo_t **)pv = GetGroupPtr(*(int *)pv);
-		break;
-
-	case F_GCLIENT:
-		*(gclient_t **)pv = GetGClientPtr(*(int *)pv);
-		break;
-
-	case F_ITEM:
-		*(gitem_t **)pv = GetGItemPtr(*(int *)pv);
-		break;
-
-	case F_VEHINFO:
-		*(vehicleInfo_t **)pv = GetVehicleInfoPtr(*(int *)pv);
-		break;
-
-	case F_BEHAVIORSET:
-		{
-			char **p = (char **) pv;
-			char **pO= (char **) pvOriginal;
-			for (int i=0; i<NUM_BSETS; i++, p++, pO++)
-			{
-				*p = GetStringPtr(*(int *)p, pbOriginalRefData?*(char **)pO:NULL);
-			}
-		}
-		break;
-
-/*MCG
-	case F_BODYQUEUE:
-		{
-			gentity_t **p = (gentity_t **) pv;
-			for (int i=0; i<BODY_QUEUE_SIZE; i++, p++)
-			{
-				*p = GetGEntityPtr(*(int *)p);
-			}
-		}
-		break;
-*/
-
-	case F_ALERTEVENT:
-		{				
-			alertEvent_t* p = (alertEvent_t *) pv;
-
-			for (int i=0; i<MAX_ALERT_EVENTS; i++)
-			{
-				p[i].owner = GetGEntityPtr(*(int *)(&p[i].owner));
-			}
-		}
-		break;
-
-	case F_AIGROUPS:	// convert to ptrs within this into indexes...
-		{
-			AIGroupInfo_t* p = (AIGroupInfo_t *) pv;
-
-			for (int i=0; i<MAX_FRAME_GROUPS; i++)
-			{
-				p[i].enemy		= GetGEntityPtr(*(int *)(&p[i].enemy));
-				p[i].commander	= GetGEntityPtr(*(int *)(&p[i].commander));
-			}
-		}
-		break;
-
-	case F_ANIMFILESETS:
-		{
-			animFileSet_t* p = (animFileSet_t *) pv;
-			char *pO;
-			for (int i=0; i<MAX_ANIM_FILES; i++)
-			{
-				for ( int j=0; j<MAX_ANIM_EVENTS; j++ )
-				{
-					pO = pbOriginalRefData ? level.knownAnimFileSets[i].torsoAnimEvents[j].stringData : NULL;
-					p[i].torsoAnimEvents[j].stringData = GetStringPtr(*(int *)(&p[i].torsoAnimEvents[j].stringData), pO);
-					pO = pbOriginalRefData ? level.knownAnimFileSets[i].legsAnimEvents[j].stringData : NULL;
-					p[i].legsAnimEvents[j].stringData = GetStringPtr(*(int *)(&p[i].legsAnimEvents[j].stringData), pO);
-				}
-			}
-		}
-		break;
-//	// These fields are patched in when their relevant owners are loaded
-	case F_BOOLPTR:
-	case F_NULL:
-		break;
-
-	case F_IGNORE:
-		break;
-
-	default:
-		G_Error ("EvaluateField: unknown field type");
-		break;
-	}
+	return GetStringPtr(std::string(sText).c_str(), psOriginal);
 }
 
+// What a pointer that is saved as "there is one" holds after loading, until the code
+// that loads what it pointed to has replaced it.
+static char gcSavedPointerIsPresent;
 
-// copy of function in sv_savegame
-static LPCSTR SG_GetChidText(unsigned int chid)
+static const sg::Codec &SaveCodec()
 {
-	static char	chidtext[5];
+	static sg::Codec codec;
 
-	*(unsigned int *)chidtext = BigLong(chid);
-	chidtext[4] = 0;
-
-	return chidtext;
+	codec.indexOf = SaveIndexOf;
+	codec.pointerOf = SavePointerOf;
+	codec.newString = SaveNewString;
+	codec.present = &gcSavedPointerIsPresent;
+	return codec;
 }
 
-static void EvaluateFields(const save_field_t *pFields, byte *pbData, byte *pbOriginalRefData, unsigned int ulChid, int iSize, qboolean bOkToSizeMisMatch)
-{	
-	int iReadSize = gi.ReadFromSaveGame(ulChid, pbData, bOkToSizeMisMatch?0:iSize, NULL);
+// The tables the file that is being read was written with.
+static sg::Schema gSavedSchema;
 
-	if (iReadSize != iSize)
+// Writes iCount structures of one table as one chunk.
+void G_SaveStruct(unsigned int ulChid, const sg::Table &table, const void *pvData, int iCount)
+{
+	std::vector<std::uint8_t> bytes;
+
+	for (int i=0; i<iCount; i++)
 	{
-		// handle any chunks that are ok to change length (typically this is a last minute hack, 
-		//	so hopefully we won't need it any more... ;-)
-		//
-		switch (ulChid)
-		{
-			// example chunk handler...
-			//				
-			case 'GCLI':
-/*				assert(iSize>iReadSize);
-				memset(&pbData[iReadSize], 0, iSize-iReadSize);	// zero out new objectives that weren't in old-format save file			
-				break;
-*/
-			default:
-				// won't return...
-				//
-				G_Error(va("EvaluateFields(): variable-sized chunk '%s' without handler!",SG_GetChidText(ulChid)));
-				break;
-		}
+		sg::Write(bytes, table, (const byte *) pvData + i * table.size, SaveCodec());
 	}
-	
-	if (pFields)
+	gi.AppendToSaveGame(ulChid, bytes.data(), bytes.size());
+}
+
+// Reads a chunk of iCount structures of one table. Members the file does not have keep
+// the value they have in pvData. pvOriginal is NULL or structures whose strings may be
+// reused; it may be pvData itself.
+void G_LoadStruct(unsigned int ulChid, const sg::Table &table, void *pvData, const void *pvOriginal, int iCount)
+{
+	void *pvChunk = NULL;
+	const int iLength = gi.ReadFromSaveGame(ulChid, NULL, 0, &pvChunk);
+
+	std::span<const std::uint8_t> data((const std::uint8_t *) pvChunk, pvChunk ? iLength : 0);
+	std::string sError;
+	bool bOk = true;
+
+	for (int i=0; bOk && i<iCount; i++)
 	{
-		for (const save_field_t *pField = pFields; pField->psName; pField++)
-		{
-			EvaluateField(pField, pbData, pbOriginalRefData);
-		}
+		bOk = gSavedSchema.Read(data, table, (byte *) pvData + i * table.size,
+								pvOriginal ? (const byte *) pvOriginal + i * table.size : NULL, SaveCodec(), sError);
+	}
+	if (bOk && !data.empty())
+	{
+		bOk = false;
+		sError = "the chunk is longer than its description";
+	}
+	if (pvChunk)
+	{
+		gi.Free(pvChunk);
+	}
+	if (!bOk)
+	{
+		G_Error("The save game could not be read (%s): %s", table.name, sError.c_str());
 	}
 }
+
+static void WriteSchema()
+{
+	std::vector<std::uint8_t> bytes;
+
+	sg::WriteSchema(bytes, G_SaveTables());
+	gi.AppendToSaveGame('SCHM', bytes.data(), bytes.size());
+}
+
+static void ReadSchema()
+{
+	void *pvChunk = NULL;
+	const int iLength = gi.ReadFromSaveGame('SCHM', NULL, 0, &pvChunk);
+
+	std::string sError = "it is missing";
+	const bool bOk = pvChunk && gSavedSchema.Parse(std::span<const std::uint8_t>((const std::uint8_t *) pvChunk, iLength), sError);
+
+	if (pvChunk)
+	{
+		gi.Free(pvChunk);
+	}
+	if (!bOk)
+	{
+		G_Error("The save game could not be read: %s", sError.c_str());
+	}
+}
+//
+//
+////////////////////////////////
+
 
 /*
 ==============
@@ -674,11 +391,8 @@ All pointer variables (except function pointers) must be handled specially.
 */
 static void WriteLevelLocals ()
 {
-	level_locals_t *temp = (level_locals_t *)gi.Malloc(sizeof(level_locals_t), TAG_TEMP_WORKSPACE, qfalse);
-	*temp = level;	// copy out all data into a temp space
-
-	EnumerateFields(savefields_LevelLocals, (byte *)temp, 'LVLC', LLOFS(LEVEL_LOCALS_T_SAVESTOP));	// sizeof(temp));
-	gi.Free(temp);
+	// the table leaves out everything from LEVEL_LOCALS_T_SAVESTOP on
+	G_SaveStruct('LVLC', sg::TableOf<level_locals_t>(), &level, 1);
 }
 
 /*
@@ -690,17 +404,10 @@ All pointer variables (except function pointers) must be handled specially.
 */
 static void ReadLevelLocals ()
 {
-	// preserve client ptr either side of the load, because clients are already saved/loaded through Read/Writegame...
-	//
-	gclient_t *pClients = level.clients;	// save clients
-
-	level_locals_t *temp = (level_locals_t *)gi.Malloc(sizeof(level_locals_t), TAG_TEMP_WORKSPACE, qfalse);
-	*temp = level;	// struct copy
-	EvaluateFields(savefields_LevelLocals, (byte *)temp, (byte *)&level, 'LVLC', LLOFS(LEVEL_LOCALS_T_SAVESTOP),qfalse);	// sizeof(level_locals_t));
-	level = *temp;					// struct copy
-
-	level.clients = pClients;				// restore clients
-	gi.Free(temp);
+	// Members that are not saved keep their values: the client pointer, because clients are
+	// already saved/loaded through Read/Writegame, and everything from
+	// LEVEL_LOCALS_T_SAVESTOP on.
+	G_LoadStruct('LVLC', sg::TableOf<level_locals_t>(), &level, &level, 1);
 }
 
 static void WriteGEntities(qboolean qbAutosave)
@@ -738,32 +445,28 @@ static void WriteGEntities(qboolean qbAutosave)
 				gi.linkentity( ent );
 			}
 
-			EnumerateFields(savefields_gEntity, (byte *)&tempEnt, 'GENT', sizeof(tempEnt));			
+			G_SaveStruct('GENT', sg::TableOf<gentity_s>(), &tempEnt, 1);
 
 			// now for any fiddly bits that would be rather awkward to build into the enumerator...
 			//
 			if (tempEnt.NPC)
 			{
-				gNPC_t npc = *ent->NPC;	// NOT *tempEnt.NPC; !! :-)
-
-				EnumerateFields(savefields_gNPC, (byte *)&npc, 'GNPC', sizeof(npc));
+				G_SaveStruct('GNPC', sg::TableOf<gNPC_t>(), ent->NPC, 1);
 			}
 
-			if (tempEnt.client == (gclient_t *)-2)	// I know, I know...
+			if (GetGClientNum(tempEnt.client, &tempEnt) == -2)	// I know, I know...
 			{
-				gclient_t client = *ent->client;	// NOT *tempEnt.client!!
-				EnumerateFields(savefields_gClient, (byte *)&client, 'GCLI', sizeof(client));
+				G_SaveStruct('GCLI', sg::TableOf<gclient_s>(), ent->client, 1);
 			}
 
 			if (tempEnt.parms)
 			{
-				gi.AppendToSaveGame('PARM', ent->parms, sizeof(*ent->parms));
+				G_SaveStruct('PARM', sg::TableOf<parms_t>(), ent->parms, 1);
 			}
 			
 			if (tempEnt.m_pVehicle)
 			{
-				Vehicle_t vehicle = *ent->m_pVehicle;	// NOT *tempEnt.m_pVehicle!!
-				EnumerateFields(savefields_gVHIC, (byte *)&vehicle, 'VHIC', sizeof(vehicle));
+				G_SaveStruct('VHIC', sg::TableOf<Vehicle_t>(), ent->m_pVehicle, 1);
 			}
 			
 			// the scary ghoul2 saver stuff...  (fingers crossed)
@@ -840,16 +543,19 @@ static void ReadGEntities(qboolean qbAutosave)
 		//
 		gi.G2API_LoadSaveCodeDestructGhoul2Info(pEnt->ghoul2);
 		pEnt->ghoul2.kill();
-		EvaluateFields(savefields_gEntity, (byte *)pEnt, (byte *)pEntOriginal, 'GENT', sizeof(*pEnt),qfalse);
+		// the entity starts out as a new one; what the file does not have stays that way
+		memset((void *)pEnt, 0, sizeof(*pEnt));
+		G_LoadStruct('GENT', sg::TableOf<gentity_s>(), pEnt, pEntOriginal, 1);
 		pEnt->ghoul2.kill();
 
 		// now for any fiddly bits...
 		//
-		if (pEnt->NPC)	// will be qtrue/qfalse
+		if (pEnt->NPC)	// was there one or not
 		{
 			gNPC_t tempNPC;
 
-			EvaluateFields(savefields_gNPC, (byte *)&tempNPC,(byte *)pEntOriginal->NPC, 'GNPC', sizeof (*pEnt->NPC),qfalse);
+			memset(&tempNPC, 0, sizeof(tempNPC));
+			G_LoadStruct('GNPC', sg::TableOf<gNPC_t>(), &tempNPC, pEntOriginal->NPC, 1);
 			
 			// so can we pinch the original's one or do we have to alloc a new one?...
 			//
@@ -885,7 +591,8 @@ static void ReadGEntities(qboolean qbAutosave)
 		{
 			gclient_t tempGClient;			
 
-			EvaluateFields(savefields_gClient, (byte *)&tempGClient, (byte *)pEntOriginal->client, 'GCLI', sizeof(*pEnt->client),qfalse);
+			memset((void *)&tempGClient, 0, sizeof(tempGClient));
+			G_LoadStruct('GCLI', sg::TableOf<gclient_s>(), &tempGClient, pEntOriginal->client, 1);
 
 			// can we pinch the original's client handle or do we have to alloc a new one?...
 			//
@@ -914,11 +621,12 @@ static void ReadGEntities(qboolean qbAutosave)
 
 		// Some Icarus thing... (probably)
 		//
-		if (pEnt->parms)	// will be qtrue/qfalse
+		if (pEnt->parms)	// was there one or not
 		{
 			parms_t tempParms;
 			
-			gi.ReadFromSaveGame('PARM', &tempParms, sizeof(tempParms), NULL);
+			memset(&tempParms, 0, sizeof(tempParms));
+			G_LoadStruct('PARM', sg::TableOf<parms_t>(), &tempParms, NULL, 1);
 
 			// so can we pinch the original's one or do we have to alloc a new one?...
 			//
@@ -940,11 +648,12 @@ static void ReadGEntities(qboolean qbAutosave)
 			*pEnt->parms = tempParms;	// struct copy
 		}
 
-		if (pEnt->m_pVehicle)	// will be qtrue/qfalse
+		if (pEnt->m_pVehicle)	// was there one or not
 		{
 			Vehicle_t tempVehicle;
 			
-			EvaluateFields(savefields_gVHIC, (byte *)&tempVehicle,(byte *)pEntOriginal->m_pVehicle, 'VHIC', sizeof (*pEnt->m_pVehicle),qfalse);
+			memset((void *)&tempVehicle, 0, sizeof(tempVehicle));
+			G_LoadStruct('VHIC', sg::TableOf<Vehicle_t>(), &tempVehicle, pEntOriginal->m_pVehicle, 1);
 
 			// so can we pinch the original's one or do we have to alloc a new one?...
 			//
@@ -1049,13 +758,15 @@ static void ReadGEntities(qboolean qbAutosave)
 
 void WriteLevel(qboolean qbAutosave)
 {
+	// the tables that everything below is written with
+	WriteSchema();
+
 	if (!qbAutosave) //-always save the client
 	{
 		// write out one client - us!
 		//
 		assert(level.maxclients == 1);	// I'll need to know if this changes, otherwise I'll need to change the way ReadGame works
-		gclient_t client = level.clients[0];
-		EnumerateFields(savefields_gClient, (byte *)&client, 'GCLI', sizeof(client));	
+		G_SaveStruct('GCLI', sg::TableOf<gclient_s>(), &level.clients[0], 1);
 		WriteLevelLocals();	// level_locals_t level	
 	}
 
@@ -1080,6 +791,8 @@ void WriteLevel(qboolean qbAutosave)
 
 void ReadLevel(qboolean qbAutosave, qboolean qbLoadTransition)
 {
+	ReadSchema();
+
 	if ( qbLoadTransition )
 	{
 		// I STRONGLY SUSPECT THAT THIS WILL JUST ERR_DROP BECAUSE OF THE LOAD SWAPPING OF THE CHUNK-ORDER
@@ -1101,11 +814,12 @@ void ReadLevel(qboolean qbAutosave, qboolean qbLoadTransition)
 		
 		//Read & throw away gclient info
 		gclient_t junkClient;
-		EvaluateFields(savefields_gClient, (byte *)&junkClient, (byte *)&level.clients[0], 'GCLI', sizeof(*level.clients), qfalse);
+		memset((void *)&junkClient, 0, sizeof(junkClient));
+		G_LoadStruct('GCLI', sg::TableOf<gclient_s>(), &junkClient, NULL, 1);
 
 		//Read & throw away objective info
 		objectives_t	junkObj[MAX_MISSION_OBJ];
-		gi.ReadFromSaveGame('OBJT', (void *) &junkObj, 0, NULL);
+		G_LoadStruct('OBJT', sg::TableOf<objectives_t>(), junkObj, NULL, MAX_MISSION_OBJ);
 
 		ReadLevelLocals();	// level_locals_t level	
 	}
@@ -1115,9 +829,8 @@ void ReadLevel(qboolean qbAutosave, qboolean qbLoadTransition)
 		{
 			assert(level.maxclients == 1);	// I'll need to know if this changes, otherwise I'll need to change the way things work
 		
-			gclient_t GClient;
-			EvaluateFields(savefields_gClient, (byte *)&GClient, (byte *)&level.clients[0], 'GCLI', sizeof(*level.clients), qfalse);
-			level.clients[0] = GClient;	// struct copy
+			// members that are not saved, the saber's strings among them, keep their values
+			G_LoadStruct('GCLI', sg::TableOf<gclient_s>(), &level.clients[0], &level.clients[0], 1);
 			ReadLevelLocals();	// level_locals_t level	
 		}
 		

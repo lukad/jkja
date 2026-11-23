@@ -11,6 +11,7 @@
 #define	G_OBJECTIVES_CPP
 
 #include "objectives.h"
+#include "g_savetables.h"
 
 qboolean	missionInfo_Updated;
 
@@ -41,7 +42,7 @@ OBJ_SaveMissionObjectives
 */
 void OBJ_SaveMissionObjectives( gclient_t *client )
 {
-	gi.AppendToSaveGame('OBJT', client->sess.mission_objectives, sizeof(client->sess.mission_objectives));
+	G_SaveStruct('OBJT', sg::TableOf<objectives_t>(), client->sess.mission_objectives, MAX_MISSION_OBJ);
 }
 
 
@@ -66,7 +67,7 @@ OBJ_LoadMissionObjectives
 */
 void OBJ_LoadMissionObjectives( gclient_t *client )
 {
-	gi.ReadFromSaveGame('OBJT', (void *) &client->sess.mission_objectives, sizeof(client->sess.mission_objectives), NULL);
+	G_LoadStruct('OBJT', sg::TableOf<objectives_t>(), client->sess.mission_objectives, NULL, MAX_MISSION_OBJ);
 }
 
 

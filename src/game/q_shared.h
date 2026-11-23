@@ -1386,7 +1386,7 @@ typedef struct
 } saberInfo_t;
 
 
-#define MAX_SABERS 2	// if this ever changes then update the table "static const save_field_t savefields_gClient[]"!!!!!!!!!!!!
+#define MAX_SABERS 2
 
 // playerState_t is the information needed by both the client and server
 // to predict player motion and actions

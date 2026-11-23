@@ -4,10 +4,10 @@
 #ifndef G_SAVETABLES_H
 #define G_SAVETABLES_H
 
-#include "../qcommon/sg_fields.h"
+#include "g_savestruct.h"
 
 // The tables that the save code names. The tables of the structures inside these are
-// reached through them.
+// reached through them. The game's headers have to be included first.
 template <> const sg::Table &sg::TableOf<gentity_s>();
 template <> const sg::Table &sg::TableOf<gclient_s>();
 template <> const sg::Table &sg::TableOf<gNPC_t>();

@@ -18,6 +18,8 @@
 	#include "../game/q_shared.h"
 #endif
 
+#include "../game/g_savestruct.h"
+
 
 CFxScheduler	theFxScheduler;
 
@@ -85,7 +87,7 @@ void CFxScheduler::LoadSave_Read()
 {		
 	Clean();	// need to get rid of old pre-cache handles, or it thinks it has some older effects when it doesn't	
 	g_vstrEffectsNeededPerSlot.clear();	// jic
-	gi.ReadFromSaveGame('FXLE', (void *) &gLoopedEffectArray, sizeof(gLoopedEffectArray), NULL);
+	G_LoadStruct('FXLE', sg::TableOf<SLoopedEffect>(), gLoopedEffectArray, NULL, MAX_LOOPED_FX);
 	//
 	// now read in and re-register the effects we need for those structs...
 	//
@@ -101,7 +103,7 @@ void CFxScheduler::LoadSave_Write()
 {
 	// bsave the data we need...
 	//
-	gi.AppendToSaveGame('FXLE', mLoopedEffectArray, sizeof(mLoopedEffectArray));
+	G_SaveStruct('FXLE', sg::TableOf<SLoopedEffect>(), mLoopedEffectArray, MAX_LOOPED_FX);
 	//
 	// then cope with the fact that the mID field in each struct of the array we've just saved will not 
 	//	necessarily point at the same thing when reloading, so save out the actual fx filename strings they

@@ -14,6 +14,8 @@
 #include "g_vehicles.h"
 #include "objectives.h"
 
+#include "../cgame/FxScheduler.h"
+
 // One member to a line.
 // clang-format off
 
@@ -972,13 +974,22 @@ SG_TABLE(parms_t)
 SG_FIELD(parm)
 SG_TABLE_END(parms_t)
 
+SG_TABLE(SLoopedEffect)
+SG_FIELD(mId)
+SG_FIELD(mBoltInfo)
+SG_FIELD(mNextTime)
+SG_FIELD(mLoopStopTime)
+SG_FIELD(mPortalEffect)
+SG_FIELD(mIsRelative)
+SG_TABLE_END(SLoopedEffect)
+
 // clang-format on
 
 std::span<const sg::Table *const> G_SaveTables() {
 	static const sg::Table *const tables[] = {
 	    &sg::TableOf<gentity_s>(),      &sg::TableOf<gclient_s>(), &sg::TableOf<gNPC_t>(),
 	    &sg::TableOf<level_locals_t>(), &sg::TableOf<Vehicle_t>(), &sg::TableOf<parms_t>(),
-	    &sg::TableOf<objectives_t>(),
+	    &sg::TableOf<objectives_t>(),   &sg::TableOf<SLoopedEffect>(),
 	};
 	return tables;
 }
