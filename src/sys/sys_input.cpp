@@ -306,6 +306,11 @@ command line can press keys and move the mouse:
   sys_key <key name> <1 for down, 0 for up>     names as in "bind": MOUSE1, ENTER, a
   sys_char <character code>
   sys_mousemove <x> <y>                          relative motion
+
+A fourth puts text on the clipboard, as another program would have, for pasting with
+the first three:
+
+  sys_clipboard <text>
 ===============
 */
 void ScriptedKey_f() {
@@ -335,6 +340,16 @@ void ScriptedMouseMove_f() {
 		return;
 	}
 	Sys_QueEvent(0, SE_MOUSE, atoi(Cmd_Argv(1)), atoi(Cmd_Argv(2)), 0, NULL);
+}
+
+void ScriptedClipboard_f() {
+	if (Cmd_Argc() < 2) {
+		Com_Printf("sys_clipboard <text>\n");
+		return;
+	}
+	if (!SDL_SetClipboardText(Cmd_Args())) {
+		Com_Printf("could not set the clipboard: %s\n", SDL_GetError());
+	}
 }
 
 } // namespace
@@ -419,6 +434,7 @@ void IN_Init(void) {
 	Cmd_AddCommand("sys_key", ScriptedKey_f);
 	Cmd_AddCommand("sys_char", ScriptedChar_f);
 	Cmd_AddCommand("sys_mousemove", ScriptedMouseMove_f);
+	Cmd_AddCommand("sys_clipboard", ScriptedClipboard_f);
 }
 
 /*
@@ -432,6 +448,7 @@ void IN_Shutdown(void) {
 	Cmd_RemoveCommand("sys_key");
 	Cmd_RemoveCommand("sys_char");
 	Cmd_RemoveCommand("sys_mousemove");
+	Cmd_RemoveCommand("sys_clipboard");
 }
 
 /*

@@ -233,6 +233,8 @@ code of the release:
   the module on it.
 - `sys_key`, `sys_char` and `sys_mousemove` queue the events a keyboard or mouse would
   have produced. Tests use them to operate the menus and the game without a person.
+  `sys_clipboard` puts text on the clipboard, as another program would have, so that
+  pasting can be tested the same way.
 
 The null sound device is a device, not the absence of one: the mixer is given a buffer
 and a play position that follows the clock, and what it mixes is discarded. Without a
@@ -480,7 +482,7 @@ and is the main design problem of M6 and M7.
 | Unit tests | New code with logic worth testing (serialisation, shader-script compiler, math replacements for assembly) | with the code |
 | Headless smoke test | Start with null window and sound and the renderer bound to a no-op OpenGL, mount game data, load a map, run N frames, quit cleanly | from M1, needs game data |
 | Render smoke test | The same with a real OpenGL context on a surface nobody sees (SDL's offscreen video driver) and the sound sent to SDL's dummy device, so that texture upload and drawing run for real | from M2, needs game data and such a context |
-| Scripted input | `sys_key`, `sys_char` and `sys_mousemove` on the command line operate menus and game; with `screenshot` the result can be looked at | on demand, needs game data |
+| Scripted input | `sys_key`, `sys_char` and `sys_mousemove` on the command line operate menus and game, and `sys_clipboard` fills the clipboard; with `screenshot` the result can be looked at | on demand, needs game data |
 | Play test | A fixed checklist on the opening level: movement, combat, cutscene, save, load. Played with the `linux-release` preset: the retail game is a build without assertions, and the debug presets stop on assertions of the release that the game's own data trips | milestone exits |
 | Image comparison | Screenshots at fixed camera positions on a fixed set of maps, new renderer against legacy renderer, perceptual difference under a threshold | M4 onwards |
 | Reference | Retail `jasp.exe` under Wine, for "what did the original do?" | on demand |
