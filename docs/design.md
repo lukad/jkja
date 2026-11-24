@@ -667,6 +667,7 @@ test found, and what became of it:
 | Debug build aborts when a droid loses a limb | An assertion of the release that the game's own data trips; the retail build has assertions off | kept; play tests use the `linux-release` preset |
 | Sound drops out while models load in the menus | The release empties the sound buffer before every file read (section 4.7) | kept; listed under "Not scheduled" |
 | Resolutions of today missing from the menu | The list is game data (section 4.5) | listed under "Not scheduled" |
+| UBSan report when the opening cutscene is skipped, in the release configuration | The letterbox asks for a negative alpha, and the renderer turned the float into a byte without a defined result; the release's x86 code went through an int | fixed, converted as the release did |
 
 Checked without a person, under the sanitizers: menus, levels and the opening cutscene
 render in a real OpenGL context, the first level changes to the second, videos play, a
@@ -708,10 +709,20 @@ say, is moved onto the display where it would overhang, and its new place is sav
 after it has been moved; on Wayland the saved values stay as they are. The idling of
 a minimised window has not been seen, because the compositor used cannot minimise.
 
-Still open before the exit criteria can hold: the opening level has not been played to
-its end by a person since these fixes; the clipboard of a real desktop, the brightness
-pass on a real display and a real gamepad have not been tried; and the unticked items
-above.
+The play-test checklist was run with scripted input in the `linux-sanitize-release`
+preset, without a person and without a report of the sanitizers once the finding
+above was fixed. The opening crawl and the shuttle cutscene play, and skipping the
+cutscene with the use key goes on to `yavin1b`. There the player moves, jumps, crouches
+and draws and swings the saber. A save made from the console is loaded after going
+back to the main menu, and the quick save and quick load bring the player back to
+where the save was made. The end of `yavin1b` was reached by firing its level change
+from the console, not by playing there, and was followed by the cutscene of `academy1`
+and, skipped, by `yavin2`, where the companion is present.
+
+Still open before the exit criteria can hold: the checklist has not been played by a
+person in the `linux-sanitize-release` preset, and `yavin1b` has not been played to its
+end since these fixes; the clipboard of a real desktop, the brightness pass on a real
+display and a real gamepad have not been tried; and the unticked items above.
 
 ### M3. Runs on Windows and macOS
 

@@ -1035,10 +1035,14 @@ const void	*RB_SetColor( const void *data ) {
 
 	cmd = (const setColorCommand_t *)data;
 
-	backEnd.color2D[0] = cmd->color[0] * 255;
-	backEnd.color2D[1] = cmd->color[1] * 255;
-	backEnd.color2D[2] = cmd->color[2] * 255;
-	backEnd.color2D[3] = cmd->color[3] * 255;
+	// Colours outside 0 to 1 arrive here: the letterbox of a skipped cutscene asks for
+	// a negative alpha. The release's x86 code converted through an int and kept the
+	// low byte; that is done here on purpose, because a float that does not fit a byte
+	// has no defined conversion to one.
+	backEnd.color2D[0] = (byte)(int)(cmd->color[0] * 255);
+	backEnd.color2D[1] = (byte)(int)(cmd->color[1] * 255);
+	backEnd.color2D[2] = (byte)(int)(cmd->color[2] * 255);
+	backEnd.color2D[3] = (byte)(int)(cmd->color[3] * 255);
 
 	return (const void *)(cmd + 1);
 }
