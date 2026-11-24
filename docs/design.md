@@ -652,7 +652,7 @@ one map, `yavin1b`, for 120 frames.
       silence and idling while the game does not have the focus or is minimised, and
       the window's icon and title
       ([ADR-0020](decisions/0020-window-title-and-icon.md))
-- [ ] Fix run-time 64-bit defects found by play testing
+- [x] Fix run-time 64-bit defects found by play testing
 
 Exit: the opening level is playable from start to finish including cutscenes; save and
 load round-trip; no sanitizer reports during the play-test checklist.
@@ -752,10 +752,13 @@ their fixes both runs end without a report. The fights are short and stay on one
 level, and the levels are seen only around their starting points, so this does not
 replace playing them.
 
-Still open before the exit criteria can hold: the checklist has not been played by a
-person in the `linux-sanitize-release` preset, and `yavin1b` has not been played to its
-end since these fixes; the clipboard of a real desktop, the brightness pass on a real
-display and a real gamepad have not been tried; and the unticked items above.
+The exit criteria hold as of 2026-11-24. The checklist was then played by a person, at a
+real window, in the `linux-sanitize-release` preset built with every fix above, the
+sanitizers reporting to files: every step held, `yavin1b` was played to its end, and no
+report was written. What M2 leaves unverified: the clipboard of a real desktop, the
+brightness pass on a real display, and a real gamepad have not been tried; levels after
+the opening one have been seen only by the scripted sweep; and run-time behaviour on
+macOS and Windows.
 
 ### M3. Runs on Windows and macOS
 
