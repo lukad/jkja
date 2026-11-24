@@ -11,7 +11,7 @@ add_library(jasp-test-subjects STATIC
   engine_stubs.cpp
 )
 target_compile_definitions(jasp-test-subjects PUBLIC _JK2EXE MINIZ_NO_ZLIB_COMPATIBLE_NAMES)
-target_link_libraries(jasp-test-subjects PUBLIC miniz)
+target_link_libraries(jasp-test-subjects PUBLIC miniz SDL3::Headers)
 jasp_legacy_target(jasp-test-subjects)
 
 # The field tables of the game module, built as the game module builds them.
