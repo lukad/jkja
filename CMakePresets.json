@@ -97,6 +97,13 @@
       "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
     },
     {
+      "name": "windows-cross-release",
+      "displayName": "Windows x86-64 built on Linux, clang-cl, release, run under Wine",
+      "inherits": "linux",
+      "toolchainFile": "${sourceDir}/cmake/toolchains/windows-cross-clang-cl.cmake",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
+    },
+    {
       "name": "macos-debug",
       "displayName": "macOS arm64, Apple Clang, debug",
       "inherits": "macos",
@@ -117,6 +124,7 @@
     { "name": "linux-sanitize-release", "configurePreset": "linux-sanitize-release" },
     { "name": "windows-debug", "configurePreset": "windows-debug" },
     { "name": "windows-release", "configurePreset": "windows-release" },
+    { "name": "windows-cross-release", "configurePreset": "windows-cross-release" },
     { "name": "macos-debug", "configurePreset": "macos-debug" },
     { "name": "macos-release", "configurePreset": "macos-release" }
   ],
@@ -133,6 +141,7 @@
     { "name": "linux-sanitize-release", "inherits": "base", "configurePreset": "linux-sanitize-release" },
     { "name": "windows-debug", "inherits": "base", "configurePreset": "windows-debug" },
     { "name": "windows-release", "inherits": "base", "configurePreset": "windows-release" },
+    { "name": "windows-cross-release", "inherits": "base", "configurePreset": "windows-cross-release" },
     { "name": "macos-debug", "inherits": "base", "configurePreset": "macos-debug" },
     { "name": "macos-release", "inherits": "base", "configurePreset": "macos-release" }
   ]

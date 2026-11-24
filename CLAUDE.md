@@ -113,8 +113,12 @@ Checks come into existence milestone by milestone; run all that exist.
 
 Presets on Linux: `linux-debug` (GCC), `linux-clang-debug`, `linux-sanitize`,
 `linux-release`, and `linux-sanitize-release` (Clang, the release configuration under
-the sanitizers); `cmake --list-presets` shows what the current machine can use. The
-Windows and macOS presets have not been run yet.
+the sanitizers), and `windows-cross-release`: the Windows build made with clang-cl
+against MSVC's libraries, its tests run under Wine. It needs `JASP_WINSYSROOT`; how to
+fill that directory is at the top of `cmake/toolchains/windows-cross-clang-cl.cmake`
+([ADR-0022](docs/decisions/0022-windows-cross-build-on-linux.md)).
+`cmake --list-presets` shows what the current machine can use. The Windows and macOS
+presets run only in CI.
 
 From M1 the build produces the engine (`jasp`), the game module (`jagame` plus the
 architecture), the unit tests (`tests/`, Catch2) and the repository tools. The smoke
