@@ -2,7 +2,8 @@
 # data, loads a map, runs frames and quits.
 #
 #   cmake -DJASP=<engine executable> -DWORK_DIR=<scratch directory> -DMAP=<map name>
-#         -DFRAMES=<number> -DWINDOW=<none|offscreen> -P SmokeTest.cmake
+#         -DFRAMES=<number> -DWINDOW=<none|offscreen> [-DEMULATOR=<command>]
+#         -P SmokeTest.cmake
 #
 # WINDOW=none runs without window, input and sound device, and the renderer's OpenGL
 # calls do nothing. WINDOW=offscreen gives the renderer a real OpenGL context on a
@@ -46,7 +47,7 @@ else()
 endif()
 
 execute_process(
-  COMMAND "${JASP}"
+  COMMAND ${EMULATOR} "${JASP}"
     +set fs_basepath "${gamedata}"
     +set fs_homepath "${home}"
     ${window_arguments}

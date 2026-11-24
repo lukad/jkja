@@ -12,6 +12,7 @@ if(BUILD_TESTING)
     NAME check-repo
     COMMAND "${CMAKE_COMMAND}"
       "-DTOOL=$<TARGET_FILE:check-repo>"
+      "-DEMULATOR=${CMAKE_CROSSCOMPILING_EMULATOR}"
       "-DTOOL_ARGS=--known-missing=tools/known-missing-includes.txt"
       -P "${PROJECT_SOURCE_DIR}/cmake/RunOnTrackedFiles.cmake"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
@@ -23,6 +24,7 @@ if(BUILD_TESTING)
     COMMAND "${CMAKE_COMMAND}"
       "-DCHECK_REPO=$<TARGET_FILE:check-repo>"
       "-DFIX_INCLUDES=$<TARGET_FILE:fix-includes>"
+      "-DEMULATOR=${CMAKE_CROSSCOMPILING_EMULATOR}"
       "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/selftest"
       -P "${CMAKE_CURRENT_SOURCE_DIR}/selftest.cmake"
   )

@@ -1,6 +1,7 @@
 # Runs a repository tool with the list of tracked files on its standard input:
 #
-#   cmake -DTOOL=<executable> [-DTOOL_ARGS=<arguments>] -P RunOnTrackedFiles.cmake
+#   cmake -DTOOL=<executable> [-DTOOL_ARGS=<arguments>] [-DEMULATOR=<command>]
+#         -P RunOnTrackedFiles.cmake
 #
 # Run from the repository root. The equivalent in a shell is
 #
@@ -14,7 +15,7 @@ separate_arguments(tool_args NATIVE_COMMAND "${TOOL_ARGS}")
 
 execute_process(
   COMMAND "${GIT_EXECUTABLE}" ls-files -z
-  COMMAND "${TOOL}" ${tool_args}
+  COMMAND ${EMULATOR} "${TOOL}" ${tool_args}
   RESULTS_VARIABLE results
 )
 foreach(result IN LISTS results)

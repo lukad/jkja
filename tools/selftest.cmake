@@ -1,6 +1,7 @@
 # Self-test of check-repo and fix-includes.
 #
-#   cmake -DCHECK_REPO=<exe> -DFIX_INCLUDES=<exe> -DWORK_DIR=<dir> -P selftest.cmake
+#   cmake -DCHECK_REPO=<exe> -DFIX_INCLUDES=<exe> -DWORK_DIR=<dir> [-DEMULATOR=<command>]
+#         -P selftest.cmake
 #
 # Builds two small trees in WORK_DIR. The first has one instance of every defect
 # check-repo knows; each must be reported. The second has includes that fix-includes
@@ -17,7 +18,7 @@ endforeach()
 function(run_tool tree out_status out_text)
   execute_process(
     COMMAND "${CMAKE_COMMAND}" -E cat "${tree}/files.txt"
-    COMMAND ${ARGN}
+    COMMAND ${EMULATOR} ${ARGN}
     WORKING_DIRECTORY "${tree}"
     RESULT_VARIABLE status
     OUTPUT_VARIABLE text

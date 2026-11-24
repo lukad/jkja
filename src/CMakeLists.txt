@@ -378,6 +378,7 @@ if(BUILD_TESTING)
       NAME ${name}
       COMMAND "${CMAKE_COMMAND}"
         "-DJASP=$<TARGET_FILE:jasp>"
+        "-DEMULATOR=${CMAKE_CROSSCOMPILING_EMULATOR}"
         "-DWORK_DIR=${CMAKE_CURRENT_BINARY_DIR}/${name}"
         -DMAP=yavin1b
         -DFRAMES=120

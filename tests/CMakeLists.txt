@@ -44,7 +44,14 @@ else()
   target_compile_options(jasp-tests PRIVATE -Wall -Wextra -Wpedantic -Wshadow)
 endif()
 
-# One ctest entry per test case.
-FetchContent_GetProperties(Catch2 SOURCE_DIR catch2_source_dir)
-include("${catch2_source_dir}/extras/Catch.cmake")
-catch_discover_tests(jasp-tests)
+# One ctest entry per test case. A cross build runs the tests under an emulator, Wine,
+# and is given one entry for all of them: Catch2 for Windows reads an argument that
+# starts with a slash as an option, and the discovery passes it the host's absolute
+# path of a file to write its list to.
+if(CMAKE_CROSSCOMPILING)
+  add_test(NAME unit-tests COMMAND jasp-tests)
+else()
+  FetchContent_GetProperties(Catch2 SOURCE_DIR catch2_source_dir)
+  include("${catch2_source_dir}/extras/Catch.cmake")
+  catch_discover_tests(jasp-tests)
+endif()
