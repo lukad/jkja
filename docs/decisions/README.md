@@ -27,6 +27,7 @@ Architectural decisions for this project, recorded as
 | [0018](0018-brightness-without-a-gamma-ramp.md) | Brightness is applied by a pass over the finished frame, in the legacy renderer's back end | accepted |
 | [0019](0019-gamepads-use-the-standard-layout.md) | Gamepads are read through SDL3's standard layout, not through the release's joystick model | accepted |
 | [0020](0020-window-title-and-icon.md) | The window is titled "Jedi Academy" and has no icon of its own until the platforms are packaged | accepted |
+| [0021](0021-continuous-integration.md) | Continuous integration runs on GitHub Actions' hosted runners, one job per preset | accepted |
 
 ## How to add a decision
 

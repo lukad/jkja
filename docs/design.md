@@ -762,7 +762,8 @@ macOS and Windows.
 
 ### M3. Runs on Windows and macOS
 
-- [ ] Decide and record: continuous integration
+- [x] Decide and record: continuous integration
+      ([ADR-0021](decisions/0021-continuous-integration.md))
 - [ ] Windows x86-64 build (MSVC and clang-cl, through the same presets)
 - [ ] macOS arm64 build and application bundle
 - [ ] Decide and record: the icon of the window, the executable, the application bundle
@@ -844,7 +845,6 @@ Still to be made, each before the milestone that needs it:
 
 | Decision | Needed by |
 |---|---|
-| Continuous integration provider | M3 |
 | Shader language and toolchain | M5 |
 | Removal of the legacy renderer | end of M5 |
 | Lighting model for mixed baked and dynamic light | M6 |
