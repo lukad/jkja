@@ -755,7 +755,9 @@ static void R_MarkLeaves (void) {
 		}
 
 		// check for door connection
-		if ( (tr.refdef.areamask[leaf->area>>3] & (1<<(leaf->area&7)) ) ) {
+		// A leaf in area -1 is never masked: the release read the byte in front of the
+		// mask there, the top of rdflags, whose bit 7 no flag uses.
+		if ( leaf->area >= 0 && (tr.refdef.areamask[leaf->area>>3] & (1<<(leaf->area&7)) ) ) {
 			continue;		// not visible
 		}
 

@@ -689,6 +689,7 @@ test found, and what became of it:
 | Crash when an NPC is hurt while it is held by the Force or in a strong attack | `NPC_ChoosePainAnimation` asks for the length of animation -1 when it played none; the release read the bytes in front of the table, which are zero, and on 64-bit the enum's unsigned -1 reads far past it | fixed, animation numbers are of `int` and one outside the table has no length |
 | UBSan report of a fourth component of a fog's colour on levels with fog | The fog's colour has three components; the fourth written was the fog's depth, set again on the next line | fixed, the stray writes deleted |
 | UBSan report of a NaN turned into an int when a level starts with a cutscene | The camera derived the vertical FOV from the view's size before setting the size, and on the level's first frame there was none yet: a FOV of 0 and a projection of infinities | fixed, the size is set first |
+| UBSan report of index -1 into the area mask while the world is drawn | A leaf in no area tested the byte in front of the mask, the top of `rdflags`, which is always zero | fixed, such a leaf is never masked, as before |
 
 Checked without a person, under the sanitizers: menus, levels and the opening cutscene
 render in a real OpenGL context, the first level changes to the second, videos play, a
