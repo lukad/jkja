@@ -3136,7 +3136,10 @@ qboolean NPC_FreeCombatPoint( int combatPointID, qboolean failed )
 		NPCInfo->lastFailedCombatPoint = combatPointID;
 	}
 	//Make sure it's valid
-	if ( combatPointID > level.numCombatPoints )
+	//An NPC that holds none has -1, and the release then looked in front of the array:
+	//at the height of the 64th interest point, which it cleared if it was not zero, and
+	//on 64-bit at half of that point's target pointer.
+	if ( combatPointID < 0 || combatPointID > level.numCombatPoints )
 		return qfalse;
 
 	//Make sure it's currently occupied
