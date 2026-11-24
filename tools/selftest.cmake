@@ -14,6 +14,18 @@ foreach(required IN ITEMS CHECK_REPO FIX_INCLUDES WORK_DIR)
   endif()
 endforeach()
 
+# Writes its arguments, joined, to a file, byte for byte. file(WRITE) writes in text mode
+# on Windows and turns every \n into \r\n; the trees below need the bytes they state.
+# The arguments are taken one by one, because a ";" in one would split ARGN.
+function(write_exact path)
+  set(content "")
+  math(EXPR last "${ARGC} - 1")
+  foreach(i RANGE 1 ${last})
+    string(APPEND content "${ARGV${i}}")
+  endforeach()
+  file(CONFIGURE OUTPUT "${path}" CONTENT "${content}" @ONLY NEWLINE_STYLE UNIX)
+endfunction()
+
 # Runs a tool in a tree, with the tree's file list on standard input.
 function(run_tool tree out_status out_text)
   execute_process(
@@ -37,7 +49,7 @@ endfunction()
 
 function(write_file_list tree)
   list(JOIN ARGN "\n" lines)
-  file(WRITE "${tree}/files.txt" "${lines}\n")
+  write_exact("${tree}/files.txt" "${lines}\n")
 endfunction()
 
 file(REMOVE_RECURSE "${WORK_DIR}")
@@ -47,13 +59,14 @@ file(REMOVE_RECURSE "${WORK_DIR}")
 set(bad "${WORK_DIR}/defects")
 # Assembled from pieces so that this file does not contain a machine-specific path.
 string(CONCAT machine_path "/ho" "me/someone/games")
-file(WRITE "${bad}/src/a/one.h" "// one\n")
-file(WRITE "${bad}/src/b/two.h" "// two\n")
-file(WRITE "${bad}/src/Mixed/three.h" "// three\n")
-file(WRITE "${bad}/project.sln" "\n")
-file(WRITE "${bad}/notes.txt" "data is in ${machine_path}\n")
-file(WRITE "${bad}/crlf.txt" "line\r\n")
-file(WRITE "${bad}/src/a/main.cpp"
+write_exact("${bad}/src/a/one.h" "// one\n")
+write_exact("${bad}/src/b/two.h" "// two\n")
+write_exact("${bad}/src/Mixed/three.h" "// three\n")
+write_exact("${bad}/project.sln" "\n")
+write_exact("${bad}/notes.txt" "data is in ${machine_path}\n")
+# The one file with CR LF line endings, which write_exact would make LF.
+file(CONFIGURE OUTPUT "${bad}/crlf.txt" CONTENT "line\n" @ONLY NEWLINE_STYLE CRLF)
+write_exact("${bad}/src/a/main.cpp"
   "#include \"ONE.h\"\n"
   "#include \"..\\b\\two.h\"\n"
   "#include \"missing.h\"\n"
@@ -64,7 +77,7 @@ file(WRITE "${bad}/src/a/main.cpp"
   "/* #include \"in_a_block_comment.h\" */\n"
   "#include <stdio.h>\n"
 )
-file(WRITE "${bad}/known-missing.txt"
+write_exact("${bad}/known-missing.txt"
   "src/a/main.cpp tolerated.h  # tolerated\n"
   "src/a/main.cpp stale.h      # no longer included\n"
 )
@@ -91,10 +104,10 @@ expect_contains("${text}" "10 problem(s)")
 # --- A tree that fix-includes can repair -----------------------------------------
 
 set(fixable "${WORK_DIR}/fixable")
-file(WRITE "${fixable}/src/a/one.h" "// one\n")
-file(WRITE "${fixable}/src/b/Two.h" "// two\n")
-file(WRITE "${fixable}/src/b/only_here.h" "// only here\n")
-file(WRITE "${fixable}/src/a/main.cpp"
+write_exact("${fixable}/src/a/one.h" "// one\n")
+write_exact("${fixable}/src/b/Two.h" "// two\n")
+write_exact("${fixable}/src/b/only_here.h" "// only here\n")
+write_exact("${fixable}/src/a/main.cpp"
   "#include \"ONE.h\"\n"
   "\t#include \"..\\B\\two.h\"  // trailing text stays\n"
   "#include \"b/two.h\"\n"
@@ -102,15 +115,19 @@ file(WRITE "${fixable}/src/a/main.cpp"
   "#include \"../a/one.h\"\n"
   "#include <stdio.h>\n"
   "#include \"not_in_tree.h\"\n"
-  "int unchanged;"
+  "int unchanged;\n"
 )
-write_file_list("${fixable}" src/a/one.h src/b/Two.h src/b/only_here.h src/a/main.cpp)
+# A last line without a newline gets none. file(WRITE) is enough for it: with no newline
+# in the text, there is nothing for Windows to translate.
+file(WRITE "${fixable}/src/a/last.cpp" "#include \"ONE.h\"")
+write_file_list("${fixable}"
+  src/a/one.h src/b/Two.h src/b/only_here.h src/a/main.cpp src/a/last.cpp)
 
 run_tool("${fixable}" status text "${FIX_INCLUDES}")
 if(NOT status EQUAL 0)
   message(FATAL_ERROR "fix-includes dry run failed with ${status}:\n${text}")
 endif()
-expect_contains("${text}" "would rewrite 5 include lines in 1 files")
+expect_contains("${text}" "would rewrite 6 include lines in 2 files")
 file(READ "${fixable}/src/a/main.cpp" content)
 expect_contains("${content}" "#include \"ONE.h\"")
 
@@ -118,7 +135,7 @@ run_tool("${fixable}" status text "${FIX_INCLUDES}" --apply)
 if(NOT status EQUAL 0)
   message(FATAL_ERROR "fix-includes --apply failed with ${status}:\n${text}")
 endif()
-expect_contains("${text}" "rewrote 5 include lines in 1 files")
+expect_contains("${text}" "rewrote 6 include lines in 2 files")
 
 string(CONCAT expected
   "#include \"one.h\"\n"
@@ -128,26 +145,30 @@ string(CONCAT expected
   "#include \"one.h\"\n"
   "#include <stdio.h>\n"
   "#include \"not_in_tree.h\"\n"
-  "int unchanged;"
+  "int unchanged;\n"
 )
 file(READ "${fixable}/src/a/main.cpp" content)
 if(NOT content STREQUAL expected)
   message(FATAL_ERROR "fix-includes produced:\n${content}\nexpected:\n${expected}")
 endif()
+file(READ "${fixable}/src/a/last.cpp" content)
+if(NOT content STREQUAL "#include \"one.h\"")
+  message(FATAL_ERROR "fix-includes produced for last.cpp:\n${content}")
+endif()
 
-file(WRITE "${fixable}/known-missing.txt" "src/a/main.cpp not_in_tree.h  # tolerated\n")
+write_exact("${fixable}/known-missing.txt" "src/a/main.cpp not_in_tree.h  # tolerated\n")
 run_tool("${fixable}" status text "${CHECK_REPO}" --known-missing=known-missing.txt)
 if(NOT status EQUAL 0)
   message(FATAL_ERROR "check-repo should pass on the repaired tree, got ${status}:\n${text}")
 endif()
-expect_contains("${text}" "repository checks passed (4 files)")
+expect_contains("${text}" "repository checks passed (5 files)")
 
 # --- An include that cannot be decided -------------------------------------------
 
 set(ambiguous "${WORK_DIR}/ambiguous")
-file(WRITE "${ambiguous}/src/a/same.h" "// a\n")
-file(WRITE "${ambiguous}/src/b/same.h" "// b\n")
-file(WRITE "${ambiguous}/src/c/main.cpp" "#include \"same.h\"\n")
+write_exact("${ambiguous}/src/a/same.h" "// a\n")
+write_exact("${ambiguous}/src/b/same.h" "// b\n")
+write_exact("${ambiguous}/src/c/main.cpp" "#include \"same.h\"\n")
 write_file_list("${ambiguous}" src/a/same.h src/b/same.h src/c/main.cpp)
 
 run_tool("${ambiguous}" status text "${FIX_INCLUDES}" --apply)
