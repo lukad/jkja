@@ -271,12 +271,16 @@ void ByteToDir( int b, vec3_t dir ) {
 }
 
 
+// Colours above 1 arrive here: the lightning flash of fx_rain is "200 200 200" by
+// default. The release's x86 code converted through an int and kept the low byte;
+// that is done here on purpose, because a float that does not fit a byte has no
+// defined conversion to one.
 unsigned ColorBytes3 (float r, float g, float b) {
 	unsigned	i;
 
-	( (byte *)&i )[0] = r * 255;
-	( (byte *)&i )[1] = g * 255;
-	( (byte *)&i )[2] = b * 255;
+	( (byte *)&i )[0] = (byte)(int)(r * 255);
+	( (byte *)&i )[1] = (byte)(int)(g * 255);
+	( (byte *)&i )[2] = (byte)(int)(b * 255);
 
 	return i;
 }
@@ -284,10 +288,10 @@ unsigned ColorBytes3 (float r, float g, float b) {
 unsigned ColorBytes4 (float r, float g, float b, float a) {
 	unsigned	i;
 
-	( (byte *)&i )[0] = r * 255;
-	( (byte *)&i )[1] = g * 255;
-	( (byte *)&i )[2] = b * 255;
-	( (byte *)&i )[3] = a * 255;
+	( (byte *)&i )[0] = (byte)(int)(r * 255);
+	( (byte *)&i )[1] = (byte)(int)(g * 255);
+	( (byte *)&i )[2] = (byte)(int)(b * 255);
+	( (byte *)&i )[3] = (byte)(int)(a * 255);
 
 	return i;
 }
