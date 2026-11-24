@@ -197,6 +197,13 @@ A dependency is either a release archive pinned by URL and hash, downloaded at c
 time and compiled as part of the project, or a single-header library committed under
 `external/`. No other library source is copied into the tree.
 
+One part of the system is used, by SDL on Linux: it is compiled against the system's
+development files for X11, Wayland, the audio servers and input devices, and loads those
+libraries at run time, so they are the player's system's in any case. They are a
+prerequisite of every Linux build, like the compiler. The list is SDL's own, in
+`docs/README-linux.md` of the pinned release; CI installs it for Ubuntu
+([ADR-0023](decisions/0023-continuous-integration-with-build-dependencies.md)).
+
 ### 4.5 Platform layer
 
 `src/sys` replaces the release's `win32` directory, which is removed. The surface the

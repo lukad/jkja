@@ -1,7 +1,8 @@
-# Continuous integration (docs/decisions/0021-continuous-integration.md).
+# Continuous integration (docs/decisions/0023-continuous-integration-with-build-dependencies.md).
 #
-# One job per configure preset, each the same three preset commands as on a developer
-# machine. No game data exists here, so the smoke tests report themselves as skipped.
+# One job per configure preset: its platform's build environment, then the same three
+# preset commands as on a developer machine. No game data exists here, so the smoke
+# tests report themselves as skipped.
 #
 # Images are named by their version and actions by the hash of their commit; moving to
 # another is a commit of its own. The images' contents are listed in
@@ -47,6 +48,22 @@ jobs:
         with:
           path: build/_deps
           key: deps-${{ runner.os }}-${{ hashFiles('cmake/Dependencies.cmake') }}
+
+      # SDL is built against the system's display, audio and input headers and loads the
+      # libraries at run time. The list is the one SDL's docs/README-linux.md gives for
+      # Ubuntu 22.04 and later, less the build tools the image has and the package for
+      # SDL's own tests.
+      - name: Install SDL's build dependencies
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends --yes \
+            libasound2-dev libpulse-dev libaudio-dev libfribidi-dev libjack-dev \
+            libsndio-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev \
+            libxfixes-dev libxi-dev libxss-dev libxtst-dev libxkbcommon-dev libdrm-dev \
+            libgbm-dev libgl1-mesa-dev libgles2-mesa-dev libegl1-mesa-dev libdbus-1-dev \
+            libibus-1.0-dev libudev-dev libthai-dev libusb-1.0-0-dev \
+            libpipewire-0.3-dev libwayland-dev libdecor-0-dev liburing-dev
 
       - name: Configure, build and test
         if: runner.os != 'Windows'
