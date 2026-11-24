@@ -22,6 +22,9 @@ function(jasp_legacy_target target)
       /we4311 /we4312 # pointer truncation
       /we4715 /we4716 # missing return
       /we4473 /we4477 # format string mismatches
+      # String literals passed as char *, everywhere in the release. C++20 makes MSVC
+      # refuse them; GCC and Clang warn, as MSVC did for the release.
+      /Zc:strictStrings-
     )
   else()
     target_compile_options(${target} PRIVATE
