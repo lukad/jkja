@@ -1,0 +1,68 @@
+# Continuous integration (docs/decisions/0021-continuous-integration.md).
+#
+# One job per configure preset, each the same three preset commands as on a developer
+# machine. No game data exists here, so the smoke tests report themselves as skipped.
+#
+# Images are named by their version and actions by the hash of their commit; moving to
+# another is a commit of its own. The images' contents are listed in
+# https://github.com/actions/runner-images.
+
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: ${{ matrix.preset }}
+    runs-on: ${{ matrix.image }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { image: ubuntu-24.04, preset: linux-debug }
+          - { image: ubuntu-24.04, preset: linux-clang-debug }
+          - { image: ubuntu-24.04, preset: linux-sanitize }
+          - { image: ubuntu-24.04, preset: linux-release }
+          - { image: ubuntu-24.04, preset: linux-sanitize-release }
+          - { image: windows-2025, preset: windows-debug }
+          - { image: windows-2025, preset: windows-release }
+          - { image: macos-15, preset: macos-debug }
+          - { image: macos-15, preset: macos-release }
+    env:
+      PRESET: ${{ matrix.preset }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # The library archives cmake/Dependencies.cmake pins. A changed pin is a new key.
+      - uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: build/_deps
+          key: deps-${{ runner.os }}-${{ hashFiles('cmake/Dependencies.cmake') }}
+
+      - name: Configure, build and test
+        if: runner.os != 'Windows'
+        run: |
+          cmake --preset "$PRESET"
+          cmake --build --preset "$PRESET"
+          ctest --preset "$PRESET"
+
+      # The Windows presets use MSVC through Ninja and expect its environment, which the
+      # Visual Studio installation's vcvars64.bat sets up; vswhere finds the installation.
+      - name: Configure, build and test
+        if: runner.os == 'Windows'
+        shell: cmd
+        run: |
+          for /f "usebackq tokens=*" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do (set "VSDIR=%%i")
+          call "%VSDIR%\VC\Auxiliary\Build\vcvars64.bat" || exit /b 1
+          cmake --preset %PRESET% || exit /b 1
+          cmake --build --preset %PRESET% || exit /b 1
+          ctest --preset %PRESET% || exit /b 1
