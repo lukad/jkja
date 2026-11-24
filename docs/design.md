@@ -742,6 +742,16 @@ where the save was made. The end of `yavin1b` was reached by firing its level ch
 from the console, not by playing there, and was followed by the cutscene of `academy1`
 and, skipped, by `yavin2`, where the companion is present.
 
+The sanitizers were then pointed at more of the game than the checklist reaches, with
+scripted input in the same preset and the sanitizers reporting and going on. In a
+fight on `yavin1b`, three of every kind of NPC the game data defines were spawned in
+turn and fought, in god mode, with the saber, every Force power and every weapon. Every
+SP level was loaded, its opening cutscene skipped, and the saber and five weapons
+used there. The findings above from the saber's victims on were made this way. After
+their fixes both runs end without a report. The fights are short and stay on one
+level, and the levels are seen only around their starting points, so this does not
+replace playing them.
+
 Still open before the exit criteria can hold: the checklist has not been played by a
 person in the `linux-sanitize-release` preset, and `yavin1b` has not been played to its
 end since these fixes; the clipboard of a real desktop, the brightness pass on a real
