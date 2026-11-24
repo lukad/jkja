@@ -74,14 +74,17 @@ jobs:
           cmake --build --preset "$PRESET"
           ctest --preset "$PRESET"
 
-      # The Windows presets use MSVC through Ninja and expect its environment, which the
-      # Visual Studio installation's vcvars64.bat sets up; vswhere finds the installation.
+      # The Windows presets use MSVC or clang-cl through Ninja and expect Visual Studio's
+      # environment, which its vcvars64.bat sets up; vswhere finds the installation. The
+      # clang-cl is Visual Studio's own, which its standard library is made for: the
+      # image's separate LLVM is older than that library accepts.
       - name: Configure, build and test
         if: runner.os == 'Windows'
         shell: cmd
         run: |
           for /f "usebackq tokens=*" %%i in (`"%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe" -latest -products * -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 -property installationPath`) do (set "VSDIR=%%i")
           call "%VSDIR%\VC\Auxiliary\Build\vcvars64.bat" || exit /b 1
+          set "PATH=%VCINSTALLDIR%Tools\Llvm\x64\bin;%PATH%"
           cmake --preset %PRESET% || exit /b 1
           cmake --build --preset %PRESET% || exit /b 1
           ctest --preset %PRESET% || exit /b 1
