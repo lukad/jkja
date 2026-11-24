@@ -1511,7 +1511,10 @@ void CG_SaberClashFlare( void )
 		return;
 	}
 
-	vec3_t color;
+	// cgi_R_SetColor reads an alpha as well; the release passed a vec3_t and the alpha
+	// came from whatever followed it. The flare is drawn additively, so alpha has never
+	// shown on the screen.
+	vec4_t color;
 	int x,y;
 	float v, len = VectorNormalize( dif );
 
@@ -1526,6 +1529,7 @@ void CG_SaberClashFlare( void )
 	CG_WorldCoordToScreenCoord( g_saberFlashPos, &x, &y );
 
 	VectorSet( color, 0.8f, 0.8f, 0.8f );
+	color[3] = 1.0f;
 	cgi_R_SetColor( color );
 
 	CG_DrawPic( x - ( v * 300 ), y - ( v * 300 ),
