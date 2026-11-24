@@ -1,5 +1,5 @@
 ---
-status: "{proposed | rejected | accepted | deprecated | superseded by ADR-NNNN}"
+status: "{proposed | accepted | deprecated | superseded by ADR-NNNN}"
 date: {YYYY-MM-DD, when the decision was last updated}
 decision-makers: {who decides}
 consulted: {whose input was sought; optional}

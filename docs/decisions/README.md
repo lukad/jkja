@@ -35,8 +35,9 @@ Architectural decisions for this project, recorded as
 2. Fill it in. List the options that were really considered, including the ones that
    lost, and say why they lost.
 3. Set `status: proposed` and add a row to the table above.
-4. The record is accepted or rejected. Only then is the status changed, and only then is
-   work started that depends on it.
+4. The record is accepted or rejected. Until then it stays in the working tree and is not
+   committed. An accepted record is committed with `status: accepted`, in one commit with
+   its row; only then is work started that depends on it. A rejected record is deleted.
 
 ## Rules
 

@@ -26,7 +26,9 @@ Every piece of work goes through these steps, in order.
    *accepted* record covers (a dependency, an interface, a file format, a directory
    move, deleting a subsystem), stop. Write a record from
    `docs/decisions/adr-template.md` with `status: proposed`, add it to the index, and
-   ask for it to be accepted or rejected. Do not build on a proposed record. The one exception
+   ask for it to be accepted or rejected. A proposed record stays in the working tree and
+   is never committed: once accepted it is committed with `status: accepted`, and once
+   rejected it is deleted. Do not build on a proposed record. The one exception
    is a spike whose stated purpose is to confirm a proposed record.
 3. **Plan the smallest step.** One logical change. If it contains a mechanical
    transformation (scripted rename, line endings, stripping `#ifdef` blocks), that
