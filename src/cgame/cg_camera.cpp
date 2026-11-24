@@ -1335,8 +1335,11 @@ CGCam_RenderScene
 */
 void CGCam_RenderScene( void )
 {
-	CGCam_Update();
+	// The size of the view first: CGCam_Update derives the vertical FOV from it. The
+	// release had them the other way round, so a camera on a level's first frame, with
+	// no size yet, had a vertical FOV of 0 and a projection of infinities.
 	CG_CalcVrect();
+	CGCam_Update();
 }
 
 /*
