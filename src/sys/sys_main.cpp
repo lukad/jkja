@@ -67,6 +67,9 @@ there and are left out, as the release's console window left them out.
 */
 void Sys_Print(const char *msg) {
 	std::fputs(WithoutColours(msg).c_str(), stdout);
+	// Shown at once, as the console window showed it. A flush, not line buffering:
+	// Microsoft's C runtime has none, and setvbuf there treats _IOLBF as full buffering.
+	std::fflush(stdout);
 }
 
 /*
@@ -295,9 +298,6 @@ int main(int argc, char **argv) {
 			commandLine += argument;
 		}
 	}
-
-	// The console is standard output; show each line when it is printed.
-	std::setvbuf(stdout, NULL, _IOLBF, 0);
 
 	// get the initial time base
 	Sys_Milliseconds();
