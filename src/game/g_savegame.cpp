@@ -13,8 +13,14 @@
 #include "g_savetables.h"
 #include "g_vehicles.h"
 
+#include <cstdint>
 #include <string>
 #include <vector>
+
+// MSVC's debug heap fills the memory it hands out with bytes of 0xcd, so a pointer read
+// from memory nobody wrote is all 0xcd. The release tested for four of them, a pointer
+// of 32 bits; one of 64 bits has eight.
+static const uintptr_t debugFillPointer = 0xcdcdcdcdcdcdcdcdull;
 
 extern void OBJ_LoadTacticalInfo(void);
 
@@ -52,7 +58,7 @@ static char *GetStringPtr(const char *sString, char *psOriginal/*may be NULL*/)
 //
 static int GetGEntityNum(gentity_t* ent)
 {
-	assert( ent != (gentity_t *) 0xcdcdcdcd);
+	assert( ent != (gentity_t *) debugFillPointer);
 
 	if (ent == NULL)
 	{
@@ -90,7 +96,7 @@ static gentity_t *GetGEntityPtr(int iEntNum)
 
 static int GetGroupNumber(AIGroupInfo_t *pGroup)
 {
-	assert( pGroup != (AIGroupInfo_t *) 0xcdcdcdcd);
+	assert( pGroup != (AIGroupInfo_t *) debugFillPointer);
 
 	if (pGroup == NULL)
 	{
@@ -126,7 +132,7 @@ static int GetGClientNum(gclient_t *c, gentity_t *ent)
 	// unfortunately, I now need to see if this is a 'real' client (and therefore resolve to an enum), or
 	//	whether it's one of the NPC or SP_misc_weapon_shooter
 	//
-	assert(c != (gclient_t *)0xcdcdcdcd);
+	assert(c != (gclient_t *)debugFillPointer);
 
 	if (c == NULL)
 	{
@@ -168,7 +174,7 @@ static gclient_t *GetGClientPtr(int c)
 //
 static int GetGItemNum (gitem_t *pItem)
 {
-	assert(pItem != (gitem_t*) 0xcdcdcdcd);
+	assert(pItem != (gitem_t*) debugFillPointer);
 	
 	if (pItem == NULL)
 	{
@@ -199,7 +205,7 @@ static gitem_t *GetGItemPtr(int iItem)
 //
 static int GetVehicleInfoNum(vehicleInfo_t *pVehicleInfo)
 {
-	assert(pVehicleInfo != (vehicleInfo_t*) 0xcdcdcdcd);
+	assert(pVehicleInfo != (vehicleInfo_t*) debugFillPointer);
 	
 	if (pVehicleInfo == NULL)
 	{
