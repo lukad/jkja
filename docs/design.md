@@ -683,6 +683,7 @@ test found, and what became of it:
 | Crash when the saber strikes the first tree of `yavin1b`, in the `linux-sanitize-release` preset | The flare of a saber strike passed a colour of three floats where four are read; the fourth was whatever followed on the stack | fixed; the flare is drawn additively, so the alpha it now has was never seen |
 | UBSan report of misaligned 8-byte stores when the saber hits a Ghoul2 model, in a debug build | The heap for transformed Ghoul2 vertices handed out the next free byte; arrays of `size_t` kept there were 4-byte aligned, enough on 32-bit only | fixed, the heap hands out aligned space (section 4.8) |
 | UBSan report of index -1 into the combat points when an NPC dies | `NPC_FreeCombatPoint` checked the upper bound only; an NPC without a combat point has -1, and the release cleared a value in front of the array: the height of the 64th interest point, on 64-bit half of its target pointer | fixed, -1 is refused |
+| Crash when the saber strikes an NPC, in the `linux-sanitize-release` preset | `WP_SaberDamageEffects` looked up the struck entity's hit location in arrays of 16 victims by its entity number, and read past them for every entity above 15 | fixed, the entity's place among the victims is looked up |
 
 Checked without a person, under the sanitizers: menus, levels and the opening cutscene
 render in a real OpenGL context, the first level changes to the second, videos play, a

@@ -1878,9 +1878,22 @@ qboolean WP_SaberDamageEffects( trace_t *tr, const vec3_t start, float length, f
 			}
 
 			//Get the hit location based on surface name
-			if ( (hitLoc[hitEntNum[numHitEnts]] == HL_NONE && trHitLoc[numHitEnts] == HL_NONE)
-				|| (hitDismemberLoc[hitEntNum[numHitEnts]] == HL_NONE && trDismemberLoc[numHitEnts] == HL_NONE)
-				|| (!hitDismember[hitEntNum[numHitEnts]] && !trDismember[numHitEnts]) )
+			//The victims' arrays are indexed by victim, not by entity number, which the
+			//release used here and so read past their end; find the entity's victim, as
+			//WP_SaberDamageAdd does. One that is not a victim yet has no hit location.
+			int victim = -1;
+			for ( int v = 0; v < numVictims; v++ )
+			{
+				if ( victimEntityNum[v] == hitEntNum[numHitEnts] )
+				{
+					victim = v;
+					break;
+				}
+			}
+			if ( victim == -1
+				|| (hitLoc[victim] == HL_NONE && trHitLoc[numHitEnts] == HL_NONE)
+				|| (hitDismemberLoc[victim] == HL_NONE && trDismemberLoc[numHitEnts] == HL_NONE)
+				|| (!hitDismember[victim] && !trDismember[numHitEnts]) )
 			{//no hit loc set for this ent this damage cycle yet
 				//FIXME: find closest impact surf *first* (per ent), then call G_GetHitLocFromSurfName?
 				//FIXED: if hit multiple ents in this collision record, these trSurfName, trDismember and trDismemberLoc will get stomped/confused over the multiple ents I hit
