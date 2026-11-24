@@ -13,6 +13,9 @@ namespace {
 // False while the window does not have the keyboard.
 bool windowHasFocus = true;
 
+// True while the window is minimised or covered: nobody sees what is drawn.
+bool windowIsHidden;
+
 // True while the mouse belongs to the game: the pointer is hidden and held, and the
 // mouse reports motion instead of a position.
 bool mouseActive;
@@ -296,6 +299,15 @@ void SetMouseActive(bool active) {
 	motionY = 0;
 }
 
+// The game is heard only while it is in front, as in the release, where DirectSound
+// silenced the buffer of a window that was not active.
+void UpdateActivity() {
+	SDL_Window *window = Sys_Window();
+	windowIsHidden =
+	    window && (SDL_GetWindowFlags(window) & (SDL_WINDOW_MINIMIZED | SDL_WINDOW_OCCLUDED));
+	SNDDMA_Activate(!window || (windowHasFocus && !windowIsHidden));
+}
+
 /*
 ===============
 Scripted input
@@ -459,12 +471,13 @@ void IN_Shutdown(void) {
 ==================
 IN_Frame
 
-Called every frame, even if not generating commands. Decides who has the mouse: the
-game, or the desktop while the console is open over a window and while the window does
-not have the keyboard.
+Called every frame, even if not generating commands. Decides whether the game is heard,
+and who has the mouse: the game, or the desktop while the console is open over a window
+and while the window does not have the keyboard.
 ==================
 */
 void IN_Frame(void) {
+	UpdateActivity();
 	Gamepad_Frame();
 
 	if (!Sys_Window() || !in_mouse->integer) {
@@ -478,4 +491,13 @@ void IN_Frame(void) {
 	}
 
 	SetMouseActive(windowHasFocus);
+}
+
+/*
+==================
+Sys_WindowIsHidden
+==================
+*/
+bool Sys_WindowIsHidden(void) {
+	return windowIsHidden;
 }

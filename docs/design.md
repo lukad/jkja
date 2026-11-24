@@ -241,6 +241,12 @@ code of the release:
   console window, below everything printed before it. A headless run, and one under a
   video driver without message windows such as SDL's offscreen driver, has standard
   error only.
+- While the window does not have the focus, or is minimised or covered, the sound
+  device plays silence and the mixer goes on, as DirectSound silenced the release's
+  buffer; a minimised or covered window waits 5 ms between frames, as the release's
+  minimised one did. Wayland does not tell a program that it has been minimised: there
+  the wait depends on the compositor reporting the window as suspended. The release's
+  debug builds also slowed down while in the background; that is not carried over.
 - The game module is unloaded at the top of the main loop, not at the moment the engine
   lets go of it, because an error can be on its way up a stack that has functions of
   the module on it.
@@ -267,8 +273,6 @@ Before `win32` was removed it was gone through, function by function, for what i
 that `src/sys` does not. Still to be given back, because a player can notice it:
 
 - `vid_xpos` and `vid_ypos` remembered where the window was on the desktop.
-- The sound stopped while another program had the focus, and a minimised game slept
-  between frames.
 - The window had the game's icon, and the title "Jedi Knight®: Jedi Academy".
 
 Not carried over, on purpose: MIDI notes as keys (`in_midi` and its relatives), the

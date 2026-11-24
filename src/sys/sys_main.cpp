@@ -310,6 +310,11 @@ int main(int argc, char **argv) {
 	while (true) {
 		Sys_UnloadRetiredGame();
 
+		// A game that nobody sees gives the processor back between frames.
+		if (Sys_WindowIsHidden()) {
+			SDL_Delay(5);
+		}
+
 		// make sure mouse and joystick are only called once a frame
 		IN_Frame();
 

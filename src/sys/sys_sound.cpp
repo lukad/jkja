@@ -29,15 +29,20 @@ SDL_AudioStream *stream;
 // SDL's audio thread, read by the mixer.
 std::atomic<int> playPosition;
 
+// What the device plays instead while the game is not active.
+const std::array<byte, bufferBytes> silence{};
+std::atomic<bool> silenced;
+
 // True when no device could be opened and the null device stands in.
 bool usingNullDevice;
 
 void SDLCALL FeedDevice(void *, SDL_AudioStream *audioStream, int additionalAmount, int) {
 	int position = playPosition.load();
+	const byte *source = silenced.load() ? silence.data() : mixBuffer.data();
 
 	while (additionalAmount > 0) {
 		const int chunk = SDL_min(additionalAmount, bufferBytes - position);
-		SDL_PutAudioStreamData(audioStream, mixBuffer.data() + position, chunk);
+		SDL_PutAudioStreamData(audioStream, source + position, chunk);
 		position = (position + chunk) % bufferBytes;
 		additionalAmount -= chunk;
 	}
@@ -133,6 +138,15 @@ void SNDDMA_Shutdown(void) {
 		SDL_QuitSubSystem(SDL_INIT_AUDIO);
 	}
 	dma.buffer = nullptr;
+}
+
+/*
+==============
+SNDDMA_Activate
+===============
+*/
+void SNDDMA_Activate(bool active) {
+	silenced.store(!active);
 }
 
 /*

@@ -26,6 +26,9 @@ void IN_Init(void);
 void IN_Shutdown(void);
 void IN_Frame(void);
 
+// True while the window is minimised or covered, as IN_Frame saw it last.
+bool Sys_WindowIsHidden(void);
+
 // Turns what the window system reports (keys, text, mouse, focus, close) into engine
 // events and commands. Does nothing without a window.
 void Sys_PumpEvents(void);
@@ -52,6 +55,10 @@ void QGL_BindNothing(void);
 
 // The window when there is none: fills in glConfig and binds the qgl functions to nothing.
 void NullWindow_Init(void);
+
+// While the game is not active the sound device plays silence; the mixer goes on as
+// before, so nothing is behind when the game is active again.
+void SNDDMA_Activate(bool active);
 
 // The sound device when there is none.
 qboolean NullSound_Init(void);
