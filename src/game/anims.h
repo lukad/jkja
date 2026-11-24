@@ -3,7 +3,8 @@
 // playerAnimations
 
 
-typedef enum //# animNumber_e
+// int underneath, as with the release's compiler: -1 for no animation is stored here.
+typedef enum : int //# animNumber_e
 {
 	//=================================================
 	//HEAD ANIMS

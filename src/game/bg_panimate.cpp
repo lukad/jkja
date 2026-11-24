@@ -3757,6 +3757,11 @@ int PM_AnimLength( int index, animNumber_t anim )
 	if ( ValidAnimFileIndex( index ) == false )
 		return 0;
 
+	// NPC_ChoosePainAnimation asks with -1 when it played no pain animation. The release
+	// read in front of the array, the end of the skeleton's short name: zeros, length 0.
+	if ( anim < 0 || anim >= MAX_ANIMATIONS )
+		return 0;
+
 	return level.knownAnimFileSets[index].animations[anim].numFrames * abs(level.knownAnimFileSets[index].animations[anim].frameLerp);
 }
 

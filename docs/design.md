@@ -686,6 +686,7 @@ test found, and what became of it:
 | Crash when the saber strikes an NPC, in the `linux-sanitize-release` preset | `WP_SaberDamageEffects` looked up the struck entity's hit location in arrays of 16 victims by its entity number, and read past them for every entity above 15 | fixed, the entity's place among the victims is looked up |
 | UBSan report of a signed overflow in `Q_rand` | The game's random numbers come from a multiplication that overflows `int`; x86 wraps, C++ leaves it undefined | fixed, computed unsigned, with the same results |
 | UBSan reports of invalid `class_t` values when some NPCs spawn | Some NPC files of the game data name a class that does not exist; the lookup returns -1, which the release's compiler kept in an enum of `int`, and which ours, choosing a smaller type, could not | fixed, the enums the name lookups fill are of `int` |
+| Crash when an NPC is hurt while it is held by the Force or in a strong attack | `NPC_ChoosePainAnimation` asks for the length of animation -1 when it played none; the release read the bytes in front of the table, which are zero, and on 64-bit the enum's unsigned -1 reads far past it | fixed, animation numbers are of `int` and one outside the table has no length |
 
 Checked without a person, under the sanitizers: menus, levels and the opening cutscene
 render in a real OpenGL context, the first level changes to the second, videos play, a
