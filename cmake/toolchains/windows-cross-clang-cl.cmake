@@ -12,7 +12,8 @@
 #     --crt-version 14.44.17.14 --sdk-version 10.0.26100 \
 #     splat --use-winsysroot-style --output "$JASP_WINSYSROOT"
 #
-# MSVC 14.44 is Visual Studio 2022 17.14, the version on CI's Windows runner.
+# MSVC 14.44 is Visual Studio 2022 17.14. CI's Windows runner has since moved to Visual
+# Studio 2026 and MSVC 14.52.
 
 if(NOT DEFINED ENV{JASP_WINSYSROOT} OR "$ENV{JASP_WINSYSROOT}" STREQUAL "")
   message(FATAL_ERROR
