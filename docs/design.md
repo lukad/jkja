@@ -687,6 +687,7 @@ test found, and what became of it:
 | UBSan report of a signed overflow in `Q_rand` | The game's random numbers come from a multiplication that overflows `int`; x86 wraps, C++ leaves it undefined | fixed, computed unsigned, with the same results |
 | UBSan reports of invalid `class_t` values when some NPCs spawn | Some NPC files of the game data name a class that does not exist; the lookup returns -1, which the release's compiler kept in an enum of `int`, and which ours, choosing a smaller type, could not | fixed, the enums the name lookups fill are of `int` |
 | Crash when an NPC is hurt while it is held by the Force or in a strong attack | `NPC_ChoosePainAnimation` asks for the length of animation -1 when it played none; the release read the bytes in front of the table, which are zero, and on 64-bit the enum's unsigned -1 reads far past it | fixed, animation numbers are of `int` and one outside the table has no length |
+| UBSan report of a fourth component of a fog's colour on levels with fog | The fog's colour has three components; the fourth written was the fog's depth, set again on the next line | fixed, the stray writes deleted |
 
 Checked without a person, under the sanitizers: menus, levels and the opening cutscene
 render in a real OpenGL context, the first level changes to the second, videos play, a
