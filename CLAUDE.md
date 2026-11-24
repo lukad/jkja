@@ -106,7 +106,7 @@ Checks come into existence milestone by milestone; run all that exist.
 | Sanitizer build and tests | M1 | the `linux-sanitize` and `linux-sanitize-release` presets, same commands |
 | Headless smoke test (needs `JKA_GAMEDATA_DIR`) | M1 | part of `ctest` |
 | Render smoke test (needs `JKA_GAMEDATA_DIR` and an OpenGL context without a display) | M2 | part of `ctest` |
-| Play-test checklist | M2 | manual, with the `linux-sanitize-release` preset; listed in `docs/design.md`, section 7 |
+| Play-test checklist | M2 | manual, with the `linux-sanitize-release` preset, sanitizer reports going to files instead of ending the game; listed with the command in `docs/design.md`, section 7 |
 | Image comparison, new renderer against legacy | M4 | part of `ctest`, needs game data |
 
 Presets on Linux: `linux-debug` (GCC), `linux-clang-debug`, `linux-sanitize`,

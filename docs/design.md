@@ -554,8 +554,20 @@ ends where `academy1` begins.
    the quick load, F9.
 6. Play to the end of the level. The next level loads, and the characters on it do
    what its start script tells them to.
-7. All along, the game's console shows no OpenGL error, and the terminal shows no
-   report of the sanitizers. AddressSanitizer ends the game at its first report.
+7. All along, the game's console shows no OpenGL error, and the sanitizers report
+   nothing.
+
+By default AddressSanitizer ends the game at its first report, as it should in tests.
+For a play test it is told to report and go on, and both sanitizers write their reports
+to files instead of the terminal, which are handed in after the session:
+
+    ASAN_OPTIONS=halt_on_error=0:log_path=sanitizer \
+    UBSAN_OPTIONS=print_stacktrace=1:log_path=sanitizer \
+    build/linux-sanitize-release/src/jasp +set fs_basepath "$JKA_GAMEDATA_DIR"
+
+The reports land in `sanitizer.<process id>` in the working directory. A game that
+goes on after a report runs on memory the report says is wrong; what happens after the
+first report is suspect until it is fixed.
 
 Reference images are made from retail data and are therefore never committed; they are
 generated into the build directory.
