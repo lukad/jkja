@@ -166,8 +166,9 @@ instead of being hardcoded to `jagamex86.dll`
 
 CMake with presets and Ninja; C++20 for all C++ code
 ([ADR-0004](decisions/0004-build-system-and-toolchain.md)). One preset per platform and
-configuration, plus a Clang preset and a sanitizer preset on Linux, and a preset that
-builds the Windows programs on Linux with clang-cl and runs their tests under Wine
+configuration, plus a Clang preset and a sanitizer preset on Linux, clang-cl presets
+beside the MSVC ones on Windows, and a preset that builds the Windows programs on Linux
+with clang-cl and runs their tests under Wine
 ([ADR-0022](decisions/0022-windows-cross-build-on-linux.md)); `cmake --list-presets`
 shows the ones usable on the current machine. Visual Studio users open the folder; no
 `.sln` or `.vcxproj` is ever generated into or committed to the tree.

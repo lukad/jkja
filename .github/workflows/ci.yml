@@ -34,6 +34,8 @@ jobs:
           - { image: ubuntu-24.04, preset: linux-sanitize-release }
           - { image: windows-2025, preset: windows-debug }
           - { image: windows-2025, preset: windows-release }
+          - { image: windows-2025, preset: windows-clang-debug }
+          - { image: windows-2025, preset: windows-clang-release }
           - { image: macos-15, preset: macos-debug }
           - { image: macos-15, preset: macos-release }
     env:

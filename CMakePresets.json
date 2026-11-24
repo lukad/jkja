@@ -97,6 +97,26 @@
       "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
     },
     {
+      "name": "windows-clang-debug",
+      "displayName": "Windows x86-64, clang-cl, debug",
+      "inherits": "windows",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl"
+      }
+    },
+    {
+      "name": "windows-clang-release",
+      "displayName": "Windows x86-64, clang-cl, release",
+      "inherits": "windows",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_C_COMPILER": "clang-cl",
+        "CMAKE_CXX_COMPILER": "clang-cl"
+      }
+    },
+    {
       "name": "windows-cross-release",
       "displayName": "Windows x86-64 built on Linux, clang-cl, release, run under Wine",
       "inherits": "linux",
@@ -124,6 +144,8 @@
     { "name": "linux-sanitize-release", "configurePreset": "linux-sanitize-release" },
     { "name": "windows-debug", "configurePreset": "windows-debug" },
     { "name": "windows-release", "configurePreset": "windows-release" },
+    { "name": "windows-clang-debug", "configurePreset": "windows-clang-debug" },
+    { "name": "windows-clang-release", "configurePreset": "windows-clang-release" },
     { "name": "windows-cross-release", "configurePreset": "windows-cross-release" },
     { "name": "macos-debug", "configurePreset": "macos-debug" },
     { "name": "macos-release", "configurePreset": "macos-release" }
@@ -141,6 +163,8 @@
     { "name": "linux-sanitize-release", "inherits": "base", "configurePreset": "linux-sanitize-release" },
     { "name": "windows-debug", "inherits": "base", "configurePreset": "windows-debug" },
     { "name": "windows-release", "inherits": "base", "configurePreset": "windows-release" },
+    { "name": "windows-clang-debug", "inherits": "base", "configurePreset": "windows-clang-debug" },
+    { "name": "windows-clang-release", "inherits": "base", "configurePreset": "windows-clang-release" },
     { "name": "windows-cross-release", "inherits": "base", "configurePreset": "windows-cross-release" },
     { "name": "macos-debug", "inherits": "base", "configurePreset": "macos-debug" },
     { "name": "macos-release", "inherits": "base", "configurePreset": "macos-release" }
