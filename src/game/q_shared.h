@@ -1230,7 +1230,7 @@ typedef struct
 #define MAX_SABER_TRAIL_SEGS 8
 
 // !!!!!!!!!!!!! loadsave affecting struct !!!!!!!!!!!!!!!
-typedef struct
+typedef struct bladeInfo_s
 {
 	qboolean	active;
 	saber_colors_t	color;
@@ -1270,7 +1270,7 @@ typedef enum
 } saber_styles_t;
 
 // !!!!!!!!!!!! loadsave affecting struct !!!!!!!!!!!!!!!!!!!!!!!!!!
-typedef struct
+typedef struct saberInfo_s
 {
 	char		*name;						//entry in sabers.cfg, if any
 	char		*fullName;					//the "Proper Name" of the saber, shown in the UI
