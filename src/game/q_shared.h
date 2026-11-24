@@ -580,7 +580,9 @@ inline vec_t VectorNormalize2( const vec3_t v, vec3_t out) {
 int Q_log2(int val);
 
 inline int Q_rand( int *seed ) {
-	*seed = (69069 * *seed + 1);
+	// Computed unsigned, where wrapping is defined; the bits are those the release's
+	// signed arithmetic produced on x86.
+	*seed = (int)(69069u * (unsigned int)*seed + 1u);
 	return *seed;
 }
 
