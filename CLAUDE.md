@@ -103,14 +103,15 @@ Checks come into existence milestone by milestone; run all that exist.
 | Repository checks (includes, forbidden files, no data paths) | M0 | part of `ctest`; the tool is `build/<preset>/tools/check-repo` |
 | Configure and build | M0 | `cmake --preset <name>` then `cmake --build --preset <name>` |
 | Tests | M0 | `ctest --preset <name>`; runs the repository checks and the tools' self-test, and from M1 the unit tests |
-| Sanitizer build and tests | M1 | the `linux-sanitize` preset, same commands |
+| Sanitizer build and tests | M1 | the `linux-sanitize` and `linux-sanitize-release` presets, same commands |
 | Headless smoke test (needs `JKA_GAMEDATA_DIR`) | M1 | part of `ctest` |
 | Render smoke test (needs `JKA_GAMEDATA_DIR` and an OpenGL context without a display) | M2 | part of `ctest` |
-| Play-test checklist | M2 | manual, with the `linux-release` preset; listed in `docs/design.md`, section 7 |
+| Play-test checklist | M2 | manual, with the `linux-sanitize-release` preset; listed in `docs/design.md`, section 7 |
 | Image comparison, new renderer against legacy | M4 | part of `ctest`, needs game data |
 
 Presets on Linux: `linux-debug` (GCC), `linux-clang-debug`, `linux-sanitize`,
-`linux-release`; `cmake --list-presets` shows what the current machine can use. The
+`linux-release`, and `linux-sanitize-release` (Clang, the release configuration under
+the sanitizers); `cmake --list-presets` shows what the current machine can use. The
 Windows and macOS presets have not been run yet.
 
 From M1 the build produces the engine (`jasp`), the game module (`jagame` plus the

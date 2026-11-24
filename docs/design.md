@@ -536,9 +536,26 @@ and is the main design problem of M6 and M7.
 | Headless smoke test | Start with null window and sound and the renderer bound to a no-op OpenGL, mount game data, load a map, run N frames, quit cleanly | from M1, needs game data |
 | Render smoke test | The same with a real OpenGL context on a surface nobody sees (SDL's offscreen video driver) and the sound sent to SDL's dummy device, so that texture upload and drawing run for real | from M2, needs game data and such a context |
 | Scripted input | `sys_key`, `sys_char` and `sys_mousemove` on the command line operate menus and game, `sys_clipboard` fills the clipboard, and `sys_padaxis` and `sys_padbutton` work a gamepad that exists in SDL only; with `screenshot` the result can be looked at | on demand, needs game data |
-| Play test | A fixed checklist on the opening level: movement, combat, cutscene, save, load. Played with the `linux-release` preset: the retail game is a build without assertions, and the debug presets stop on assertions of the release that the game's own data trips | milestone exits |
+| Play test | The checklist below, on the opening level. Played with the `linux-sanitize-release` preset: the retail game is a build without assertions, and the debug presets stop on assertions of the release that the game's own data trips; this preset is the release configuration under AddressSanitizer and UBSan, so a play test also shows the defects only an optimised build has, and the sanitizer reports the exit criteria speak of | milestone exits |
 | Image comparison | Screenshots at fixed camera positions on a fixed set of maps, new renderer against legacy renderer, perceptual difference under a threshold | M4 onwards |
 | Reference | Retail `jasp.exe` under Wine, for "what did the original do?" | on demand |
+
+The play-test checklist. A new game starts on `yavin1`, which holds the opening crawl
+and the cutscene in the shuttle and then changes to `yavin1b`, the opening level; it
+ends where `academy1` begins.
+
+1. From the main menu, start a new game: choose a character and a saber, and start.
+2. The opening crawl and the cutscene play with picture, speech, music and subtitles,
+   and play begins on `yavin1b`. Once more, with the cutscene skipped by the use key.
+3. Movement: walk, run, strafe, jump and crouch; the mouse looks around; doors open.
+4. Combat: draw and swing the saber, and use the Force powers the game has given.
+5. Save from the menu, go back to the main menu, and load the save: place, health and
+   the characters around are as they were. The same with the quick save, F12, and
+   the quick load, F9.
+6. Play to the end of the level. The next level loads, and the characters on it do
+   what its start script tells them to.
+7. All along, the game's console shows no OpenGL error, and the terminal shows no
+   report of the sanitizers. AddressSanitizer ends the game at its first report.
 
 Reference images are made from retail data and are therefore never committed; they are
 generated into the build directory.

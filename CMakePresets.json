@@ -79,6 +79,12 @@
       }
     },
     {
+      "name": "linux-sanitize-release",
+      "displayName": "Linux x86-64, Clang, release with AddressSanitizer and UBSan",
+      "inherits": "linux-sanitize",
+      "cacheVariables": { "CMAKE_BUILD_TYPE": "RelWithDebInfo" }
+    },
+    {
       "name": "windows-debug",
       "displayName": "Windows x86-64, MSVC, debug",
       "inherits": "windows",
@@ -108,6 +114,7 @@
     { "name": "linux-release", "configurePreset": "linux-release" },
     { "name": "linux-clang-debug", "configurePreset": "linux-clang-debug" },
     { "name": "linux-sanitize", "configurePreset": "linux-sanitize" },
+    { "name": "linux-sanitize-release", "configurePreset": "linux-sanitize-release" },
     { "name": "windows-debug", "configurePreset": "windows-debug" },
     { "name": "windows-release", "configurePreset": "windows-release" },
     { "name": "macos-debug", "configurePreset": "macos-debug" },
@@ -123,6 +130,7 @@
     { "name": "linux-release", "inherits": "base", "configurePreset": "linux-release" },
     { "name": "linux-clang-debug", "inherits": "base", "configurePreset": "linux-clang-debug" },
     { "name": "linux-sanitize", "inherits": "base", "configurePreset": "linux-sanitize" },
+    { "name": "linux-sanitize-release", "inherits": "base", "configurePreset": "linux-sanitize-release" },
     { "name": "windows-debug", "inherits": "base", "configurePreset": "windows-debug" },
     { "name": "windows-release", "inherits": "base", "configurePreset": "windows-release" },
     { "name": "macos-debug", "inherits": "base", "configurePreset": "macos-debug" },
