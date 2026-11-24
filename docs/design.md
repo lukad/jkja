@@ -777,9 +777,18 @@ macOS and Windows.
 - [ ] macOS arm64 build and application bundle
 - [ ] Decide and record: the icon of the window, the executable, the application bundle
       and a Linux desktop entry ([ADR-0020](decisions/0020-window-title-and-icon.md))
-- [ ] CI for all three platforms
+- [x] CI for all three platforms
 
 Exit: the M2 exit criteria hold on Windows and macOS, verified on real machines.
+
+State on 2026-11-25. CI builds every preset of the three platforms, and all nine jobs
+pass: the Linux presets with GCC 13 and Clang 18, the Windows presets with MSVC 19.44,
+the macOS presets with Apple Clang 17. There, without game data, the tests are the
+repository checks, the tools' self-test and the unit tests; the smoke tests are skipped.
+The Windows build made on Linux with clang-cl
+([ADR-0022](decisions/0022-windows-cross-build-on-linux.md)) runs its tests under Wine,
+and with the game data the smoke test that loads `yavin1b` passes there. Neither the
+Windows nor the macOS build has run on a real machine, and neither has opened a window.
 
 ### M4. Renderer boundary
 
