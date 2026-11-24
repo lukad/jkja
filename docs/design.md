@@ -685,6 +685,7 @@ test found, and what became of it:
 | UBSan report of index -1 into the combat points when an NPC dies | `NPC_FreeCombatPoint` checked the upper bound only; an NPC without a combat point has -1, and the release cleared a value in front of the array: the height of the 64th interest point, on 64-bit half of its target pointer | fixed, -1 is refused |
 | Crash when the saber strikes an NPC, in the `linux-sanitize-release` preset | `WP_SaberDamageEffects` looked up the struck entity's hit location in arrays of 16 victims by its entity number, and read past them for every entity above 15 | fixed, the entity's place among the victims is looked up |
 | UBSan report of a signed overflow in `Q_rand` | The game's random numbers come from a multiplication that overflows `int`; x86 wraps, C++ leaves it undefined | fixed, computed unsigned, with the same results |
+| UBSan reports of invalid `class_t` values when some NPCs spawn | Some NPC files of the game data name a class that does not exist; the lookup returns -1, which the release's compiler kept in an enum of `int`, and which ours, choosing a smaller type, could not | fixed, the enums the name lookups fill are of `int` |
 
 Checked without a person, under the sanitizers: menus, levels and the opening cutscene
 render in a real OpenGL context, the first level changes to the second, videos play, a

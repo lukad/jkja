@@ -472,7 +472,8 @@ typedef struct animation_s {
 #define	AED_MOVE_RT					1
 #define	AED_MOVE_UP					2
 
-typedef enum
+// int underneath, as with the release's compiler: GetIDForString's -1 for an unknown name is stored here.
+typedef enum : int
 {//NOTENOTE:  Be sure to update animEventTypeTable and ParseAnimationEvtBlock(...) if you change this enum list!
 	AEV_NONE,
 	AEV_SOUND,		//# animID AEV_SOUND framenum soundpath randomlow randomhi chancetoplay

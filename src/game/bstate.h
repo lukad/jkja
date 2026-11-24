@@ -2,7 +2,8 @@
 #define __BSTATE_H__
 
 //bstate.h
-typedef enum //# bState_e
+// int underneath, as with the release's compiler: GetIDForString's -1 for an unknown name is stored here.
+typedef enum : int //# bState_e
 {//These take over only if script allows them to be autonomous
 	BS_DEFAULT = 0,//# default behavior for that NPC
 	BS_ADVANCE_FIGHT,//# Advance to captureGoal and shoot enemies if you can

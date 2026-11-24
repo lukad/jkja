@@ -1,7 +1,8 @@
 #ifndef TEAMS_H
 #define TEAMS_H
 
-typedef enum //# team_e
+// int underneath, as with the release's compiler: GetIDForString's -1 for an unknown name is stored here.
+typedef enum : int //# team_e
 {
 	TEAM_FREE,			// caution, some code checks a team_t via "if (!team_t_varname)" so I guess this should stay as entry 0, great or what? -slc
 	TEAM_PLAYER,
@@ -15,7 +16,8 @@ typedef enum //# team_e
 extern stringID_table_t TeamTable[];
 
 // This list is made up from the model directories, this MUST be in the same order as the ClassNames array in NPC_stats.cpp
-typedef enum 
+// int underneath, as with the release's compiler: GetIDForString's -1 for an unknown name is stored here.
+typedef enum : int
 {
 	CLASS_NONE,				// hopefully this will never be used by an npc, just covering all bases
 	CLASS_ATST,				// technically droid...
