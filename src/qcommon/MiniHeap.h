@@ -1,6 +1,8 @@
 #if !defined(MINIHEAP_H_INC)
 #define MINIHEAP_H_INC
 
+#include <cstddef>
+#include <cstdint>
 
 class CMiniHeap
 {
@@ -48,13 +50,18 @@ CMiniHeap(int size)
 }
 
 // give me some space from the heap please
+//
+// The space is aligned for any type. The release handed out the next free byte, which
+// was enough while its callers kept 4-byte values there; their arrays of size_t need
+// 8 bytes on 64-bit.
 char *MiniHeapAlloc(int size)
 {
-	if (size < (mSize - (int)(mCurrentHeap - mHeap)))
+	const std::uintptr_t misalignment = reinterpret_cast<std::uintptr_t>(mCurrentHeap) % alignof(std::max_align_t);
+	char *start = mCurrentHeap + (misalignment ? alignof(std::max_align_t) - misalignment : 0);
+	if (size < (mSize - (int)(start - mHeap)))
 	{
-		char *tempAddress =  mCurrentHeap;
-		mCurrentHeap += size;
-		return tempAddress;
+		mCurrentHeap = start + size;
+		return start;
 	}
 	return NULL;
 }

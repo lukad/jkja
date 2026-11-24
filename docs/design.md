@@ -669,6 +669,7 @@ test found, and what became of it:
 | Resolutions of today missing from the menu | The list is game data (section 4.5) | listed under "Not scheduled" |
 | UBSan report when the opening cutscene is skipped, in the release configuration | The letterbox asks for a negative alpha, and the renderer turned the float into a byte without a defined result; the release's x86 code went through an int | fixed, converted as the release did |
 | Crash when the saber strikes the first tree of `yavin1b`, in the `linux-sanitize-release` preset | The flare of a saber strike passed a colour of three floats where four are read; the fourth was whatever followed on the stack | fixed; the flare is drawn additively, so the alpha it now has was never seen |
+| UBSan report of misaligned 8-byte stores when the saber hits a Ghoul2 model, in a debug build | The heap for transformed Ghoul2 vertices handed out the next free byte; arrays of `size_t` kept there were 4-byte aligned, enough on 32-bit only | fixed, the heap hands out aligned space (section 4.8) |
 
 Checked without a person, under the sanitizers: menus, levels and the opening cutscene
 render in a real OpenGL context, the first level changes to the second, videos play, a
