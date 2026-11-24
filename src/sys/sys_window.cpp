@@ -22,6 +22,60 @@ int Attribute(SDL_GLAttr attribute) {
 	return value;
 }
 
+// Where the window was on the desktop, its frame included: the top left corner, in the
+// desktop's coordinates.
+cvar_t *vid_xpos;
+cvar_t *vid_ypos;
+
+// Wayland does not let a program place its window, nor tell it where the window is; the
+// positions SDL reports there stand for something else.
+bool WindowSystemPlacesWindows() {
+	const char *driver = SDL_GetCurrentVideoDriver();
+	return !driver || SDL_strcmp(driver, "wayland") != 0;
+}
+
+/*
+===============
+PlaceWindow
+
+Puts a window that is not full screen where vid_xpos and vid_ypos say, moved as far as
+needed for it to be on the display, as the release did. The frame is counted where the
+window system reports it.
+===============
+*/
+void PlaceWindow() {
+	if (!WindowSystemPlacesWindows()) {
+		return;
+	}
+
+	int top = 0;
+	int left = 0;
+	int bottom = 0;
+	int right = 0;
+	SDL_GetWindowBordersSize(window, &top, &left, &bottom, &right);
+	int width = 0;
+	int height = 0;
+	SDL_GetWindowSize(window, &width, &height);
+	width += left + right;
+	height += top + bottom;
+
+	SDL_Point corner = {vid_xpos->integer, vid_ypos->integer};
+	SDL_DisplayID display = SDL_GetDisplayForPoint(&corner);
+	SDL_Rect bounds;
+	if (!SDL_GetDisplayBounds(display ? display : SDL_GetPrimaryDisplay(), &bounds)) {
+		return;
+	}
+
+	corner.x = SDL_max(corner.x, bounds.x);
+	corner.y = SDL_max(corner.y, bounds.y);
+	if (width < bounds.w && height < bounds.h) {
+		corner.x = SDL_min(corner.x, bounds.x + bounds.w - width);
+		corner.y = SDL_min(corner.y, bounds.y + bounds.h - height);
+	}
+
+	SDL_SetWindowPosition(window, corner.x + left, corner.y + top);
+}
+
 void DestroyWindow() {
 	if (context) {
 		SDL_GL_DestroyContext(context);
@@ -37,6 +91,26 @@ void DestroyWindow() {
 
 SDL_Window *Sys_Window(void) {
 	return window;
+}
+
+/*
+===============
+Sys_WindowMoved
+
+The window system reports where the window is now, without its frame.
+===============
+*/
+void Sys_WindowMoved(int x, int y) {
+	if (!window || (SDL_GetWindowFlags(window) & SDL_WINDOW_FULLSCREEN) ||
+	    !WindowSystemPlacesWindows()) {
+		return;
+	}
+
+	int top = 0;
+	int left = 0;
+	SDL_GetWindowBordersSize(window, &top, &left, NULL, NULL);
+	Cvar_SetValue("vid_xpos", static_cast<float>(x - left));
+	Cvar_SetValue("vid_ypos", static_cast<float>(y - top));
 }
 
 /*
@@ -57,6 +131,9 @@ void GLimp_Init(void) {
 	}
 
 	Com_Printf("Initializing OpenGL subsystem\n");
+
+	vid_xpos = Cvar_Get("vid_xpos", "3", CVAR_ARCHIVE);
+	vid_ypos = Cvar_Get("vid_ypos", "22", CVAR_ARCHIVE);
 
 	if (!SDL_InitSubSystem(SDL_INIT_VIDEO)) {
 		Com_Error(ERR_FATAL,
@@ -109,6 +186,9 @@ void GLimp_Init(void) {
 	// was asked for on a full-screen window and on a display with a scale factor. Some
 	// window systems apply the full-screen state only a moment after the window exists,
 	// and until then the window still has the size it was asked for: wait for them.
+	if (!fullscreen) {
+		PlaceWindow();
+	}
 	SDL_SyncWindow(window);
 	SDL_GetWindowSizeInPixels(window, &width, &height);
 	glConfig.vidWidth = width;

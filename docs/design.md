@@ -247,6 +247,11 @@ code of the release:
   minimised one did. Wayland does not tell a program that it has been minimised: there
   the wait depends on the compositor reporting the window as suspended. The release's
   debug builds also slowed down while in the background; that is not carried over.
+- `vid_xpos` and `vid_ypos` hold where a window that is not full screen was last, frame
+  included where the window system reports the frame, and place it there at the next
+  start, moved onto the display it would overhang, as in the release. Wayland neither
+  lets a program place its window nor tells it where the window is; there the two are
+  left as they are.
 - The game module is unloaded at the top of the main loop, not at the moment the engine
   lets go of it, because an error can be on its way up a stack that has functions of
   the module on it.
@@ -272,7 +277,6 @@ code of the release:
 Before `win32` was removed it was gone through, function by function, for what it did
 that `src/sys` does not. Still to be given back, because a player can notice it:
 
-- `vid_xpos` and `vid_ypos` remembered where the window was on the desktop.
 - The window had the game's icon, and the title "Jedi Knight®: Jedi Academy".
 
 Not carried over, on purpose: MIDI notes as keys (`in_midi` and its relatives), the

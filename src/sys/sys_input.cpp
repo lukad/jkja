@@ -384,6 +384,10 @@ void Sys_PumpEvents(void) {
 			Cbuf_ExecuteText(EXEC_APPEND, "quit\n");
 			break;
 
+		case SDL_EVENT_WINDOW_MOVED:
+			Sys_WindowMoved(event.window.data1, event.window.data2);
+			break;
+
 		case SDL_EVENT_WINDOW_FOCUS_GAINED:
 			windowHasFocus = true;
 			break;

@@ -18,6 +18,9 @@ bool Sys_Headless(void);
 struct SDL_Window;
 SDL_Window *Sys_Window(void);
 
+// Keeps vid_xpos and vid_ypos up to date with where the window system has put the window.
+void Sys_WindowMoved(int x, int y);
+
 // The title of the window, and of the window that shows a fatal error.
 inline constexpr char sysWindowTitle[] = "Jedi Academy";
 
