@@ -275,9 +275,11 @@ code of the release:
   from there.
 
 Before `win32` was removed it was gone through, function by function, for what it did
-that `src/sys` does not. Still to be given back, because a player can notice it:
-
-- The window had the game's icon, and the title "Jedi Knight®: Jedi Academy".
+that `src/sys` does not, and what a player can notice has been given back, as listed
+above. The exception is the window's icon and title, which were the release's
+"Jedi Knight®: Jedi Academy" and the game's icon. The window is titled "Jedi Academy"
+and has no icon of its own until the platforms are packaged in M3
+([ADR-0020](decisions/0020-window-title-and-icon.md)).
 
 Not carried over, on purpose: MIDI notes as keys (`in_midi` and its relatives), the
 log of OpenGL calls (`r_logFile`), stereo pixel formats (`r_stereo`), the choice
@@ -616,10 +618,11 @@ one map, `yavin1b`, for 120 frames.
 - [x] Brightness by a pass over the finished frame
       ([ADR-0018](decisions/0018-brightness-without-a-gamma-ramp.md))
 - [x] Remove `src/win32` once nothing more has to be restored from it
-- [ ] Give back what the Windows code did for the player and `src/sys` does not yet do
+- [x] Give back what the Windows code did for the player and `src/sys` does not yet do
       (section 4.5): a window for a fatal error, the remembered position of the window,
       silence and idling while the game does not have the focus or is minimised, and
       the window's icon and title
+      ([ADR-0020](decisions/0020-window-title-and-icon.md))
 - [ ] Fix run-time 64-bit defects found by play testing
 
 Exit: the opening level is playable from start to finish including cutscenes; save and
@@ -678,6 +681,16 @@ d-pad run the commands bound to their keys; with `joy_xbutton` the stick presses
 cursor keys; and clearing `in_joystick` lets go of the pad. No pad of metal and
 plastic has been tried, and none has been plugged in or pulled out while the game ran.
 
+The behaviours given back from the Windows code were checked in the `linux-release`
+preset, in a Wayland compositor without a display. A fatal error opens a message
+window that the engine waits on until it is closed, and an offscreen run ends at once.
+The sound output, written to a file, is silent for exactly as long as another window
+has the focus, and an offscreen run, which gets no focus events, is heard. On an X
+server without a window manager the window opens where `vid_xpos` and `vid_ypos`
+say, is moved onto the display where it would overhang, and its new place is saved
+after it has been moved; on Wayland the saved values stay as they are. The idling of
+a minimised window has not been seen, because the compositor used cannot minimise.
+
 Still open before the exit criteria can hold: the opening level has not been played to
 its end by a person since these fixes; the clipboard of a real desktop, the brightness
 pass on a real display and a real gamepad have not been tried; and the unticked items
@@ -688,6 +701,8 @@ above.
 - [ ] Decide and record: continuous integration
 - [ ] Windows x86-64 build (MSVC and clang-cl, through the same presets)
 - [ ] macOS arm64 build and application bundle
+- [ ] Decide and record: the icon of the window, the executable, the application bundle
+      and a Linux desktop entry ([ADR-0020](decisions/0020-window-title-and-icon.md))
 - [ ] CI for all three platforms
 
 Exit: the M2 exit criteria hold on Windows and macOS, verified on real machines.
