@@ -765,7 +765,7 @@ macOS and Windows.
 ### M3. Runs on Windows and macOS
 
 - [x] Decide and record: continuous integration
-      ([ADR-0021](decisions/0021-continuous-integration.md))
+      ([ADR-0023](decisions/0023-continuous-integration-with-build-dependencies.md), superseding [ADR-0021](decisions/0021-continuous-integration.md))
 - [ ] Windows x86-64 build (MSVC and clang-cl, through the same presets)
 - [ ] macOS arm64 build and application bundle
 - [ ] Decide and record: the icon of the window, the executable, the application bundle
