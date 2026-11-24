@@ -89,7 +89,7 @@ void GLimp_Init(void) {
 		flags |= SDL_WINDOW_FULLSCREEN;
 	}
 
-	window = SDL_CreateWindow("Jedi Academy", width, height, flags);
+	window = SDL_CreateWindow(sysWindowTitle, width, height, flags);
 	if (!window) {
 		Com_Error(ERR_FATAL, "GLimp_Init() - could not open a window: %s\n", SDL_GetError());
 	}

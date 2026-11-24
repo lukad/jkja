@@ -33,6 +33,19 @@ constexpr int kLowMemoryThreshold = 128;
 	std::_Exit(status);
 }
 
+// The engine's text without its colour codes, which mean nothing outside the game.
+std::string WithoutColours(const char *text) {
+	std::string plain;
+	for (const char *c = text; *c; c++) {
+		if (Q_IsColorString(c)) {
+			c++;
+			continue;
+		}
+		plain += *c;
+	}
+	return plain;
+}
+
 } // namespace
 
 /*
@@ -53,13 +66,7 @@ there and are left out, as the release's console window left them out.
 ================
 */
 void Sys_Print(const char *msg) {
-	for (const char *c = msg; *c; c++) {
-		if (Q_IsColorString(c)) {
-			c++;
-			continue;
-		}
-		std::fputc(*c, stdout);
-	}
+	std::fputs(WithoutColours(msg).c_str(), stdout);
 }
 
 /*
@@ -75,7 +82,10 @@ void Sys_ShowConsole(int, qboolean) {}
 ================
 Sys_Error
 
-Reports an error the engine cannot recover from and ends the process.
+Reports an error the engine cannot recover from and ends the process. Standard error is
+not seen by a player who started the game from the desktop; as the release did, a window
+shows the error until it is closed. Running headless, and where the window system has no
+such window to offer, standard error is all there is.
 ================
 */
 void QDECL Sys_Error(const char *error, ...) {
@@ -86,8 +96,18 @@ void QDECL Sys_Error(const char *error, ...) {
 	std::vsnprintf(text, sizeof(text), error, arguments);
 	va_end(arguments);
 
+	const std::string plain = WithoutColours(text);
+
 	std::fflush(stdout);
-	std::fprintf(stderr, "Error: %s\n", text);
+	std::fprintf(stderr, "Error: %s\n", plain.c_str());
+
+	if (!Sys_Headless()) {
+		// A full-screen window would cover the message.
+		if (Sys_Window()) {
+			SDL_HideWindow(Sys_Window());
+		}
+		SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR, sysWindowTitle, plain.c_str(), nullptr);
+	}
 
 	Sys_UnloadGame();
 	SDL_Quit();

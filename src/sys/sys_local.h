@@ -18,6 +18,9 @@ bool Sys_Headless(void);
 struct SDL_Window;
 SDL_Window *Sys_Window(void);
 
+// The title of the window, and of the window that shows a fatal error.
+inline constexpr char sysWindowTitle[] = "Jedi Academy";
+
 // Input devices.
 void IN_Init(void);
 void IN_Shutdown(void);

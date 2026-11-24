@@ -236,6 +236,11 @@ code of the release:
   are not corrected a second time as the release corrects them. A frame that is read
   back to be drawn again, for a dissolve, is read from the copy without the table.
 - The console reads lines from standard input on a thread of its own.
+- A fatal error is written to standard error and shown in a message window of the window
+  system, which the engine waits on until it is closed. The release showed it in its
+  console window, below everything printed before it. A headless run, and one under a
+  video driver without message windows such as SDL's offscreen driver, has standard
+  error only.
 - The game module is unloaded at the top of the main loop, not at the moment the engine
   lets go of it, because an error can be on its way up a stack that has functions of
   the module on it.
@@ -261,8 +266,6 @@ code of the release:
 Before `win32` was removed it was gone through, function by function, for what it did
 that `src/sys` does not. Still to be given back, because a player can notice it:
 
-- A fatal error opened a window that stayed until it was closed. `Sys_Error` writes to
-  standard error only, which nobody sees when the game is started from a desktop.
 - `vid_xpos` and `vid_ypos` remembered where the window was on the desktop.
 - The sound stopped while another program had the focus, and a minimised game slept
   between frames.
