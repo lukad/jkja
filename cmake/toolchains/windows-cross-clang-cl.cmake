@@ -9,11 +9,15 @@
 #
 #   cargo install xwin --version 0.10.0 --locked
 #   xwin --accept-license --cache-dir <a directory outside the working tree> \
-#     --crt-version 14.44.17.14 --sdk-version 10.0.26100 \
+#     --manifest-version 18 --sdk-version 10.0.26100 \
 #     splat --use-winsysroot-style --output "$JASP_WINSYSROOT"
 #
-# MSVC 14.44 is Visual Studio 2022 17.14. CI's Windows runner has since moved to Visual
-# Studio 2026 and MSVC 14.52.
+# Manifest 18 is Visual Studio 2026, whose MSVC is 14.52; with SDK 10.0.26100 that is
+# what CI's Windows runner has. The MSVC version is the manifest's default, so the
+# versions found are checked below, and a directory of others is refused.
+
+set(jasp_msvc_version 14.52)
+set(jasp_sdk_version 10.0.26100)
 
 if(NOT DEFINED ENV{JASP_WINSYSROOT} OR "$ENV{JASP_WINSYSROOT}" STREQUAL "")
   message(FATAL_ERROR
@@ -21,9 +25,12 @@ if(NOT DEFINED ENV{JASP_WINSYSROOT} OR "$ENV{JASP_WINSYSROOT}" STREQUAL "")
     "Windows SDK; cmake/toolchains/windows-cross-clang-cl.cmake says how to fetch them.")
 endif()
 set(jasp_winsysroot "$ENV{JASP_WINSYSROOT}")
-if(NOT IS_DIRECTORY "${jasp_winsysroot}/VC/Tools/MSVC" OR
-   NOT IS_DIRECTORY "${jasp_winsysroot}/Windows Kits/10")
-  message(FATAL_ERROR "JASP_WINSYSROOT does not hold MSVC's libraries and the Windows SDK")
+if(NOT IS_DIRECTORY "${jasp_winsysroot}/VC/Tools/MSVC/${jasp_msvc_version}" OR
+   NOT IS_DIRECTORY "${jasp_winsysroot}/Windows Kits/10/Lib/${jasp_sdk_version}")
+  message(FATAL_ERROR
+    "JASP_WINSYSROOT does not hold MSVC ${jasp_msvc_version} and the Windows SDK "
+    "${jasp_sdk_version}; cmake/toolchains/windows-cross-clang-cl.cmake says how to "
+    "fetch them.")
 endif()
 
 set(CMAKE_SYSTEM_NAME Windows)
@@ -41,15 +48,20 @@ set(jasp_target_flags "--target=x86_64-pc-windows-msvc -winsysroot \"${jasp_wins
 set(CMAKE_C_FLAGS_INIT "${jasp_target_flags}")
 set(CMAKE_CXX_FLAGS_INIT "${jasp_target_flags}")
 
-# xwin names the architecture's library directories x86_64 where Microsoft's layout,
-# which /winsysroot expects, says x64; the linker is given them one by one.
-file(GLOB jasp_msvc_lib LIST_DIRECTORIES true "${jasp_winsysroot}/VC/Tools/MSVC/*/lib/x86_64")
-file(GLOB jasp_sdk_lib LIST_DIRECTORIES true "${jasp_winsysroot}/Windows Kits/10/Lib/*")
-list(LENGTH jasp_msvc_lib jasp_msvc_count)
-list(LENGTH jasp_sdk_lib jasp_sdk_count)
+# /winsysroot takes the newest version it finds, so a directory with more than one is
+# refused: the compiler and the linker would not agree on which.
+file(GLOB jasp_msvc_versions LIST_DIRECTORIES true "${jasp_winsysroot}/VC/Tools/MSVC/*")
+file(GLOB jasp_sdk_versions LIST_DIRECTORIES true "${jasp_winsysroot}/Windows Kits/10/Lib/*")
+list(LENGTH jasp_msvc_versions jasp_msvc_count)
+list(LENGTH jasp_sdk_versions jasp_sdk_count)
 if(NOT jasp_msvc_count EQUAL 1 OR NOT jasp_sdk_count EQUAL 1)
   message(FATAL_ERROR "JASP_WINSYSROOT must hold exactly one MSVC and one SDK version")
 endif()
+
+# xwin names the architecture's library directories x86_64 where Microsoft's layout,
+# which /winsysroot expects, says x64; the linker is given them one by one.
+set(jasp_msvc_lib "${jasp_winsysroot}/VC/Tools/MSVC/${jasp_msvc_version}/lib/x86_64")
+set(jasp_sdk_lib "${jasp_winsysroot}/Windows Kits/10/Lib/${jasp_sdk_version}")
 set(jasp_link_flags
   "/libpath:\"${jasp_msvc_lib}\" /libpath:\"${jasp_sdk_lib}/um/x86_64\" /libpath:\"${jasp_sdk_lib}/ucrt/x86_64\"")
 foreach(kind IN ITEMS EXE SHARED MODULE)
