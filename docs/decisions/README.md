@@ -13,7 +13,7 @@ Architectural decisions for this project, recorded as
 | [0004](0004-build-system-and-toolchain.md) | CMake presets with Ninja, C++20, no IDE project files | accepted |
 | [0005](0005-platform-layer-sdl3.md) | SDL3 as the only platform layer | accepted |
 | [0006](0006-drop-retail-savegame-compatibility.md) | Drop retail savegame compatibility | accepted |
-| [0007](0007-game-data-location.md) | Game data location is run-time configuration | accepted |
+| [0007](0007-game-data-location.md) | Game data location is run-time configuration | superseded by [ADR-0025](0025-game-data-asked-for-once.md) |
 | [0008](0008-renderer-feature-scope.md) | Renderer scope: rasterised HDR, shadows, PBR; no ray tracing | accepted |
 | [0009](0009-graphics-api.md) | Graphics API: SDL3 GPU | accepted |
 | [0010](0010-project-and-binary-names.md) | Project name `jasp`; binaries keep their original names | accepted |
@@ -31,6 +31,7 @@ Architectural decisions for this project, recorded as
 | [0022](0022-windows-cross-build-on-linux.md) | The Windows build is also made on Linux, with clang-cl and MSVC's libraries, and run under Wine | accepted |
 | [0023](0023-continuous-integration-with-build-dependencies.md) | Continuous integration as in ADR-0021, with each platform's build environment set up before the presets run | accepted |
 | [0024](0024-macos-application-bundle.md) | The macOS build is an application bundle, "Jedi Academy.app", for macOS 11 and later, signed ad hoc | accepted |
+| [0025](0025-game-data-asked-for-once.md) | Game data location is run-time configuration; without it, the engine asks once and remembers | accepted |
 
 ## How to add a decision
 

@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: superseded by ADR-0025
 date: 2026-11-23
 decision-makers: Luka Dornhecker
 ---
