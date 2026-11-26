@@ -121,7 +121,11 @@ fill that directory is at the top of `cmake/toolchains/windows-cross-clang-cl.cm
 presets run only in CI.
 
 From M1 the build produces the engine (`jasp`), the game module (`jagame` plus the
-architecture), the unit tests (`tests/`, Catch2) and the repository tools. The smoke
+architecture), the unit tests (`tests/`, Catch2) and the repository tools.
+Started without `fs_basepath`, the engine looks for the game data where an earlier start
+remembered it, then beside the executable, and otherwise asks with a folder dialog,
+except with `sys_headless`
+([ADR-0025](docs/decisions/0025-game-data-asked-for-once.md)). The smoke
 tests are `smoke-load-map` and `smoke-render-map`; `ctest` reports them as skipped unless
 `JKA_GAMEDATA_DIR` is set in the environment, and the second one also where SDL's
 offscreen video driver gets no OpenGL context. Without `+set sys_headless 1` the engine

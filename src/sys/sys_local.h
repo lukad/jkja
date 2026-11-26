@@ -6,6 +6,8 @@
 #include "../game/q_shared.h"
 #include "../qcommon/qcommon.h"
 
+#include <string>
+
 // Adds an event to the queue that Sys_GetEvent drains. A time of 0 means now. ptr is
 // NULL or memory from Z_Malloc that the engine frees.
 void Sys_QueEvent(int time, sysEventType_t type, int value, int value2, int ptrLength, void *ptr);
@@ -13,6 +15,15 @@ void Sys_QueEvent(int time, sysEventType_t type, int value, int value2, int ptrL
 // True when the engine runs without a window, input devices and a sound device: the
 // cvar sys_headless, which is set on the command line.
 bool Sys_Headless(void);
+
+// True if the directory contains base/, the game data.
+bool Sys_HasGameData(const std::string &directory);
+
+// Asks the player, with the platform's folder dialog, for the directory that contains
+// base/ (docs/decisions/0025-game-data-asked-for-once.md). Returns the directory, or an
+// empty string if there is no player to ask or no dialog to ask with. Ends the engine if
+// the player cancels.
+std::string Sys_ChooseGameData(void);
 
 // The window, or NULL while there is none.
 struct SDL_Window;

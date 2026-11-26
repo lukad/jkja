@@ -108,7 +108,7 @@ Things that matter for the port:
 5. **Behaviour stays the same unless a decision says otherwise.** Gameplay code is ported,
    not improved.
 6. **Nothing from the retail game goes into the repository.** Not the data, not paths to
-   it, not screenshots made from it ([ADR-0007](decisions/0007-game-data-location.md)).
+   it, not screenshots made from it ([ADR-0025](decisions/0025-game-data-asked-for-once.md)).
 7. **Every architectural choice has an ADR before it has code.**
 
 ## 4. Target structure
@@ -317,7 +317,11 @@ load for real, the front end runs, and nothing is drawn.
 ### 4.6 Filesystem and game data
 
 - The engine finds the game data through the existing `fs_basepath` cvar, which names the
-  directory that contains `base/`. It is given at run time only.
+  directory that contains `base/`. It is given at run time only. When the command line
+  does not set it, the engine takes the directory remembered from an earlier start, else
+  the directory of the executable if `base/` is there, else asks the player once with the
+  platform's folder dialog and remembers the answer in `gamedata.txt` in the per-user
+  directory. Running headless, it never asks.
 - The game data directory is treated as **read-only**. Configuration, saves and
   screenshots go to the directory named by the cvar `fs_homepath`, which defaults to a
   per-user directory given by the platform layer and is searched before the game data,
@@ -326,7 +330,8 @@ load for real, the front end runs, and nothing is drawn.
   `JKA_GAMEDATA_DIR`. It is never written into a tracked file. Tests that need game data
   are skipped, not failed, when it is unset.
 
-Details in [ADR-0007](decisions/0007-game-data-location.md).
+Details in [ADR-0025](decisions/0025-game-data-asked-for-once.md), which supersedes
+[ADR-0007](decisions/0007-game-data-location.md).
 
 ### 4.7 Audio
 

@@ -130,6 +130,7 @@ add_executable(jasp
   server/sv_snapshot.cpp
   server/sv_world.cpp
   sys/sys_console.cpp
+  sys/sys_dialog.cpp
   sys/sys_files.cpp
   sys/sys_gamepad.cpp
   sys/sys_input.cpp
@@ -160,6 +161,7 @@ jasp_legacy_target(jasp)
 # errors here, because its files include headers of the legacy code.
 set(jasp_sys_sources
   sys/sys_console.cpp
+  sys/sys_dialog.cpp
   sys/sys_files.cpp
   sys/sys_gamepad.cpp
   sys/sys_input.cpp
