@@ -30,6 +30,7 @@ Architectural decisions for this project, recorded as
 | [0021](0021-continuous-integration.md) | Continuous integration runs on GitHub Actions' hosted runners, one job per preset | superseded by [ADR-0023](0023-continuous-integration-with-build-dependencies.md) |
 | [0022](0022-windows-cross-build-on-linux.md) | The Windows build is also made on Linux, with clang-cl and MSVC's libraries, and run under Wine | accepted |
 | [0023](0023-continuous-integration-with-build-dependencies.md) | Continuous integration as in ADR-0021, with each platform's build environment set up before the presets run | accepted |
+| [0024](0024-macos-application-bundle.md) | The macOS build is an application bundle, "Jedi Academy.app", for macOS 11 and later, signed ad hoc | accepted |
 
 ## How to add a decision
 
