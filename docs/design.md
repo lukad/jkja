@@ -170,8 +170,10 @@ configuration, plus a Clang preset and a sanitizer preset on Linux, clang-cl pre
 beside the MSVC ones on Windows, and a preset that builds the Windows programs on Linux
 with clang-cl and runs their tests under Wine
 ([ADR-0022](decisions/0022-windows-cross-build-on-linux.md)); `cmake --list-presets`
-shows the ones usable on the current machine. Visual Studio users open the folder; no
-`.sln` or `.vcxproj` is ever generated into or committed to the tree.
+shows the ones usable on the current machine. On macOS the build also assembles the
+application bundle `Jedi Academy.app`, for macOS 11 and later and signed ad hoc
+([ADR-0024](decisions/0024-macos-application-bundle.md)). Visual Studio users open the
+folder; no `.sln` or `.vcxproj` is ever generated into or committed to the tree.
 
 Warnings: new code (`src/sys`, `src/renderer`, tests) builds with a strict warning set
 treated as errors. Legacy code builds with a smaller set where the dangerous classes

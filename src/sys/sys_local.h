@@ -16,6 +16,10 @@ void Sys_QueEvent(int time, sysEventType_t type, int value, int value2, int ptrL
 // cvar sys_headless, which is set on the command line.
 bool Sys_Headless(void);
 
+// The directory of the executable file, with a separator at the end; empty if it is not
+// known. The game module lies there.
+std::string Sys_ExecutableDirectory(void);
+
 // True if the directory contains base/, the game data.
 bool Sys_HasGameData(const std::string &directory);
 

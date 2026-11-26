@@ -10,6 +10,7 @@
 #include <filesystem>
 #include <fstream>
 #include <string>
+#include <string_view>
 #include <system_error>
 #include <vector>
 
@@ -59,6 +60,26 @@ char *Sys_Cwd(void) {
 	std::error_code error;
 	const std::filesystem::path current = std::filesystem::current_path(error);
 	return StaticPath(cwd, sizeof(cwd), error ? std::string(".") : current.string());
+}
+
+/*
+==============
+Sys_ExecutableDirectory
+==============
+*/
+std::string Sys_ExecutableDirectory(void) {
+	const char *base = SDL_GetBasePath();
+	std::string directory = base ? base : "";
+#if defined(__APPLE__)
+	// Inside an application bundle SDL names Contents/Resources; the executable is in
+	// Contents/MacOS (docs/decisions/0024-macos-application-bundle.md).
+	constexpr std::string_view resources = ".app/Contents/Resources/";
+	if (directory.ends_with(resources)) {
+		directory.replace(directory.size() - std::strlen("Resources/"), std::string::npos,
+		                  "MacOS/");
+	}
+#endif
+	return directory;
 }
 
 /*

@@ -121,7 +121,8 @@ fill that directory is at the top of `cmake/toolchains/windows-cross-clang-cl.cm
 presets run only in CI.
 
 From M1 the build produces the engine (`jasp`), the game module (`jagame` plus the
-architecture), the unit tests (`tests/`, Catch2) and the repository tools.
+architecture), the unit tests (`tests/`, Catch2) and the repository tools; on macOS
+also the application bundle `Jedi Academy.app`, which the test `macos-bundle` checks.
 Started without `fs_basepath`, the engine looks for the game data where an earlier start
 remembered it, then beside the executable, and otherwise asks with a folder dialog,
 except with `sys_headless`

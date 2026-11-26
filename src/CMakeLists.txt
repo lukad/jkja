@@ -357,6 +357,50 @@ jasp_legacy_target(jagame)
 target_compile_definitions(jasp PRIVATE "JASP_GAME_MODULE_FILE=\"$<TARGET_FILE_NAME:jagame>\"")
 add_dependencies(jasp jagame)
 
+# On macOS the engine and the module are also put into an application bundle, which is
+# signed ad hoc (docs/decisions/0024-macos-application-bundle.md). The bare executable
+# beside it is what the tests run.
+if(APPLE)
+  set(jasp_bundle_name "Jedi Academy")
+  set(jasp_bundle_identifier "io.github.lukad.jasp")
+  set(jasp_bundle_executable "jasp")
+  set(jasp_bundle "${CMAKE_BINARY_DIR}/${jasp_bundle_name}.app")
+  configure_file("${PROJECT_SOURCE_DIR}/cmake/Info.plist.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/Info.plist" @ONLY)
+  # The module is signed first: a bundle's signature covers the code in it only once that
+  # code is signed itself.
+  add_custom_command(
+    OUTPUT "${CMAKE_CURRENT_BINARY_DIR}/bundle.stamp"
+    COMMAND "${CMAKE_COMMAND}" -E rm -rf "${jasp_bundle}"
+    COMMAND "${CMAKE_COMMAND}" -E make_directory "${jasp_bundle}/Contents/MacOS"
+    COMMAND "${CMAKE_COMMAND}" -E copy "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
+      "${jasp_bundle}/Contents/Info.plist"
+    COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:jasp>"
+      "${jasp_bundle}/Contents/MacOS/${jasp_bundle_executable}"
+    COMMAND "${CMAKE_COMMAND}" -E copy "$<TARGET_FILE:jagame>"
+      "${jasp_bundle}/Contents/MacOS/$<TARGET_FILE_NAME:jagame>"
+    COMMAND codesign --force --sign - "${jasp_bundle}/Contents/MacOS/$<TARGET_FILE_NAME:jagame>"
+    COMMAND codesign --force --sign - "${jasp_bundle}"
+    COMMAND "${CMAKE_COMMAND}" -E touch "${CMAKE_CURRENT_BINARY_DIR}/bundle.stamp"
+    DEPENDS jasp jagame "${CMAKE_CURRENT_BINARY_DIR}/Info.plist"
+    COMMENT "Assembling and signing ${jasp_bundle_name}.app"
+    VERBATIM
+  )
+  add_custom_target(jasp-bundle ALL DEPENDS "${CMAKE_CURRENT_BINARY_DIR}/bundle.stamp")
+
+  if(BUILD_TESTING)
+    add_test(
+      NAME macos-bundle
+      COMMAND "${CMAKE_COMMAND}"
+        "-DBUNDLE=${jasp_bundle}"
+        "-DEXECUTABLE=${jasp_bundle_executable}"
+        "-DMODULE=$<TARGET_FILE_NAME:jagame>"
+        "-DMINIMUM=${CMAKE_OSX_DEPLOYMENT_TARGET}"
+        -P "${PROJECT_SOURCE_DIR}/cmake/CheckBundle.cmake"
+    )
+  endif()
+endif()
+
 # C++ in files named .c: the vehicle code, which the release shared with the
 # multiplayer game module.
 set_source_files_properties(

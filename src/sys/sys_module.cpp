@@ -26,11 +26,10 @@ void UnloadRetiredModule() {
 	}
 }
 
-// The module lies next to the executable. Its file name comes from the build, because
+// The module lies next to the executable file. Its name comes from the build, because
 // it contains the architecture: jagamex86_64.so, jagamearm64.dylib, jagamex86_64.dll.
 std::string GameModulePath() {
-	const char *directory = SDL_GetBasePath();
-	return std::string(directory ? directory : "") + JASP_GAME_MODULE_FILE;
+	return Sys_ExecutableDirectory() + JASP_GAME_MODULE_FILE;
 }
 
 } // namespace
