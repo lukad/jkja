@@ -782,21 +782,28 @@ macOS and Windows.
 - [x] Decide and record: continuous integration
       ([ADR-0023](decisions/0023-continuous-integration-with-build-dependencies.md), superseding [ADR-0021](decisions/0021-continuous-integration.md))
 - [x] Windows x86-64 build (MSVC and clang-cl, through the same presets)
-- [ ] macOS arm64 build and application bundle
+- [x] macOS arm64 build and application bundle
+      ([ADR-0024](decisions/0024-macos-application-bundle.md))
+- [ ] Game data found without a command line: asked for once and remembered
+      ([ADR-0025](decisions/0025-game-data-asked-for-once.md))
 - [ ] Decide and record: the icon of the window, the executable, the application bundle
       and a Linux desktop entry ([ADR-0020](decisions/0020-window-title-and-icon.md))
 - [x] CI for all three platforms
 
 Exit: the M2 exit criteria hold on Windows and macOS, verified on real machines.
 
-State on 2026-11-25. CI builds every preset of the three platforms, and all eleven jobs
+State on 2026-11-26. CI builds every preset of the three platforms, and all eleven jobs
 pass: the Linux presets with GCC 13.3 and Clang 18.1, the Windows presets with MSVC 19.52
 and Visual Studio's clang-cl 22.1, the macOS presets with Apple Clang 17.0. There,
 without game data, the tests are the repository checks, the tools' self-test and the
-unit tests; the smoke tests are skipped. The Windows build made on Linux with clang-cl
-([ADR-0022](decisions/0022-windows-cross-build-on-linux.md)) runs its tests under Wine,
-and with the game data the smoke test that loads `yavin1b` passes there. Neither the
-Windows nor the macOS build has run on a real machine, and neither has opened a window.
+unit tests, and on macOS the check of `Jedi Academy.app`: its layout, its signature and
+macOS 11 as the minimum version; the smoke tests are skipped. The Windows build made on
+Linux with clang-cl ([ADR-0022](decisions/0022-windows-cross-build-on-linux.md)) runs its
+tests under Wine, and with the game data the smoke test that loads `yavin1b` passes there.
+Neither the Windows nor the macOS build has run on a real machine, and neither has opened
+a window.
+The search for the game data was checked on Linux with headless runs; its dialog has not
+yet been shown on any platform.
 
 ### M4. Renderer boundary
 
